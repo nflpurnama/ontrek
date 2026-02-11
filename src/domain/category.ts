@@ -1,6 +1,6 @@
 import { EntityMetadata } from "./entity-metadata";
 
-class Category {
+export class Category {
   private constructor(
     private _name: string,
     private readonly _metadata: EntityMetadata,
@@ -8,7 +8,9 @@ class Category {
 
   static create(params: { name: string }) {
     return new Category(
-        Category.formatName(params.name), EntityMetadata.create());
+      Category.formatName(params.name),
+      EntityMetadata.create(),
+    );
   }
 
   static rehydrate(params: {
@@ -27,10 +29,11 @@ class Category {
     );
   }
 
-  private static formatName(name: string){
+  private static formatName(name: string) {
     const trimmed = name.trim();
+
     if (!trimmed) {
-      throw Error("Category name cannot be empty.");
+      throw new Error("Category name cannot be empty.");
     }
 
     return trimmed;
