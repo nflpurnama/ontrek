@@ -1,1 +1,4 @@
-export type TransactionType = 'income' | 'expense';
+export enum TransactionTypes{
+    EXPENSE = 'expense',
+    INCOME = 'income'
+}
