@@ -20,7 +20,7 @@ export class Category {
     updatedAt: Date;
   }) {
     return new Category(
-      params.name,
+      this.formatName(params.name),
       EntityMetadata.rehydrate({
         id: params.id,
         createdAt: params.createdAt,
