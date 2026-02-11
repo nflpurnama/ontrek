@@ -5,6 +5,18 @@ export class EntityMetadata {
     protected _updatedAt: Date,
   ) {}
 
+  static create(): EntityMetadata {
+    return new EntityMetadata(
+      EntityMetadata.generateUUID(),
+      EntityMetadata.generateNow(),
+      EntityMetadata.generateNow(),
+    );
+  }
+
+  static rehydrate(params: { id: string; createdAt: Date; updatedAt: Date }) {
+    return new EntityMetadata(params.id, params.createdAt, params.updatedAt);
+  }
+
   get id() {
     return this._id;
   }
@@ -27,17 +39,5 @@ export class EntityMetadata {
 
   touch() {
     this._updatedAt = EntityMetadata.generateNow();
-  }
-
-  static create(): EntityMetadata {
-    return new EntityMetadata(
-      EntityMetadata.generateUUID(),
-      EntityMetadata.generateNow(),
-      EntityMetadata.generateNow(),
-    );
-  }
-
-  static rehydrate(params: { id: string; createdAt: Date; updatedAt: Date }) {
-    return new EntityMetadata(params.id, params.createdAt, params.updatedAt);
   }
 }
