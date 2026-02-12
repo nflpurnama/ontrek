@@ -136,7 +136,7 @@ export class Transaction {
   }
 
   get signedAmount(): number {
-    return this._type === TransactionType.EXPENSE
+    return this._type === TransactionType.DEBIT
       ? -this._amount
       : this._amount;
   }
