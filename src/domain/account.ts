@@ -25,6 +25,10 @@ export class Account {
     );
   }
 
+  static createDefault() {
+    return Account.create({name: "Default Account", balance: 0});
+  }
+
   static rehydrate(params: {
     id: string;
     createdAt: Date;
