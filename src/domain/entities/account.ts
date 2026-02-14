@@ -1,4 +1,4 @@
-import { EntityMetadata } from "./entity-metadata";
+import { EntityMetadata } from "../value-objects/entity-metadata";
 
 export class Account {
   private constructor(
@@ -26,7 +26,7 @@ export class Account {
   }
 
   static createDefault() {
-    return Account.create({name: "Default Account", balance: 0});
+    return Account.create({ name: "Default Account", balance: 0 });
   }
 
   static rehydrate(params: {

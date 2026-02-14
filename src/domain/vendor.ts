@@ -1,4 +1,4 @@
-import { EntityMetadata } from "./entity-metadata";
+import { EntityMetadata } from "./value-objects/entity-metadata";
 
 export class Vendor {
   private constructor(
@@ -33,7 +33,11 @@ export class Vendor {
     defaultCategoryId?: string;
   }) {
     return new Vendor(
-      EntityMetadata.rehydrate({id: params.id, createdAt: params.createdAt, updatedAt: params.updatedAt}),
+      EntityMetadata.rehydrate({
+        id: params.id,
+        createdAt: params.createdAt,
+        updatedAt: params.updatedAt,
+      }),
       Vendor.formatName(params.name),
       params.defaultCategoryId,
     );
