@@ -2,25 +2,21 @@ import { Text, View, ActivityIndicator, StyleSheet } from "react-native";
 import { useSQLiteContext } from "expo-sqlite";
 import React, { useEffect, useState } from "react";
 import { SqliteAccountRepository } from "@/src/infrastructure/repository/sqlite/account-repository";
+import { createDependencies } from "@/src/infrastructure/container/dependency-container";
+import { useDependencies } from "@/src/application/providers/dependency-provider";
 
 export default function Index() {
-  const db = useSQLiteContext();
+  const { getDashboardUseCase } = useDependencies();
   const [balance, setBalance] = useState<number | null>(null);
 
   useEffect(() => {
-    const loadBalance = async () => {
-      const repo = new SqliteAccountRepository(db);
-      const accounts = await repo.getAll();
-
-      if (accounts.length > 0) {
-        setBalance(accounts[0].balance);
-      } else {
-        setBalance(0);
-      }
+    const load = async () => {
+      const { currentBalance } = await getDashboardUseCase.execute();
+      setBalance(currentBalance);
     };
 
-    loadBalance();
-  }, [db]);
+    load();
+  }, []);
 
   if (balance === null) {
     return (
