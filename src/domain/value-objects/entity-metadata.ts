@@ -1,20 +1,26 @@
+import { Id } from "./id";
+
 export class EntityMetadata {
   private constructor(
-    protected readonly _id: string,
+    protected readonly _id: Id,
     protected readonly _createdAt: Date,
     protected _updatedAt: Date,
   ) {}
 
   static create(): EntityMetadata {
     return new EntityMetadata(
-      EntityMetadata.generateUUID(),
+      Id.create(),
       EntityMetadata.generateNow(),
       EntityMetadata.generateNow(),
     );
   }
 
   static rehydrate(params: { id: string; createdAt: Date; updatedAt: Date }) {
-    return new EntityMetadata(params.id, params.createdAt, params.updatedAt);
+    return new EntityMetadata(
+      Id.rehydrate(params.id),
+      params.createdAt,
+      params.updatedAt,
+    );
   }
 
   get id() {
@@ -31,10 +37,6 @@ export class EntityMetadata {
 
   static generateNow() {
     return new Date();
-  }
-
-  static generateUUID() {
-    return crypto.randomUUID();
   }
 
   touch() {

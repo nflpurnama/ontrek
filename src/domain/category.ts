@@ -1,4 +1,4 @@
-import { EntityMetadata } from "./entity-metadata";
+import { EntityMetadata } from "./value-objects/entity-metadata";
 
 export class Category {
   private constructor(

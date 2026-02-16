@@ -1,5 +1,5 @@
-import { EntityMetadata } from "./entity-metadata";
 import { TransactionType } from "./transaction-type";
+import { EntityMetadata } from "./value-objects/entity-metadata";
 
 export class Transaction {
   private constructor(
@@ -136,9 +136,7 @@ export class Transaction {
   }
 
   get signedAmount(): number {
-    return this._type === TransactionType.DEBIT
-      ? -this._amount
-      : this._amount;
+    return this._type === TransactionType.DEBIT ? -this._amount : this._amount;
   }
 
   updateAmount(newAmount: number) {
