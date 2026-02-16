@@ -1,8 +1,5 @@
 import { Text, View, ActivityIndicator, StyleSheet } from "react-native";
-import { useSQLiteContext } from "expo-sqlite";
 import React, { useEffect, useState } from "react";
-import { SqliteAccountRepository } from "@/src/infrastructure/repository/sqlite/account-repository";
-import { createDependencies } from "@/src/infrastructure/container/dependency-container";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 
 export default function Index() {
