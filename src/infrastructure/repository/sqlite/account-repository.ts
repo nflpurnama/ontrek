@@ -5,7 +5,7 @@ import { SqliteAccount } from "../../database/sqlite/schema/accounts";
 import * as SQLite from "expo-sqlite";
 
 export class SqliteAccountRepository implements AccountRepository {
-  constructor(private readonly _db: SQLite.SQLiteDatabase) {}
+  constructor(private readonly db: SQLite.SQLiteDatabase) {}
 
   private formatRow(row: SqliteAccount): Account {
     return Account.rehydrate({
@@ -18,7 +18,7 @@ export class SqliteAccountRepository implements AccountRepository {
   }
 
   async getAll(): Promise<Account[]> {
-    const result: SqliteAccount[] = await this._db.getAllAsync<any>(
+    const result: SqliteAccount[] = await this.db.getAllAsync<any>(
       `SELECT * FROM accounts`
     );
 
@@ -31,7 +31,7 @@ export class SqliteAccountRepository implements AccountRepository {
     const placeholders = ids.map(() => "?").join(",");
     const values = ids.map((id) => id.getValue());
 
-    const result: SqliteAccount[] = await this._db.getAllAsync<any>(
+    const result: SqliteAccount[] = await this.db.getAllAsync<any>(
       `SELECT * FROM accounts WHERE id IN (${placeholders})`,
       values,
     );
@@ -42,7 +42,7 @@ export class SqliteAccountRepository implements AccountRepository {
   }
 
   async save(account: Account): Promise<Id> {
-    await this._db.runAsync(
+    await this.db.runAsync(
       `
       INSERT INTO accounts 
       (id, name, balance, created_at, updated_at)
@@ -61,7 +61,7 @@ export class SqliteAccountRepository implements AccountRepository {
   }
 
   async update(account: Account): Promise<Id> {
-    const result = await this._db.runAsync(
+    const result = await this.db.runAsync(
       `
     UPDATE accounts
     SET
@@ -88,7 +88,7 @@ export class SqliteAccountRepository implements AccountRepository {
   }
 
   async delete(id: Id): Promise<void> {
-    const result = await this._db.runAsync(
+    const result = await this.db.runAsync(
       `DELETE FROM accounts WHERE id = ?`,
       [id.getValue()],
     );
