@@ -1,3 +1,5 @@
+import { randomUUID } from 'expo-crypto'
+
 export class Id {
   private constructor(private readonly value: string) {}
 
@@ -18,7 +20,7 @@ export class Id {
   }
 
   public static create(): Id {
-    return new Id(crypto.randomUUID());
+    return new Id(randomUUID());
   }
 
   public getValue(): string {
