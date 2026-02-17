@@ -5,17 +5,24 @@ import { GetDashboardUseCase } from "@/src/application/use-case/account/get-dash
 import { EnsureDefaultAccountUseCase } from "@/src/application/use-case/account/ensure-default-account";
 import { initializeDatabase } from "../database/sqlite/init";
 import { SqliteAccountRepository } from "../repository/sqlite/account-repository";
+import { CreateTransactionUseCase } from "@/src/application/use-case/transaction/create-transaction";
+import { SqliteTransactionRepository } from "../repository/sqlite/transaction-repository";
 
 export async function createDependencies(): Promise<Dependencies> {
   const db = await SQLite.openDatabaseAsync(SQLITE_DB_NAME);
   await initializeDatabase(db);
 
   const accountRepository = new SqliteAccountRepository(db);
-  const getDashboardUseCase = new GetDashboardUseCase(accountRepository);
+  const transactionRepository = new SqliteTransactionRepository(db);
+  
   const ensureDefaultAccountUseCase = new EnsureDefaultAccountUseCase(accountRepository);
   await ensureDefaultAccountUseCase.execute();
+  
+  const getDashboardUseCase = new GetDashboardUseCase(accountRepository);
+  const createTransactionUseCase = new CreateTransactionUseCase(transactionRepository)
 
   return {
-    getDashboardUseCase
+    getDashboardUseCase,
+    createTransactionUseCase
   };
 }
