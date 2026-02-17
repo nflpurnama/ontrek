@@ -1,5 +1,5 @@
-import { TransactionType } from "./transaction-type";
-import { EntityMetadata } from "./value-objects/entity-metadata";
+import { TransactionType } from "../transaction-type";
+import { EntityMetadata } from "../value-objects/entity-metadata";
 
 export class Transaction {
   private constructor(
