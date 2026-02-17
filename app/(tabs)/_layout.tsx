@@ -1,63 +1,115 @@
 import { Tabs } from "expo-router";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+// import { BlurView } from "expo-blur";
 
 export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#2563EB",
-        tabBarInactiveTintColor: "#9CA3AF",
-        tabBarStyle: {
-          height: 65,
-          paddingBottom: 8,
-          paddingTop: 8,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: "600",
-        },
       }}
+      tabBar={(props) => <FloatingTabBar {...props} />}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Dashboard",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="transactions"
-        options={{
-          title: "Transactions",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="list" size={size} color={color} />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="add"
-        options={{
-          title: "Add",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="add-circle" size={size} color={color} />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="accounts"
-        options={{
-          title: "Accounts",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="wallet" size={size} color={color} />
-          ),
-        }}
-      />
+      <Tabs.Screen name="index" options={{ title: "Dashboard" }} />
+      <Tabs.Screen name="transactions" options={{ title: "Transactions" }} />
+      <Tabs.Screen name="add" options={{ title: "Add" }} />
+      <Tabs.Screen name="accounts" options={{ title: "Accounts" }} />
     </Tabs>
   );
 }
+
+function FloatingTabBar({ state, descriptors, navigation }: any) {
+const insets = useSafeAreaInsets(); 
+  return (
+    <View style={[styles.wrapper, {bottom: insets.bottom + 15}]}>
+      <View style={styles.container}>
+        {state.routes.map((route: any, index: number) => {
+          const isFocused = state.index === index;
+          const { options } = descriptors[route.key];
+
+          const onPress = () => {
+            navigation.navigate(route.name);
+          };
+
+          // Center button (Add)
+          if (route.name === "add") {
+            return (
+              <TouchableOpacity
+                key={route.key}
+                style={styles.floatingButton}
+                onPress={onPress}
+              >
+                <Ionicons name="add" size={28} color="#fff" />
+              </TouchableOpacity>
+            );
+          }
+
+          const iconName =
+            route.name === "index"
+              ? "home"
+              : route.name === "transactions"
+              ? "list"
+              : "wallet";
+
+          return (
+            <TouchableOpacity
+              key={route.key}
+              onPress={onPress}
+              style={styles.tabItem}
+            >
+              <Ionicons
+                name={iconName as any}
+                size={22}
+                color={isFocused ? "#2563EB" : "#9CA3AF"}
+              />
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  wrapper: {
+    position: "absolute",
+    bottom: 25,
+    left: 20,
+    right: 20,
+  },
+  container: {
+    flexDirection: "row",
+    height: 65,
+    borderRadius: 30,
+    justifyContent: "space-around",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.9)",
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 5 },
+  },
+  tabItem: {
+    flex: 1,
+    alignItems: "center",
+  },
+  floatingButton: {
+    position: "absolute",
+    top: -25,
+    alignSelf: "center",
+    backgroundColor: "#2563EB",
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 15,
+    shadowColor: "#2563EB",
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 5 },
+  },
+});
