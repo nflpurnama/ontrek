@@ -1,6 +1,8 @@
 import { View } from "react-native"
 
-export default function AccountPage(){
+export default function AddPage(){
+    
+    
     return (
         <View></View>
     )

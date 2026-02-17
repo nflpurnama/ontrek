@@ -1,8 +1,7 @@
 import { Tabs } from "expo-router";
-import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-// import { BlurView } from "expo-blur";
 
 export default function TabsLayout() {
   return (
@@ -14,44 +13,33 @@ export default function TabsLayout() {
     >
       <Tabs.Screen name="index" options={{ title: "Dashboard" }} />
       <Tabs.Screen name="transactions" options={{ title: "Transactions" }} />
-      <Tabs.Screen name="add" options={{ title: "Add" }} />
       <Tabs.Screen name="accounts" options={{ title: "Accounts" }} />
+      <Tabs.Screen name="add" options={{ title: "Add" }} />
     </Tabs>
   );
 }
 
 function FloatingTabBar({ state, descriptors, navigation }: any) {
 const insets = useSafeAreaInsets(); 
-  return (
+  
+return (
     <View style={[styles.wrapper, {bottom: insets.bottom + 15}]}>
       <View style={styles.container}>
         {state.routes.map((route: any, index: number) => {
           const isFocused = state.index === index;
-          const { options } = descriptors[route.key];
+        //   const { options } = descriptors[route.key];
 
           const onPress = () => {
             navigation.navigate(route.name);
           };
-
-          // Center button (Add)
-          if (route.name === "add") {
-            return (
-              <TouchableOpacity
-                key={route.key}
-                style={styles.floatingButton}
-                onPress={onPress}
-              >
-                <Ionicons name="add" size={28} color="#fff" />
-              </TouchableOpacity>
-            );
-          }
 
           const iconName =
             route.name === "index"
               ? "home"
               : route.name === "transactions"
               ? "list"
-              : "wallet";
+              : route.name === "accounts"
+              ? "wallet" : "add";
 
           return (
             <TouchableOpacity
@@ -64,6 +52,7 @@ const insets = useSafeAreaInsets();
                 size={22}
                 color={isFocused ? "#2563EB" : "#9CA3AF"}
               />
+              {/* <Text>{label}</Text> */}
             </TouchableOpacity>
           );
         })}
@@ -79,6 +68,7 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
   },
+
   container: {
     flexDirection: "row",
     height: 65,
@@ -92,10 +82,12 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 5 },
   },
+
   tabItem: {
     flex: 1,
     alignItems: "center",
   },
+
   floatingButton: {
     position: "absolute",
     top: -25,
@@ -112,4 +104,5 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 5 },
   },
+
 });
