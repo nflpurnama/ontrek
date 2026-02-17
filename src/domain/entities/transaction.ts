@@ -1,14 +1,14 @@
-import { TransactionType } from "../transaction-type";
+import { TransactionType } from "../constants/transaction-type";
 import { EntityMetadata } from "../value-objects/entity-metadata";
 
 export class Transaction {
   private constructor(
     private readonly _metadata: EntityMetadata,
-    private _vendorId: string,
-    private _categoryId: string,
     private _transactionDate: Date,
     private _type: TransactionType,
     private _amount: number,
+    private _vendorId?: string,
+    private _categoryId?: string,
     private _description?: string,
   ) {}
 
@@ -20,13 +20,13 @@ export class Transaction {
     return amount;
   }
 
-  private static validateVendorId(id: string) {
-    return this.validateId(id, "Transaction vendor cannot be empty.");
-  }
+  // private static validateVendorId(id: string) {
+  //   return this.validateId(id, "Transaction vendor cannot be empty.");
+  // }
 
-  private static validateCategoryId(id: string) {
-    return this.validateId(id, "Transaction category cannot be empty.");
-  }
+  // private static validateCategoryId(id: string) {
+  //   return this.validateId(id, "Transaction category cannot be empty.");
+  // }
 
   private static validateId(id: string, errorMessage: string) {
     const trimmed = this.formatId(id);
@@ -42,8 +42,8 @@ export class Transaction {
   }
 
   static create(params: {
-    vendorId: string;
-    categoryId: string;
+    vendorId?: string;
+    categoryId?: string;
     transactionDate: Date;
     type: TransactionType;
     amount: number;
@@ -51,11 +51,11 @@ export class Transaction {
   }) {
     return new Transaction(
       EntityMetadata.create(),
-      this.validateVendorId(params.vendorId),
-      this.validateCategoryId(params.categoryId),
       params.transactionDate,
       params.type,
       Transaction.validateAmount(params.amount),
+      params.vendorId,
+      params.categoryId,
       params.description,
     );
   }
@@ -77,11 +77,11 @@ export class Transaction {
         createdAt: params.createdAt,
         updatedAt: params.updatedAt,
       }),
-      this.validateVendorId(params.vendorId),
-      this.validateCategoryId(params.categoryId),
       params.transactionDate,
       params.type,
       params.amount,
+      params.vendorId,
+      params.categoryId,
       params.description,
     );
   }
@@ -100,7 +100,7 @@ export class Transaction {
   }
 
   updateVendor(newVendorId: string) {
-    this._vendorId = Transaction.validateVendorId(newVendorId);
+    this._vendorId = newVendorId;
     this._metadata.touch();
   }
 
@@ -109,7 +109,7 @@ export class Transaction {
   }
 
   updateCategory(newCategoryId: string) {
-    this._categoryId = Transaction.validateCategoryId(newCategoryId);
+    this._categoryId = newCategoryId;
     this._metadata.touch();
   }
 
