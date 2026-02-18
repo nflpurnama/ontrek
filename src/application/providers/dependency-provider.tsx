@@ -1,10 +1,12 @@
 import React from "react";
 import { GetDashboardUseCase } from "../use-case/account/get-dashboard.usecase";
 import { CreateTransactionUseCase } from "../use-case/transaction/create-transaction";
+import { ViewTransactionsUseCase } from "../use-case/transaction/view-transaction";
 
 export interface Dependencies {
     getDashboardUseCase: GetDashboardUseCase;
-    createTransactionUseCase: CreateTransactionUseCase
+    createTransactionUseCase: CreateTransactionUseCase;
+    viewTransactionsUseCase: ViewTransactionsUseCase; 
 }
 
 export const DependencyContext = React.createContext<Dependencies | null>(null);
