@@ -1,6 +1,9 @@
 import { parseTransactionType } from "@/src/domain/constants/transaction-type";
 import { Transaction } from "@/src/domain/entities/transaction";
-import { TransactionRepository } from "@/src/domain/repository/transaction-repository";
+import {
+  TransactionFilter,
+  TransactionRepository,
+} from "@/src/domain/repository/transaction-repository";
 import { Id } from "@/src/domain/value-objects/id";
 import * as SQLite from "expo-sqlite";
 import { SqliteTransaction } from "../../database/sqlite/schema/transaction";
@@ -22,14 +25,41 @@ export class SqliteTransactionRepository implements TransactionRepository {
     return result.map((row) => this.formatRow(row));
   }
 
-  async getAllTransactions(): Promise<Transaction[]> {
-    const result: SqliteTransaction[] = await this.db.getAllAsync<any>(
-      `SELECT * FROM transactions`,
-    );
+  async findTransactions(filter: TransactionFilter): Promise<Transaction[]> {
+    let query = `SELECT * FROM transactions`;
+    const conditions: string[] = [];
+    const values: any[] = [];
 
-    if (!result) return [];
+    if (filter?.categoryId) {
+      conditions.push(`category_id = ?`);
+      values.push(filter.categoryId);
+    }
 
-    return result.map((row) => this.formatRow(row));
+    if (filter?.vendorId) {
+      conditions.push(`vendor_id = ?`);
+      values.push(filter.vendorId);
+    }
+
+    if (filter?.transactionType) {
+      conditions.push(`transaction_type = ?`);
+      values.push(filter.transactionType);
+    }
+
+    if (filter?.startDate && filter?.endDate) {
+      conditions.push(`transaction_date BETWEEN ? AND ?`);
+      values.push(filter.startDate.toISOString());
+      values.push(filter.endDate.toISOString());
+    }
+
+    if (conditions.length > 0) {
+      query += ` WHERE ` + conditions.join(" AND ");
+    }
+
+    query += ` ORDER BY transaction_date DESC`;
+
+    const rows = await this.db.getAllAsync<any>(query, values);
+
+    return rows.map(this.formatRow);
   }
 
   async saveTransaction(transaction: Transaction): Promise<Id> {
@@ -120,14 +150,14 @@ export class SqliteTransactionRepository implements TransactionRepository {
   private formatObject(obj: Transaction): SqliteTransaction {
     return {
       amount: obj.amount,
-      category_id: obj.categoryId || '',
+      category_id: obj.categoryId || "",
       created_at: obj.createdAt.toISOString(),
       description: obj.description,
       id: obj.id.getValue(),
       transaction_date: obj.transactionDate.toDateString(),
       transaction_type: obj.type,
       updated_at: obj.updatedAt.toISOString(),
-      vendor_id: obj.vendorId || '',
+      vendor_id: obj.vendorId || "",
     };
   }
 }
