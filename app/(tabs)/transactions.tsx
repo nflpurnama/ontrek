@@ -11,9 +11,12 @@ import { useFocusEffect } from "expo-router";
 import { Transaction } from "@/src/domain/entities/transaction";
 import { TransactionType } from "@/src/domain/constants/transaction-type";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
+import { Ionicons } from "@expo/vector-icons";
+import { Id } from "@/src/domain/value-objects/id";
 
 export default function TransactionsPage() {
-  const { viewTransactionsUseCase } = useDependencies();
+  const { viewTransactionsUseCase, deleteTransactionUseCase } =
+    useDependencies();
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,14 +26,19 @@ export default function TransactionsPage() {
     // type: TransactionType.DEBIT,
   };
 
-  useFocusEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      const result = await viewTransactionsUseCase.execute(filter);
-      setTransactions(result);
-      setLoading(false);
-    };
+  const load = async () => {
+    setLoading(true);
+    const result = await viewTransactionsUseCase.execute(filter);
+    setTransactions(result);
+    setLoading(false);
+  };
 
+  const handleDelete = async (id: Id) => {
+    await deleteTransactionUseCase.execute({ id: id });
+    load();
+  };
+
+  useFocusEffect(() => {
     load();
   });
 
@@ -71,6 +79,10 @@ export default function TransactionsPage() {
             <Text style={styles.date}>
               {item.transactionDate.toLocaleDateString()}
             </Text>
+
+            <TouchableOpacity onPress={() => handleDelete(item.id)}>
+              <Ionicons name="trash"></Ionicons>
+            </TouchableOpacity>
           </View>
         )}
       />
