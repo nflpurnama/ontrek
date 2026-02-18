@@ -1,19 +1,21 @@
 import { Text, View, ActivityIndicator, StyleSheet } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useFocusEffect } from "expo-router";
+
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 
 export default function Index() {
   const { getDashboardUseCase } = useDependencies();
   const [balance, setBalance] = useState<number | null>(null);
 
-  useEffect(() => {
+  useFocusEffect(() => {
     const load = async () => {
       const { currentBalance } = await getDashboardUseCase.execute();
       setBalance(currentBalance);
     };
 
     load();
-  }, []);
+  });
 
   if (balance === null) {
     return (
