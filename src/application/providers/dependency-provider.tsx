@@ -2,10 +2,12 @@ import React from "react";
 import { GetDashboardUseCase } from "../use-case/account/get-dashboard.usecase";
 import { CreateTransactionUseCase } from "../use-case/transaction/create-transaction";
 import { ViewTransactionsUseCase } from "../use-case/transaction/view-transaction";
+import { DeleteTransactionUseCase } from "../use-case/transaction/delete-transaction";
 
 export interface Dependencies {
     getDashboardUseCase: GetDashboardUseCase;
     createTransactionUseCase: CreateTransactionUseCase;
+    deleteTransactionUseCase: DeleteTransactionUseCase;
     viewTransactionsUseCase: ViewTransactionsUseCase; 
 }
 
