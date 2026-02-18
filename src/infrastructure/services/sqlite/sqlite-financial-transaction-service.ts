@@ -2,32 +2,26 @@ import { TransactionType } from "@/src/domain/constants/transaction-type";
 import { Transaction } from "@/src/domain/entities/transaction";
 import { AccountRepository } from "@/src/domain/repository/account-repository";
 import { TransactionRepository } from "@/src/domain/repository/transaction-repository";
-import { FinancialTransactionService } from "@/src/domain/services/financial-transaction-service";
-import { Id } from "@/src/domain/value-objects/id";
+import {
+  CreateTransactionParams,
+  FinancialTransactionService,
+} from "@/src/domain/services/financial-transaction-service";
 import { SqliteTransaction } from "../../database/sqlite/sqlite-transaction";
 
-
-export class SqliteFinancialTransactionService implements FinancialTransactionService{
-    constructor(
+export class SqliteFinancialTransactionService implements FinancialTransactionService {
+  constructor(
     private readonly databaseTransaction: SqliteTransaction,
     private readonly accountRepository: AccountRepository,
-    private readonly transactionRepository: TransactionRepository
+    private readonly transactionRepository: TransactionRepository,
   ) {}
 
-  async createTransaction(params: {
-    transactionDate: Date;
-    type: TransactionType;
-    amount: number;
-    vendorId?: string;
-    categoryId?: string;
-    description?: string;
-  }) {
+  async createTransaction(params: CreateTransactionParams): Promise<void> {
     await this.databaseTransaction.runInTransaction(async () => {
       const accounts = await this.accountRepository.getAll();
       if (!accounts.length) {
         throw new Error("Account not found");
       }
-      const account = accounts[0]
+      const account = accounts[0];
 
       const transaction = Transaction.create(params);
 

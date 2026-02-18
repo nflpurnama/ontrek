@@ -7,6 +7,9 @@ import { initializeDatabase } from "../database/sqlite/init";
 import { SqliteAccountRepository } from "../repository/sqlite/account-repository";
 import { CreateTransactionUseCase } from "@/src/application/use-case/transaction/create-transaction";
 import { SqliteTransactionRepository } from "../repository/sqlite/transaction-repository";
+import { ViewTransactionsUseCase } from "@/src/application/use-case/transaction/view-transaction";
+import { SqliteFinancialTransactionService } from "../services/sqlite/sqlite-financial-transaction-service";
+import { SqliteTransaction } from "../database/sqlite/sqlite-transaction";
 
 export async function createDependencies(): Promise<Dependencies> {
   const db = await SQLite.openDatabaseAsync(SQLITE_DB_NAME);
@@ -19,10 +22,16 @@ export async function createDependencies(): Promise<Dependencies> {
   await ensureDefaultAccountUseCase.execute();
   
   const getDashboardUseCase = new GetDashboardUseCase(accountRepository);
-  const createTransactionUseCase = new CreateTransactionUseCase(transactionRepository)
+
+  const sqliteTransaction = new SqliteTransaction(db);
+  const financialTransactionService = new SqliteFinancialTransactionService(sqliteTransaction, accountRepository, transactionRepository)
+  const createTransactionUseCase = new CreateTransactionUseCase(financialTransactionService);
+  
+  const viewTransactionsUseCase = new ViewTransactionsUseCase(transactionRepository);
 
   return {
     getDashboardUseCase,
-    createTransactionUseCase
+    createTransactionUseCase,
+    viewTransactionsUseCase
   };
 }
