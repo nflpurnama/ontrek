@@ -3,13 +3,15 @@ import { GetDashboardUseCase } from "../use-case/account/get-dashboard.usecase";
 import { CreateTransactionUseCase } from "../use-case/transaction/create-transaction";
 import { ViewTransactionsUseCase } from "../use-case/transaction/view-transaction";
 import { DeleteTransactionUseCase } from "../use-case/transaction/delete-transaction";
+import { CreateVendorUseCase } from "../use-case/vendor/create-vendor";
 
 export interface Dependencies {
     getDashboardUseCase: GetDashboardUseCase;
     createTransactionUseCase: CreateTransactionUseCase;
     deleteTransactionUseCase: DeleteTransactionUseCase;
-    viewTransactionsUseCase: ViewTransactionsUseCase; 
-}
+    viewTransactionsUseCase: ViewTransactionsUseCase;
+    createVendorUseCase: CreateVendorUseCase;
+  }
 
 export const DependencyContext = React.createContext<Dependencies | null>(null);
 
