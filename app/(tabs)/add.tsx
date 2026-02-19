@@ -6,11 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { TransactionType } from "@/src/domain/constants/transaction-type";
+import { formatCurrency, parseCurrency } from "@/src/presentation/utility/formatter/currency";
 
 export default function AddTransactionScreen() {
   const { createTransactionUseCase } = useDependencies();
@@ -31,11 +31,10 @@ export default function AddTransactionScreen() {
         // categoryId: "default-category-id",  // replace later
         transactionDate: new Date(),
         type,
-        amount: Number(amount),
+        amount: Number(parseCurrency(amount)),
         description,
       });
 
-      Alert.alert("Success", "Transaction added");
       setAmount("");
       setDescription("");
     } catch (err: any) {
@@ -44,57 +43,81 @@ export default function AddTransactionScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <Text style={styles.title}>Add Transaction</Text>
+    <SafeAreaView style={styles.container}>
+      <View>
+        <Text style={styles.title}>Add Transaction</Text>
 
-      <View style={styles.typeRow}>
-        <TouchableOpacity
-          style={[
-            styles.typeButton,
-            type === TransactionType.DEBIT && styles.activeExpense,
-          ]}
-          onPress={() => setType(TransactionType.DEBIT)}
-        >
-          <Text style={styles.typeText}>Expense</Text>
-        </TouchableOpacity>
+        <AmountInput amount={amount} setAmount={setAmount}/>
 
-        <TouchableOpacity
-          style={[
-            styles.typeButton,
-            type === TransactionType.CREDIT && styles.activeIncome,
-          ]}
-          onPress={() => setType(TransactionType.CREDIT)}
-        >
-          <Text style={styles.typeText}>Income</Text>
+        <View style={styles.typeRow}>
+          <TouchableOpacity
+            style={[
+              styles.typeButton,
+              type === TransactionType.DEBIT && styles.activeExpense,
+            ]}
+            onPress={() => setType(TransactionType.DEBIT)}
+          >
+            <Text style={styles.typeText}>Expense</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.typeButton,
+              type === TransactionType.CREDIT && styles.activeIncome,
+            ]}
+            onPress={() => setType(TransactionType.CREDIT)}
+          >
+            <Text style={styles.typeText}>Income</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TextInput
+          placeholder="Description"
+          value={description}
+          onChangeText={setDescription}
+          style={styles.input}
+        />
+
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          <Text style={styles.submitText}>Save Transaction</Text>
         </TouchableOpacity>
       </View>
+    </SafeAreaView>
+  );
+}
 
+function AmountInput({amount, setAmount}: {amount: string, setAmount: (input: string) => void}) {
+  const handleChange = (amount: string) => {
+    const formattedAmount = formatCurrency(amount)
+    setAmount(formattedAmount);
+  }
+  
+  return (
+    <View style={styles.amountContainer}>
+      <Text>Rp</Text>
       <TextInput
-        placeholder="Amount"
+        style={styles.amountInput}
+        placeholder="0"
         keyboardType="numeric"
+        onChangeText={handleChange}
         value={amount}
-        onChangeText={setAmount}
-        style={styles.input}
+        autoFocus
       />
-
-      <TextInput
-        placeholder="Description"
-        value={description}
-        onChangeText={setDescription}
-        style={styles.input}
-      />
-
-      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-        <Text style={styles.submitText}>Save Transaction</Text>
-      </TouchableOpacity>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  amountContainer: {
+    marginVertical: 24,
+  },
+  amountInput: {
+    fontSize: 42,
+    fontWeight: "800",
+    textAlign: "right",
+    borderWidth: 0,
+    paddingVertical: 8,
+  },
   container: {
     flex: 1,
     padding: 24,
