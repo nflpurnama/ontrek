@@ -5,9 +5,9 @@ export interface CreateTransactionParams {
   transactionDate: Date;
   type: TransactionType;
   amount: number;
-  vendorId?: string;
-  categoryId?: string;
-  description?: string;
+  vendorId: string | null;
+  categoryId: string | null;
+  description: string | null;
 }
 
 export interface DeleteTransactionParams {

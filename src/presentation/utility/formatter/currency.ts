@@ -1,5 +1,6 @@
-export function formatCurrency(value: string){
-  const numeric = value.replace(/\D/g, "");
+export function formatCurrency(value: number){
+  const parsedString = value.toString();
+  const numeric = parsedString.replace(/\D/g, "");
   return numeric.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 

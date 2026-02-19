@@ -10,13 +10,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { TransactionType } from "@/src/domain/constants/transaction-type";
-import { formatCurrency, parseCurrency } from "@/src/presentation/utility/formatter/currency";
+import { AmountInput } from "@/src/presentation/components/inputs/amount-input";
 
 export default function AddTransactionScreen() {
-  const { createTransactionUseCase } = useDependencies();
+  const { createTransactionUseCase, createVendorUseCase } = useDependencies();
 
-  const [amount, setAmount] = useState("");
-  const [description, setDescription] = useState("");
+  const [amount, setAmount] = useState<number>(0);
+  const [description, setDescription] = useState<string>("");
   const [type, setType] = useState<TransactionType>(TransactionType.DEBIT);
 
   const handleSubmit = async () => {
@@ -27,15 +27,15 @@ export default function AddTransactionScreen() {
 
     try {
       await createTransactionUseCase.execute({
-        // vendorId: "default-vendor-id",      // replace later
-        // categoryId: "default-category-id",  // replace later
+        vendorId: null,      // replace later
+        categoryId: null,  // replace later
         transactionDate: new Date(),
         type,
-        amount: Number(parseCurrency(amount)),
+        amount: amount,
         description,
       });
 
-      setAmount("");
+      setAmount(0);
       setDescription("");
     } catch (err: any) {
       Alert.alert("Error", err.message);
@@ -47,9 +47,28 @@ export default function AddTransactionScreen() {
       <View>
         <Text style={styles.title}>Add Transaction</Text>
 
-        <AmountInput amount={amount} setAmount={setAmount}/>
+        <AmountInput value={amount} onChange={setAmount}/>
 
-        <View style={styles.typeRow}>
+        <TransactionTypeInput type={type} setType={setType}/>
+
+        <TextInput
+          placeholder="Description"
+          value={description}
+          onChangeText={setDescription}
+          style={styles.input}
+        />
+
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          <Text style={styles.submitText}>Save Transaction</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+function TransactionTypeInput({type, setType}: {type: TransactionType, setType: (input: TransactionType) => void}) {
+  return (
+    <View style={styles.typeRow}>
           <TouchableOpacity
             style={[
               styles.typeButton,
@@ -70,54 +89,10 @@ export default function AddTransactionScreen() {
             <Text style={styles.typeText}>Income</Text>
           </TouchableOpacity>
         </View>
-
-        <TextInput
-          placeholder="Description"
-          value={description}
-          onChangeText={setDescription}
-          style={styles.input}
-        />
-
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitText}>Save Transaction</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
-  );
-}
-
-function AmountInput({amount, setAmount}: {amount: string, setAmount: (input: string) => void}) {
-  const handleChange = (amount: string) => {
-    const formattedAmount = formatCurrency(amount)
-    setAmount(formattedAmount);
-  }
-  
-  return (
-    <View style={styles.amountContainer}>
-      <Text>Rp</Text>
-      <TextInput
-        style={styles.amountInput}
-        placeholder="0"
-        keyboardType="numeric"
-        onChangeText={handleChange}
-        value={amount}
-        autoFocus
-      />
-    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  amountContainer: {
-    marginVertical: 24,
-  },
-  amountInput: {
-    fontSize: 42,
-    fontWeight: "800",
-    textAlign: "right",
-    borderWidth: 0,
-    paddingVertical: 8,
-  },
   container: {
     flex: 1,
     padding: 24,

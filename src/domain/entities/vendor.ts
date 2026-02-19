@@ -4,7 +4,7 @@ export class Vendor {
   private constructor(
     private readonly _metadata: EntityMetadata,
     private _name: string,
-    private _defaultCategoryId?: string,
+    private _defaultCategoryId: string | null,
   ) {}
 
   private static formatName(name: string) {
@@ -17,7 +17,7 @@ export class Vendor {
     return trimmed;
   }
 
-  static create(params: { name: string; defaultCategoryId?: string }) {
+  static create(params: { name: string; defaultCategoryId: string | null }) {
     return new Vendor(
       EntityMetadata.create(),
       Vendor.formatName(params.name),
@@ -30,7 +30,7 @@ export class Vendor {
     createdAt: Date;
     updatedAt: Date;
     name: string;
-    defaultCategoryId?: string;
+    defaultCategoryId: string | null;
   }) {
     return new Vendor(
       EntityMetadata.rehydrate({
@@ -74,7 +74,7 @@ export class Vendor {
   }
 
   clearDefaultCategory() {
-    this._defaultCategoryId = undefined;
+    this._defaultCategoryId = null;
     this._metadata.touch();
   }
 }
