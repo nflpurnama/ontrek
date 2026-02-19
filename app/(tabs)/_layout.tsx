@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -12,8 +12,8 @@ export default function TabsLayout() {
       tabBar={(props) => <FloatingTabBar {...props} />}
     >
       <Tabs.Screen name="index" options={{ title: "Dashboard" }} />
+      <Tabs.Screen name="accounts" options={{ href: null, title: "Accounts"}} />
       <Tabs.Screen name="transactions" options={{ title: "Transactions" }} />
-      {/* <Tabs.Screen name="accounts" options={{ title: "Accounts" }} /> */}
       <Tabs.Screen name="add" options={{ title: "Add" }} />
     </Tabs>
   );
@@ -37,7 +37,7 @@ return (
             route.name === "index"
               ? "home"
               : route.name === "transactions"
-              ? "list"
+              ? "receipt"
               : route.name === "accounts"
               ? "wallet" : "add";
 
