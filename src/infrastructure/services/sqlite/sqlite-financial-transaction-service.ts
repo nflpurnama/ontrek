@@ -8,12 +8,15 @@ import {
   FinancialTransactionService,
 } from "@/src/domain/services/financial-transaction-service";
 import { SqliteTransaction } from "../../database/sqlite/sqlite-transaction";
+import { VendorRepository } from "@/src/domain/repository/vendor-repository";
+import { Vendor } from "@/src/domain/entities/vendor";
 
 export class SqliteFinancialTransactionService implements FinancialTransactionService {
   constructor(
     private readonly databaseTransaction: SqliteTransaction,
     private readonly accountRepository: AccountRepository,
     private readonly transactionRepository: TransactionRepository,
+    private readonly vendorRepository: VendorRepository
   ) {}
 
   async createTransaction(params: CreateTransactionParams): Promise<void> {
@@ -24,7 +27,29 @@ export class SqliteFinancialTransactionService implements FinancialTransactionSe
       }
       const account = accounts[0];
 
-      const transaction = Transaction.create(params);
+      let vendorId = null;
+      if (params.vendorName){
+        const vendors = await this.vendorRepository.findVendors({name: params.vendorName});
+        if (vendors.length > 0) {
+          vendorId = vendors[0].id.getValue()
+        }
+        else{
+          const newVendor = Vendor.create({name: params.vendorName, defaultCategoryId: null});
+          vendorId = (await this.vendorRepository.saveVendor(newVendor)).getValue();
+        }
+      }
+
+      let categoryId = null;
+      if (params.categoryId){}
+
+      const transaction = Transaction.create({
+        amount: params.amount,
+        transactionDate: params.transactionDate,
+        type: params.type,
+        vendorId: vendorId,
+        categoryId: categoryId,
+        description: params.description
+      });
 
       if (transaction.type === TransactionType.CREDIT) {
         account.credit(transaction.amount);

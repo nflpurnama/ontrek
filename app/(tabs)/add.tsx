@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,13 +11,19 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { TransactionType } from "@/src/domain/constants/transaction-type";
 import { AmountInput } from "@/src/presentation/components/inputs/amount-input";
+import { TransactionTypeInput } from "@/src/presentation/components/inputs/transaction-type-input";
+import { Vendor } from "@/src/domain/entities/vendor";
 
 export default function AddTransactionScreen() {
-  const { createTransactionUseCase, createVendorUseCase } = useDependencies();
+  const { createTransactionUseCase, findVendorsUseCase } = useDependencies();
 
   const [amount, setAmount] = useState<number>(0);
   const [description, setDescription] = useState<string>("");
   const [type, setType] = useState<TransactionType>(TransactionType.DEBIT);
+
+  const [vendorName, setVendorName] = useState<string>("");
+  const [vendorSuggestions, setVendorSuggestions] = useState<Vendor[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     if (!amount) {
@@ -27,8 +33,8 @@ export default function AddTransactionScreen() {
 
     try {
       await createTransactionUseCase.execute({
-        vendorId: null,      // replace later
-        categoryId: null,  // replace later
+        vendorName: vendorName, // replace later
+        categoryId: null, // replace later
         transactionDate: new Date(),
         type,
         amount: amount,
@@ -42,14 +48,58 @@ export default function AddTransactionScreen() {
     }
   };
 
+  useEffect(() => {
+    if (!vendorName.trim()) {
+      setVendorSuggestions([]);
+      return;
+    }
+
+    const timeout = setTimeout(async () => {
+      setLoading(true);
+      const results = await findVendorsUseCase.execute({ name: vendorName });
+      setVendorSuggestions(results);
+      setLoading(false);
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [findVendorsUseCase, vendorName]);
+
   return (
     <SafeAreaView style={styles.container}>
       <View>
         <Text style={styles.title}>Add Transaction</Text>
 
-        <AmountInput value={amount} onChange={setAmount}/>
+        <AmountInput value={amount} onChange={setAmount} />
 
-        <TransactionTypeInput type={type} setType={setType}/>
+        <TransactionTypeInput type={type} setType={setType} />
+
+        <TextInput
+          placeholder="Vendor"
+          value={vendorName}
+          onChangeText={setVendorName}
+          style={styles.input}
+        />
+
+        {(loading || vendorSuggestions.length > 0) && (
+          <View style={styles.dropdown}>
+            {loading ? (
+              <Text style={styles.loadingText}>Searching...</Text>
+            ) : (
+              vendorSuggestions.map((vendor: Vendor) => (
+                <TouchableOpacity
+                  key={vendor.id.getValue()}
+                  onPress={() => {
+                    setVendorName(vendor.name);
+                    setVendorSuggestions([]);
+                  }}
+                  style={styles.item}
+                >
+                  <Text>{vendor.name}</Text>
+                </TouchableOpacity>
+              ))
+            )}
+          </View>
+        )}
 
         <TextInput
           placeholder="Description"
@@ -66,32 +116,6 @@ export default function AddTransactionScreen() {
   );
 }
 
-function TransactionTypeInput({type, setType}: {type: TransactionType, setType: (input: TransactionType) => void}) {
-  return (
-    <View style={styles.typeRow}>
-          <TouchableOpacity
-            style={[
-              styles.typeButton,
-              type === TransactionType.DEBIT && styles.activeExpense,
-            ]}
-            onPress={() => setType(TransactionType.DEBIT)}
-          >
-            <Text style={styles.typeText}>Expense</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.typeButton,
-              type === TransactionType.CREDIT && styles.activeIncome,
-            ]}
-            onPress={() => setType(TransactionType.CREDIT)}
-          >
-            <Text style={styles.typeText}>Income</Text>
-          </TouchableOpacity>
-        </View>
-  );
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -103,6 +127,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 24,
   },
+  loadingText: {
+  paddingVertical: 14,
+  paddingHorizontal: 16,
+  fontSize: 14,
+  color: "#888",
+},
   input: {
     backgroundColor: "#fff",
     padding: 16,
@@ -110,28 +140,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontSize: 16,
     elevation: 2,
-  },
-  typeRow: {
-    flexDirection: "row",
-    marginBottom: 20,
-    justifyContent: "space-between",
-  },
-  typeButton: {
-    flex: 1,
-    padding: 14,
-    borderRadius: 12,
-    backgroundColor: "#e2e8f0",
-    marginHorizontal: 5,
-    alignItems: "center",
-  },
-  activeExpense: {
-    backgroundColor: "#fecaca",
-  },
-  activeIncome: {
-    backgroundColor: "#bbf7d0",
-  },
-  typeText: {
-    fontWeight: "600",
   },
   submitButton: {
     backgroundColor: "#111827",
@@ -144,5 +152,24 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: 16,
+  },
+  dropdown: {
+    position: "absolute",
+    top: 52, // input height + spacing
+    left: 0,
+    right: 0,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    elevation: 4, // Android shadow
+    shadowColor: "#000", // iOS shadow
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    zIndex: 1000,
+  },
+
+  item: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
   },
 });

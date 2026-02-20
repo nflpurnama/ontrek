@@ -1,6 +1,6 @@
 import { Id } from "@/src/domain/value-objects/id";
 import * as SQLite from "expo-sqlite";
-import { VendorRepository } from "@/src/domain/repository/vendor-repository";
+import { VendorFilter, VendorRepository } from "@/src/domain/repository/vendor-repository";
 import { Vendor } from "@/src/domain/entities/vendor";
 import { SqliteVendor } from "../../database/sqlite/schema/vendors";
 
@@ -16,6 +16,27 @@ export class SqliteVendorRepository implements VendorRepository {
 
     return result.map((row) => this.formatRow(row));
   }
+
+  async findVendors(filter?: VendorFilter): Promise<Vendor[]> {
+      let query = `SELECT * FROM vendors`;
+      const conditions: string[] = [];
+      const values: any[] = [];
+  
+      if (filter?.name) {
+        conditions.push(`name LIKE '%?%'`);
+        values.push(filter.name);
+      }
+  
+      if (conditions.length > 0) {
+        query += ` WHERE ` + conditions.join(" AND ");
+      }
+  
+      query += ` ORDER BY name ASC`;
+  
+      const rows = await this.db.getAllAsync<any>(query, values);
+  
+      return rows.map(this.formatRow);
+    }
 
   async getVendor(ids: Id[]): Promise<Vendor[]> {
     const placeholders = ids.map(() => "?").join(",");
@@ -37,7 +58,7 @@ export class SqliteVendorRepository implements VendorRepository {
       `
       INSERT INTO vendors 
       (id, created_at, updated_at, name, category_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?)
       `,
       [
         rowToInsert.id,
