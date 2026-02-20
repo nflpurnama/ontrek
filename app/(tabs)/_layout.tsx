@@ -13,6 +13,7 @@ export default function TabsLayout() {
     >
       <Tabs.Screen name="index" options={{ title: "Dashboard" }} />
       <Tabs.Screen name="accounts" options={{ href: null, title: "Accounts"}} />
+      <Tabs.Screen name="vendors" options={{ href: null, title: "Vendors"}} />
       <Tabs.Screen name="transactions" options={{ title: "Transactions" }} />
       <Tabs.Screen name="add" options={{ title: "Add" }} />
     </Tabs>
@@ -39,7 +40,10 @@ return (
               : route.name === "transactions"
               ? "receipt"
               : route.name === "accounts"
-              ? "wallet" : "add";
+              ? "wallet" 
+              : route.name === "vendors"
+              ? "business"
+              : "add";
 
           return (
             <TouchableOpacity
