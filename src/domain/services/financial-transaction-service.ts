@@ -5,7 +5,7 @@ export interface CreateTransactionParams {
   transactionDate: Date;
   type: TransactionType;
   amount: number;
-  vendorId: string | null;
+  vendorName: string | null;
   categoryId: string | null;
   description: string | null;
 }

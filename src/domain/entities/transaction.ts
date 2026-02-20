@@ -7,9 +7,9 @@ export class Transaction {
     private _transactionDate: Date,
     private _type: TransactionType,
     private _amount: number,
-    private _vendorId?: string,
-    private _categoryId?: string,
-    private _description?: string,
+    private _vendorId: string | null,
+    private _categoryId: string | null,
+    private _description?: string | null,
   ) {}
 
   private static validateAmount(amount: number) {
@@ -42,12 +42,12 @@ export class Transaction {
   }
 
   static create(params: {
-    vendorId?: string;
-    categoryId?: string;
+    vendorId: string | null;
+    categoryId: string | null;
     transactionDate: Date;
     type: TransactionType;
     amount: number;
-    description?: string;
+    description: string | null;
   }) {
     return new Transaction(
       EntityMetadata.create(),
