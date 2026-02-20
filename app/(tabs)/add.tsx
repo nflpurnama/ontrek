@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,18 +6,24 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { TransactionType } from "@/src/domain/constants/transaction-type";
+import { AmountInput } from "@/src/presentation/components/inputs/amount-input";
+import { TransactionTypeInput } from "@/src/presentation/components/inputs/transaction-type-input";
+import { Vendor } from "@/src/domain/entities/vendor";
 
 export default function AddTransactionScreen() {
-  const { createTransactionUseCase } = useDependencies();
+  const { createTransactionUseCase, findVendorsUseCase } = useDependencies();
 
-  const [amount, setAmount] = useState("");
-  const [description, setDescription] = useState("");
+  const [amount, setAmount] = useState<number>(0);
+  const [description, setDescription] = useState<string>("");
   const [type, setType] = useState<TransactionType>(TransactionType.DEBIT);
+
+  const [vendorName, setVendorName] = useState<string>("");
+  const [vendorSuggestions, setVendorSuggestions] = useState<Vendor[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     if (!amount) {
@@ -27,70 +33,86 @@ export default function AddTransactionScreen() {
 
     try {
       await createTransactionUseCase.execute({
-        // vendorId: "default-vendor-id",      // replace later
-        // categoryId: "default-category-id",  // replace later
+        vendorName: vendorName, // replace later
+        categoryId: null, // replace later
         transactionDate: new Date(),
         type,
-        amount: Number(amount),
+        amount: amount,
         description,
       });
 
-      Alert.alert("Success", "Transaction added");
-      setAmount("");
+      setAmount(0);
       setDescription("");
     } catch (err: any) {
       Alert.alert("Error", err.message);
     }
   };
 
+  useEffect(() => {
+    if (!vendorName.trim()) {
+      setVendorSuggestions([]);
+      return;
+    }
+
+    const timeout = setTimeout(async () => {
+      setLoading(true);
+      const results = await findVendorsUseCase.execute({ name: vendorName });
+      setVendorSuggestions(results);
+      setLoading(false);
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [findVendorsUseCase, vendorName]);
+
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <Text style={styles.title}>Add Transaction</Text>
+    <SafeAreaView style={styles.container}>
+      <View>
+        <Text style={styles.title}>Add Transaction</Text>
 
-      <View style={styles.typeRow}>
-        <TouchableOpacity
-          style={[
-            styles.typeButton,
-            type === TransactionType.DEBIT && styles.activeExpense,
-          ]}
-          onPress={() => setType(TransactionType.DEBIT)}
-        >
-          <Text style={styles.typeText}>Expense</Text>
-        </TouchableOpacity>
+        <AmountInput value={amount} onChange={setAmount} />
 
-        <TouchableOpacity
-          style={[
-            styles.typeButton,
-            type === TransactionType.CREDIT && styles.activeIncome,
-          ]}
-          onPress={() => setType(TransactionType.CREDIT)}
-        >
-          <Text style={styles.typeText}>Income</Text>
+        <TransactionTypeInput type={type} setType={setType} />
+
+        <TextInput
+          placeholder="Vendor"
+          value={vendorName}
+          onChangeText={setVendorName}
+          style={styles.input}
+        />
+
+        {(loading || vendorSuggestions.length > 0) && (
+          <View style={styles.dropdown}>
+            {loading ? (
+              <Text style={styles.loadingText}>Searching...</Text>
+            ) : (
+              vendorSuggestions.map((vendor: Vendor) => (
+                <TouchableOpacity
+                  key={vendor.id.getValue()}
+                  onPress={() => {
+                    setVendorName(vendor.name);
+                    setVendorSuggestions([]);
+                  }}
+                  style={styles.item}
+                >
+                  <Text>{vendor.name}</Text>
+                </TouchableOpacity>
+              ))
+            )}
+          </View>
+        )}
+
+        <TextInput
+          placeholder="Description"
+          value={description}
+          onChangeText={setDescription}
+          style={styles.input}
+        />
+
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          <Text style={styles.submitText}>Save Transaction</Text>
         </TouchableOpacity>
       </View>
-
-      <TextInput
-        placeholder="Amount"
-        keyboardType="numeric"
-        value={amount}
-        onChangeText={setAmount}
-        style={styles.input}
-      />
-
-      <TextInput
-        placeholder="Description"
-        value={description}
-        onChangeText={setDescription}
-        style={styles.input}
-      />
-
-      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-        <Text style={styles.submitText}>Save Transaction</Text>
-      </TouchableOpacity>
-    </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -105,6 +127,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 24,
   },
+  loadingText: {
+  paddingVertical: 14,
+  paddingHorizontal: 16,
+  fontSize: 14,
+  color: "#888",
+},
   input: {
     backgroundColor: "#fff",
     padding: 16,
@@ -112,28 +140,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontSize: 16,
     elevation: 2,
-  },
-  typeRow: {
-    flexDirection: "row",
-    marginBottom: 20,
-    justifyContent: "space-between",
-  },
-  typeButton: {
-    flex: 1,
-    padding: 14,
-    borderRadius: 12,
-    backgroundColor: "#e2e8f0",
-    marginHorizontal: 5,
-    alignItems: "center",
-  },
-  activeExpense: {
-    backgroundColor: "#fecaca",
-  },
-  activeIncome: {
-    backgroundColor: "#bbf7d0",
-  },
-  typeText: {
-    fontWeight: "600",
   },
   submitButton: {
     backgroundColor: "#111827",
@@ -146,5 +152,24 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: 16,
+  },
+  dropdown: {
+    position: "absolute",
+    top: 52, // input height + spacing
+    left: 0,
+    right: 0,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    elevation: 4, // Android shadow
+    shadowColor: "#000", // iOS shadow
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    zIndex: 1000,
+  },
+
+  item: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
   },
 });

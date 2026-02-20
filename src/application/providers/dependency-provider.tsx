@@ -2,12 +2,18 @@ import React from "react";
 import { GetDashboardUseCase } from "../use-case/account/get-dashboard.usecase";
 import { CreateTransactionUseCase } from "../use-case/transaction/create-transaction";
 import { ViewTransactionsUseCase } from "../use-case/transaction/view-transaction";
+import { DeleteTransactionUseCase } from "../use-case/transaction/delete-transaction";
+import { CreateVendorUseCase } from "../use-case/vendor/create-vendor";
+import { FindVendorsUseCase } from "../use-case/vendor/find-vendors";
 
 export interface Dependencies {
     getDashboardUseCase: GetDashboardUseCase;
     createTransactionUseCase: CreateTransactionUseCase;
-    viewTransactionsUseCase: ViewTransactionsUseCase; 
-}
+    deleteTransactionUseCase: DeleteTransactionUseCase;
+    viewTransactionsUseCase: ViewTransactionsUseCase;
+    createVendorUseCase: CreateVendorUseCase;
+    findVendorsUseCase: FindVendorsUseCase;
+  }
 
 export const DependencyContext = React.createContext<Dependencies | null>(null);
 
