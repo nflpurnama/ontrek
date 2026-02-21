@@ -13,6 +13,7 @@ import { TransactionType } from "@/src/domain/constants/transaction-type";
 import { AmountInput } from "@/src/presentation/components/inputs/amount-input";
 import { TransactionTypeInput } from "@/src/presentation/components/inputs/transaction-type-input";
 import { Vendor } from "@/src/domain/entities/vendor";
+import { VendorInput } from "@/src/presentation/components/inputs/vendor-input";
 
 export default function AddTransactionScreen() {
   const { createTransactionUseCase, findVendorsUseCase } = useDependencies();
@@ -57,8 +58,8 @@ export default function AddTransactionScreen() {
     const timeout = setTimeout(async () => {
       setLoading(true);
       const results = await findVendorsUseCase.execute({ name: vendorName });
-      setVendorSuggestions(results);
       setLoading(false);
+      setVendorSuggestions(results);
     }, 300);
 
     return () => clearTimeout(timeout);
@@ -73,33 +74,7 @@ export default function AddTransactionScreen() {
 
         <TransactionTypeInput type={type} setType={setType} />
 
-        <TextInput
-          placeholder="Vendor"
-          value={vendorName}
-          onChangeText={setVendorName}
-          style={styles.input}
-        />
-
-        {(loading || vendorSuggestions.length > 0) && (
-          <View style={styles.dropdown}>
-            {loading ? (
-              <Text style={styles.loadingText}>Searching...</Text>
-            ) : (
-              vendorSuggestions.map((vendor: Vendor) => (
-                <TouchableOpacity
-                  key={vendor.id.getValue()}
-                  onPress={() => {
-                    setVendorName(vendor.name);
-                    setVendorSuggestions([]);
-                  }}
-                  style={styles.item}
-                >
-                  <Text>{vendor.name}</Text>
-                </TouchableOpacity>
-              ))
-            )}
-          </View>
-        )}
+        <VendorInput isLoading={loading} query={vendorName} setQuery={setVendorName} vendorSuggestions={vendorSuggestions} setVendorSuggestions={setVendorSuggestions}></VendorInput>
 
         <TextInput
           placeholder="Description"
