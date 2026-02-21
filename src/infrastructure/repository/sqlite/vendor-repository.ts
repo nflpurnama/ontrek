@@ -23,8 +23,8 @@ export class SqliteVendorRepository implements VendorRepository {
       const values: any[] = [];
   
       if (filter?.name) {
-        conditions.push(`name LIKE '%?%'`);
-        values.push(filter.name);
+        conditions.push(`name LIKE ? COLLATE NOCASE`);
+        values.push(`${filter.name}%`);
       }
   
       if (conditions.length > 0) {
