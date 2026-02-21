@@ -13,8 +13,8 @@ export default function AccountPage() {
   const load = async () => {
     setLoading(true);
     const results = await findVendorsUseCase.execute({});
-    setVendors(results);
     setLoading(false);
+    setVendors(results);
   };
 
   useFocusEffect(() => {
