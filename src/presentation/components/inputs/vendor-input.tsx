@@ -12,12 +12,14 @@ export function VendorInput({
   query,
   setQuery,
   suggestions,
-  setSuggestions
+  setSuggestions,
+  setVendor
 }: {
   query: string;
   setQuery: (input: string) => void;
   suggestions: Vendor[];
   setSuggestions: (input: Vendor[]) => void;
+  setVendor: (input: Vendor | null) => void
 }) {
   console.log("Query", query);
   console.log("Result", suggestions);
@@ -27,11 +29,17 @@ export function VendorInput({
   const shouldShowSuggestions =
     isFocused && suggestions?.length && query?.length;
 
-  const handleVendorSelect = (input: string) => {
-    setQuery(input);
+  const handleVendorSelect = (input: Vendor) => {
+    setQuery(input.name);
     setIsFocused(false);
     setSuggestions([]);
+    setVendor(input);
   };
+
+  const handleTyping = (input: string) => {
+    setQuery(input);
+    setVendor(null)
+  }
 
   if (
     suggestions.length === 1 &&
@@ -45,7 +53,7 @@ export function VendorInput({
       <TextInput
         placeholder="Where/who did you purchase from? (ex: Sigmamart)"
         value={query}
-        onChangeText={setQuery}
+        onChangeText={handleTyping}
         style={styles.input}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
@@ -56,7 +64,7 @@ export function VendorInput({
           {suggestions.map((vendor: Vendor) => (
             <TouchableOpacity
               key={vendor.id.getValue()}
-              onPress={() => handleVendorSelect(vendor.name)}
+              onPress={() => handleVendorSelect(vendor)}
               style={styles.item}
             >
               <Text>{vendor.name}</Text>

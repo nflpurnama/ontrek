@@ -1,4 +1,5 @@
 import { TransactionType } from "../constants/transaction-type";
+import { Vendor } from "../entities/vendor";
 import { Id } from "../value-objects/id";
 
 export interface CreateTransactionParams {
@@ -6,6 +7,7 @@ export interface CreateTransactionParams {
   type: TransactionType;
   amount: number;
   vendorName: string | null;
+  vendor: Vendor | null;
   categoryId: string | null;
   description: string | null;
 }
