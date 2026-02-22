@@ -28,15 +28,10 @@ export class SqliteFinancialTransactionService implements FinancialTransactionSe
       const account = accounts[0];
 
       let vendorId = null;
-      if (params.vendorName){
-        const vendors = await this.vendorRepository.findVendors({name: params.vendorName});
-        if (vendors.length > 0) {
-          vendorId = vendors[0].id.getValue()
-        }
-        else{
-          const newVendor = Vendor.create({name: params.vendorName, defaultCategoryId: null});
-          vendorId = (await this.vendorRepository.saveVendor(newVendor)).getValue();
-        }
+      if (params.vendor){
+        vendorId = params.vendor.id.getValue();
+      }else if (params.vendorName){
+        vendorId = (await this.vendorRepository.saveVendor(Vendor.create({name: params.vendorName, defaultCategoryId: null}))).getValue();
       }
 
       let categoryId = null;

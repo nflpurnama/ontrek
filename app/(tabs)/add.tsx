@@ -23,7 +23,7 @@ export default function AddTransactionScreen() {
   const [type, setType] = useState<TransactionType>(TransactionType.DEBIT);
 
   const [vendorQuery, setVendorQuery] = useState<string>("");
-  const [vendor, setVendor] = useState<Vendor>();
+  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [vendorSuggestions, setVendorSuggestions] = useState<Vendor[]>([]);
   // const [loading, setLoading] = useState(false);
 
@@ -42,7 +42,8 @@ export default function AddTransactionScreen() {
 
     try {
       await createTransactionUseCase.execute({
-        vendorName: vendorQuery, // replace later
+        vendorName: vendorQuery,
+        vendor: selectedVendor,
         categoryId: null, // replace later
         transactionDate: new Date(),
         type,
@@ -80,10 +81,11 @@ export default function AddTransactionScreen() {
         <TransactionTypeInput type={type} setType={setType} />
 
         <VendorInput
-        setSuggestions={setVendorSuggestions}
-        suggestions={vendorSuggestions}
           query={vendorQuery}
           setQuery={setVendorQuery}
+          suggestions={vendorSuggestions}
+          setSuggestions={setVendorSuggestions}
+          setVendor={setSelectedVendor}
         ></VendorInput>
 
         <TextInput
