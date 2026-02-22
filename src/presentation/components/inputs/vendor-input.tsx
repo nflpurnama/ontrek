@@ -6,44 +6,62 @@ import {
   Text,
   StyleSheet,
 } from "react-native";
+import { useState } from "react";
 
-export function VendorInput(props: {
+export function VendorInput({
+  query,
+  setQuery,
+  suggestions,
+  setSuggestions
+}: {
   query: string;
   setQuery: (input: string) => void;
-  vendorSuggestions: Vendor[];
-  setVendorSuggestions: (input: Vendor[]) => void;
-  isLoading: boolean;
+  suggestions: Vendor[];
+  setSuggestions: (input: Vendor[]) => void;
 }) {
-    console.log("Query", props.query);
-    console.log("Result", props.vendorSuggestions);
+  console.log("Query", query);
+  console.log("Result", suggestions);
+
+  const [isFocused, setIsFocused] = useState(false);
+
+  const shouldShowSuggestions =
+    isFocused && suggestions?.length && query?.length;
+
+  const handleVendorSelect = (input: string) => {
+    setQuery(input);
+    setIsFocused(false);
+    setSuggestions([]);
+  };
+
+  if (
+    suggestions.length === 1 &&
+    suggestions[0].name.toLowerCase() === query.toLowerCase()
+  ) {
+    setSuggestions([]);
+  }
 
   return (
     <View>
       <TextInput
-        placeholder="Vendor"
-        value={props.query}
-        onChangeText={props.setQuery}
+        placeholder="Where/who did you purchase from? (ex: Sigmamart)"
+        value={query}
+        onChangeText={setQuery}
         style={styles.input}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
       />
 
-      {(props.isLoading || props.vendorSuggestions.length > 0) && (
+      {shouldShowSuggestions && (
         <View style={styles.dropdown}>
-          {props.isLoading ? (
-            <Text style={styles.loadingText}>Searching...</Text>
-          ) : (
-            props.vendorSuggestions.map((vendor: Vendor) => (
-              <TouchableOpacity
-                key={vendor.id.getValue()}
-                onPress={() => {
-                  props.setQuery(vendor.name);
-                  props.setVendorSuggestions([]);
-                }}
-                style={styles.item}
-              >
-                <Text>{vendor.name}</Text>
-              </TouchableOpacity>
-            ))
-          )}
+          {suggestions.map((vendor: Vendor) => (
+            <TouchableOpacity
+              key={vendor.id.getValue()}
+              onPress={() => handleVendorSelect(vendor.name)}
+              style={styles.item}
+            >
+              <Text>{vendor.name}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
       )}
     </View>

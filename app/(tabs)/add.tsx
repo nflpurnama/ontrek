@@ -22,9 +22,17 @@ export default function AddTransactionScreen() {
   const [description, setDescription] = useState<string>("");
   const [type, setType] = useState<TransactionType>(TransactionType.DEBIT);
 
-  const [vendorName, setVendorName] = useState<string>("");
+  const [vendorQuery, setVendorQuery] = useState<string>("");
+  const [vendor, setVendor] = useState<Vendor>();
   const [vendorSuggestions, setVendorSuggestions] = useState<Vendor[]>([]);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
+
+  const clearAll = () => {
+    setAmount(0);
+    setDescription("");
+    setType(TransactionType.DEBIT);
+    setVendorQuery("");
+  };
 
   const handleSubmit = async () => {
     if (!amount) {
@@ -34,7 +42,7 @@ export default function AddTransactionScreen() {
 
     try {
       await createTransactionUseCase.execute({
-        vendorName: vendorName, // replace later
+        vendorName: vendorQuery, // replace later
         categoryId: null, // replace later
         transactionDate: new Date(),
         type,
@@ -42,28 +50,25 @@ export default function AddTransactionScreen() {
         description,
       });
 
-      setAmount(0);
-      setDescription("");
+      clearAll();
     } catch (err: any) {
       Alert.alert("Error", err.message);
     }
   };
 
   useEffect(() => {
-    if (!vendorName.trim()) {
+    if (!vendorQuery.trim()) {
       setVendorSuggestions([]);
       return;
     }
 
     const timeout = setTimeout(async () => {
-      setLoading(true);
-      const results = await findVendorsUseCase.execute({ name: vendorName });
-      setLoading(false);
+      const results = await findVendorsUseCase.execute({ name: vendorQuery });
       setVendorSuggestions(results);
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [findVendorsUseCase, vendorName]);
+  }, [findVendorsUseCase, vendorQuery]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -74,7 +79,12 @@ export default function AddTransactionScreen() {
 
         <TransactionTypeInput type={type} setType={setType} />
 
-        <VendorInput isLoading={loading} query={vendorName} setQuery={setVendorName} vendorSuggestions={vendorSuggestions} setVendorSuggestions={setVendorSuggestions}></VendorInput>
+        <VendorInput
+        setSuggestions={setVendorSuggestions}
+        suggestions={vendorSuggestions}
+          query={vendorQuery}
+          setQuery={setVendorQuery}
+        ></VendorInput>
 
         <TextInput
           placeholder="Description"
@@ -103,11 +113,11 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   loadingText: {
-  paddingVertical: 14,
-  paddingHorizontal: 16,
-  fontSize: 14,
-  color: "#888",
-},
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    fontSize: 14,
+    color: "#888",
+  },
   input: {
     backgroundColor: "#fff",
     padding: 16,
