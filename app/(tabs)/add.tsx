@@ -83,8 +83,7 @@ export default function AddTransactionScreen() {
         <VendorInput
           query={vendorQuery}
           setQuery={setVendorQuery}
-          suggestions={vendorSuggestions}
-          setSuggestions={setVendorSuggestions}
+          queryResults={vendorSuggestions}
           setVendor={setSelectedVendor}
         ></VendorInput>
 

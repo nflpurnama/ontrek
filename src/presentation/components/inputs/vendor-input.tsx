@@ -1,5 +1,5 @@
 import { Vendor } from "@/src/domain/entities/vendor";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -11,24 +11,32 @@ import {
 export function VendorInput({
   query,
   setQuery,
-  suggestions,
-  setSuggestions,
+  queryResults,
   setVendor
 }: {
   query: string;
   setQuery: (input: string) => void;
-  suggestions: Vendor[];
-  setSuggestions: (input: Vendor[]) => void;
+  queryResults: Vendor[];
   setVendor: (input: Vendor | null) => void
 }) {
-  const [isFocused, setIsFocused] = useState(false);
+  const [isFocused, setIsFocused] = useState<boolean>(false);
+  const [suggestions, setSuggestions] = useState<Vendor[]>(queryResults);
+
+  useEffect(() => {
+    setSuggestions(queryResults);
+    if (
+      suggestions.length >= 1 &&
+      suggestions[0].name.toLowerCase() === query.toLowerCase()
+    ) {
+      handleVendorSelect(suggestions[0]);
+    }
+  }, [queryResults]);
 
   const shouldShowSuggestions =
   isFocused && suggestions?.length > 0 && query?.length > 0;
 
   const handleVendorSelect = (input: Vendor) => {
     setQuery(input.name);
-    setIsFocused(false);
     setSuggestions([]);
     setVendor(input);
   };
@@ -36,13 +44,6 @@ export function VendorInput({
   const handleTyping = (input: string) => {
     setQuery(input);
     setVendor(null)
-  }
-
-  if (
-    suggestions.length === 1 &&
-    suggestions[0].name.toLowerCase() === query.toLowerCase()
-  ) {
-    setSuggestions([]);
   }
 
   return (
