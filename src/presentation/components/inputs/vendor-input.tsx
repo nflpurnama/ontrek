@@ -1,12 +1,12 @@
 import { Vendor } from "@/src/domain/entities/vendor";
+import { useState } from "react";
 import {
-  View,
+  StyleSheet,
+  Text,
   TextInput,
   TouchableOpacity,
-  Text,
-  StyleSheet,
+  View
 } from "react-native";
-import { useState } from "react";
 
 export function VendorInput({
   query,
@@ -21,13 +21,10 @@ export function VendorInput({
   setSuggestions: (input: Vendor[]) => void;
   setVendor: (input: Vendor | null) => void
 }) {
-  console.log("Query", query);
-  console.log("Result", suggestions);
-
   const [isFocused, setIsFocused] = useState(false);
 
   const shouldShowSuggestions =
-    isFocused && suggestions?.length && query?.length;
+  isFocused && suggestions?.length > 0 && query?.length > 0;
 
   const handleVendorSelect = (input: Vendor) => {
     setQuery(input.name);
@@ -50,15 +47,6 @@ export function VendorInput({
 
   return (
     <View>
-      <TextInput
-        placeholder="Where/who did you purchase from? (ex: Sigmamart)"
-        value={query}
-        onChangeText={handleTyping}
-        style={styles.input}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-      />
-
       {shouldShowSuggestions && (
         <View style={styles.dropdown}>
           {suggestions.map((vendor: Vendor) => (
@@ -72,6 +60,14 @@ export function VendorInput({
           ))}
         </View>
       )}
+      <TextInput
+        placeholder="Where/who did you purchase from? (ex: Sigmamart)"
+        value={query}
+        onChangeText={handleTyping}
+        style={styles.input}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+      />
     </View>
   );
 }
