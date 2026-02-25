@@ -56,7 +56,7 @@ export class Transaction {
       EntityMetadata.create(),
       params.transactionDate,
       params.type,
-      params.spendingType,
+      (params.type === TransactionType.DEBIT) ? params.spendingType : "ESSENTIAL",
       Transaction.validateAmount(params.amount),
       params.vendorId,
       params.categoryId,
