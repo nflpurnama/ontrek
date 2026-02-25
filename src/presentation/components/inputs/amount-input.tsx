@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
   amountContainer: {
     marginVertical: 24,
     flexDirection: "row",
-    alignItems: "baseline",
+    alignItems: "center",
   },
   currency: {
     fontSize: 24,
@@ -68,7 +68,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 42,
     fontWeight: "800",
-    textAlign: "right",
     borderWidth: 0,
     paddingVertical: 8,
   },

@@ -14,7 +14,10 @@ import { AmountInput } from "@/src/presentation/components/inputs/amount-input";
 import { TransactionTypeInput } from "@/src/presentation/components/inputs/transaction-type-input";
 import { Vendor } from "@/src/domain/entities/vendor";
 import { VendorInput } from "@/src/presentation/components/inputs/vendor-input";
-import { SpendingType, SpendingTypes } from "@/src/domain/constants/spending-type";
+import {
+  SpendingType,
+} from "@/src/domain/constants/spending-type";
+import { SpendingTypeSelector } from "@/src/presentation/components/inputs/spending-type-selector";
 
 export default function AddTransactionScreen() {
   const { createTransactionUseCase, findVendorsUseCase } = useDependencies();
@@ -34,6 +37,7 @@ export default function AddTransactionScreen() {
     setDescription("");
     setType(TransactionType.DEBIT);
     setVendorQuery("");
+    setSpendingType("ESSENTIAL");
   };
 
   const handleSubmit = async () => {
@@ -51,7 +55,7 @@ export default function AddTransactionScreen() {
         type,
         amount: amount,
         description,
-        spendingType: spendingType
+        spendingType: spendingType,
       });
 
       clearAll();
@@ -71,32 +75,35 @@ export default function AddTransactionScreen() {
       setVendorSuggestions(results);
     }, 300);
 
-    return () => clearTimeout(timeout);
+    return () => {
+      clearTimeout(timeout);
+    };
   }, [findVendorsUseCase, vendorQuery]);
 
   return (
     <SafeAreaView style={styles.container}>
       <View>
         <Text style={styles.title}>Add Transaction</Text>
-
-        <AmountInput value={amount} onChange={setAmount} />
-
         <TransactionTypeInput type={type} setType={setType} />
-
+        <AmountInput value={amount} onChange={setAmount} />
         <VendorInput
           query={vendorQuery}
           setQuery={setVendorQuery}
           queryResults={vendorSuggestions}
           setVendor={setSelectedVendor}
         ></VendorInput>
-
         <TextInput
           placeholder="Description"
           value={description}
           onChangeText={setDescription}
           style={styles.input}
         />
-
+        {type === TransactionType.DEBIT && (
+          <SpendingTypeSelector
+            value={spendingType}
+            onChange={setSpendingType}
+          />
+        )}
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
           <Text style={styles.submitText}>Save Transaction</Text>
         </TouchableOpacity>
@@ -123,12 +130,12 @@ const styles = StyleSheet.create({
     color: "#888",
   },
   input: {
-    backgroundColor: "#fff",
+    // backgroundColor: "#fff",
     padding: 16,
     borderRadius: 12,
     marginBottom: 16,
     fontSize: 16,
-    elevation: 2,
+    // elevation: 2,
   },
   submitButton: {
     backgroundColor: "#111827",

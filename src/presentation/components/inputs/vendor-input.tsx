@@ -81,12 +81,12 @@ const styles = StyleSheet.create({
     color: "#888",
   },
   input: {
-    backgroundColor: "#fff",
+    // backgroundColor: "#fff",
     padding: 16,
     borderRadius: 12,
     marginBottom: 16,
     fontSize: 16,
-    elevation: 2,
+    // elevation: 2,
   },
   dropdown: {
     position: "absolute",
