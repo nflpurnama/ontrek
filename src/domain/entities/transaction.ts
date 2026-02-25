@@ -1,3 +1,4 @@
+import { SpendingType } from "../constants/spending-type";
 import { TransactionType } from "../constants/transaction-type";
 import { EntityMetadata } from "../value-objects/entity-metadata";
 
@@ -6,10 +7,11 @@ export class Transaction {
     private readonly _metadata: EntityMetadata,
     private _transactionDate: Date,
     private _type: TransactionType,
+    private _spendingType: SpendingType,
     private _amount: number,
     private _vendorId: string | null,
     private _categoryId: string | null,
-    private _description?: string | null,
+    private _description: string | null,
   ) {}
 
   private static validateAmount(amount: number) {
@@ -46,6 +48,7 @@ export class Transaction {
     categoryId: string | null;
     transactionDate: Date;
     type: TransactionType;
+    spendingType: SpendingType;
     amount: number;
     description: string | null;
   }) {
@@ -53,6 +56,7 @@ export class Transaction {
       EntityMetadata.create(),
       params.transactionDate,
       params.type,
+      params.spendingType,
       Transaction.validateAmount(params.amount),
       params.vendorId,
       params.categoryId,
@@ -68,8 +72,9 @@ export class Transaction {
     categoryId: string;
     transactionDate: Date;
     type: TransactionType;
+    spendingType: SpendingType;
     amount: number;
-    description?: string;
+    description: string | null;
   }) {
     return new Transaction(
       EntityMetadata.rehydrate({
@@ -79,6 +84,7 @@ export class Transaction {
       }),
       params.transactionDate,
       params.type,
+      params.spendingType,
       params.amount,
       params.vendorId,
       params.categoryId,
@@ -154,7 +160,7 @@ export class Transaction {
   }
 
   clearDescription() {
-    this._description = undefined;
+    this._description = null;
     this._metadata.touch();
   }
 }
