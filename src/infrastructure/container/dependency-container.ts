@@ -16,6 +16,8 @@ import { CreateVendorUseCase } from "@/src/application/use-case/vendor/create-ve
 import { FindVendorsUseCase } from "@/src/application/use-case/vendor/find-vendors";
 
 export async function createDependencies(): Promise<Dependencies> {
+  //TODO: create migration
+  await SQLite.deleteDatabaseAsync(SQLITE_DB_NAME);
   const db = await SQLite.openDatabaseAsync(SQLITE_DB_NAME);
   await initializeDatabase(db);
 
@@ -25,14 +27,14 @@ export async function createDependencies(): Promise<Dependencies> {
 
   const ensureDefaultAccountUseCase = new EnsureDefaultAccountUseCase(accountRepository);
   await ensureDefaultAccountUseCase.execute();
-  
+
   const getDashboardUseCase = new GetDashboardUseCase(accountRepository);
 
   const sqliteTransaction = new SqliteTransaction(db);
   const financialTransactionService = new SqliteFinancialTransactionService(sqliteTransaction, accountRepository, transactionRepository, vendorRepository);
   const createTransactionUseCase = new CreateTransactionUseCase(financialTransactionService);
   const deleteTransactionUseCase = new DeleteTransactionUseCase(financialTransactionService);
-  
+
   const viewTransactionsUseCase = new ViewTransactionsUseCase(transactionRepository);
 
   const createVendorUseCase = new CreateVendorUseCase(vendorRepository);

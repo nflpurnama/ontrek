@@ -43,7 +43,8 @@ export class SqliteFinancialTransactionService implements FinancialTransactionSe
         type: params.type,
         vendorId: vendorId,
         categoryId: categoryId,
-        description: params.description
+        description: params.description,
+        spendingType: params.spendingType
       });
 
       if (transaction.type === TransactionType.CREDIT) {
