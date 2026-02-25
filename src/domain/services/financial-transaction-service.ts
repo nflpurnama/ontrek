@@ -1,3 +1,4 @@
+import { SpendingType } from "../constants/spending-type";
 import { TransactionType } from "../constants/transaction-type";
 import { Vendor } from "../entities/vendor";
 import { Id } from "../value-objects/id";
@@ -10,6 +11,7 @@ export interface CreateTransactionParams {
   vendor: Vendor | null;
   categoryId: string | null;
   description: string | null;
+  spendingType: SpendingType;
 }
 
 export interface DeleteTransactionParams {
