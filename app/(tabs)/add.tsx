@@ -14,6 +14,7 @@ import { AmountInput } from "@/src/presentation/components/inputs/amount-input";
 import { TransactionTypeInput } from "@/src/presentation/components/inputs/transaction-type-input";
 import { Vendor } from "@/src/domain/entities/vendor";
 import { VendorInput } from "@/src/presentation/components/inputs/vendor-input";
+import { SpendingType, SpendingTypes } from "@/src/domain/constants/spending-type";
 
 export default function AddTransactionScreen() {
   const { createTransactionUseCase, findVendorsUseCase } = useDependencies();
@@ -21,6 +22,7 @@ export default function AddTransactionScreen() {
   const [amount, setAmount] = useState<number>(0);
   const [description, setDescription] = useState<string>("");
   const [type, setType] = useState<TransactionType>(TransactionType.DEBIT);
+  const [spendingType, setSpendingType] = useState<SpendingType>("ESSENTIAL");
 
   const [vendorQuery, setVendorQuery] = useState<string>("");
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
@@ -49,6 +51,7 @@ export default function AddTransactionScreen() {
         type,
         amount: amount,
         description,
+        spendingType: spendingType
       });
 
       clearAll();
