@@ -129,6 +129,15 @@ export class Transaction {
     this._metadata.touch();
   }
 
+  get spendingType() {
+    return this._spendingType;
+  }
+
+  updateSpendingType(newType: SpendingType) {
+    this._spendingType = newType;
+    this._metadata.touch();
+  }
+
   get amount() {
     return this._amount;
   }
