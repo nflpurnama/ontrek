@@ -1,11 +1,6 @@
-export enum TransactionType{
-    CREDIT,
-    DEBIT,
-}
+export const TransactionTypes = [
+  'EXPENSE',
+  'INCOME',
+] as const;
 
-export function parseTransactionType(value: number): TransactionType {
-  if (value === TransactionType.CREDIT) return TransactionType.CREDIT;
-  if (value === TransactionType.DEBIT) return TransactionType.DEBIT;
-
-  throw new Error(`Invalid TransactionType: ${value}`);
-}
+export type TransactionType = typeof TransactionTypes[number];

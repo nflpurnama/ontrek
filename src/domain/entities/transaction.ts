@@ -22,14 +22,6 @@ export class Transaction {
     return amount;
   }
 
-  // private static validateVendorId(id: string) {
-  //   return this.validateId(id, "Transaction vendor cannot be empty.");
-  // }
-
-  // private static validateCategoryId(id: string) {
-  //   return this.validateId(id, "Transaction category cannot be empty.");
-  // }
-
   private static validateId(id: string, errorMessage: string) {
     const trimmed = this.formatId(id);
     if (!trimmed) {
@@ -56,7 +48,7 @@ export class Transaction {
       EntityMetadata.create(),
       params.transactionDate,
       params.type,
-      (params.type === TransactionType.DEBIT) ? params.spendingType : "ESSENTIAL",
+      (params.type === "EXPENSE") ? params.spendingType : "ESSENTIAL",
       Transaction.validateAmount(params.amount),
       params.vendorId,
       params.categoryId,
@@ -142,7 +134,7 @@ export class Transaction {
   }
 
   get signedAmount(): number {
-    return this._type === TransactionType.DEBIT ? -this._amount : this._amount;
+    return this._type === "EXPENSE" ? -this._amount : this._amount;
   }
 
   updateAmount(newAmount: number) {
