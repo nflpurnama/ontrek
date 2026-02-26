@@ -47,7 +47,7 @@ export class SqliteFinancialTransactionService implements FinancialTransactionSe
         spendingType: params.spendingType
       });
 
-      if (transaction.type === TransactionType.CREDIT) {
+      if (transaction.type === "INCOME") {
         account.credit(transaction.amount);
       } else {
         account.debit(transaction.amount);
@@ -72,7 +72,7 @@ export class SqliteFinancialTransactionService implements FinancialTransactionSe
       }
       const transaction = transactions[0];
 
-      if (transaction.type === TransactionType.CREDIT) {
+      if (transaction.type === "INCOME") {
         account.debit(transaction.amount);
       } else {
         account.credit(transaction.amount);
