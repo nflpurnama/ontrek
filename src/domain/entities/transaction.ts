@@ -9,6 +9,7 @@ export class Transaction {
     private _amount: number,
     private _vendorId: string | null,
     private _categoryId: string | null,
+    private _accountId: string,
     private _description?: string | null,
   ) {}
 
@@ -44,6 +45,7 @@ export class Transaction {
   static create(params: {
     vendorId: string | null;
     categoryId: string | null;
+    accountId: string;
     transactionDate: Date;
     type: TransactionType;
     amount: number;
@@ -56,6 +58,7 @@ export class Transaction {
       Transaction.validateAmount(params.amount),
       params.vendorId,
       params.categoryId,
+      params.accountId,
       params.description,
     );
   }
@@ -66,6 +69,7 @@ export class Transaction {
     updatedAt: Date;
     vendorId: string;
     categoryId: string;
+    accountId: string;
     transactionDate: Date;
     type: TransactionType;
     amount: number;
@@ -82,6 +86,7 @@ export class Transaction {
       params.amount,
       params.vendorId,
       params.categoryId,
+      params.accountId,
       params.description,
     );
   }
@@ -97,6 +102,10 @@ export class Transaction {
   }
   get vendorId() {
     return this._vendorId;
+  }
+
+  get accountId() {
+    return this._accountId;
   }
 
   updateVendor(newVendorId: string) {

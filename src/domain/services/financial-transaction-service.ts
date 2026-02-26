@@ -8,12 +8,13 @@ export interface CreateTransactionParams {
   amount: number;
   vendorName: string | null;
   vendor: Vendor | null;
+  accountId: string;
   categoryId: string | null;
   description: string | null;
 }
 
 export interface DeleteTransactionParams {
-    id: Id
+  id: Id;
 }
 
 export interface FinancialTransactionService {

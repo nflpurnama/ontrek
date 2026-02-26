@@ -2,7 +2,11 @@ import { Slot } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator } from "react-native";
 
-import { Dependencies, DependencyProvider } from "@/src/application/providers/dependency-provider";
+import { AccountProvider } from "@/src/application/providers/account-provider";
+import {
+  Dependencies,
+  DependencyProvider,
+} from "@/src/application/providers/dependency-provider";
 import { createDependencies } from "@/src/infrastructure/container/dependency-container";
 
 export default function RootLayout() {
@@ -22,8 +26,10 @@ export default function RootLayout() {
   }
 
   return (
-      <DependencyProvider dependencies={deps}>
+    <DependencyProvider dependencies={deps}>
+      <AccountProvider>
         <Slot />
-      </DependencyProvider>
+      </AccountProvider>
+    </DependencyProvider>
   );
 }

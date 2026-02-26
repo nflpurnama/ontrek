@@ -1,49 +1,58 @@
 import { TransactionType } from "@/src/domain/constants/transaction-type";
 import { Transaction } from "@/src/domain/entities/transaction";
+import { Vendor } from "@/src/domain/entities/vendor";
 import { AccountRepository } from "@/src/domain/repository/account-repository";
 import { TransactionRepository } from "@/src/domain/repository/transaction-repository";
+import { VendorRepository } from "@/src/domain/repository/vendor-repository";
 import {
   CreateTransactionParams,
   DeleteTransactionParams,
   FinancialTransactionService,
 } from "@/src/domain/services/financial-transaction-service";
+import { Id } from "@/src/domain/value-objects/id";
 import { SqliteTransaction } from "../../database/sqlite/sqlite-transaction";
-import { VendorRepository } from "@/src/domain/repository/vendor-repository";
-import { Vendor } from "@/src/domain/entities/vendor";
 
 export class SqliteFinancialTransactionService implements FinancialTransactionService {
   constructor(
     private readonly databaseTransaction: SqliteTransaction,
     private readonly accountRepository: AccountRepository,
     private readonly transactionRepository: TransactionRepository,
-    private readonly vendorRepository: VendorRepository
+    private readonly vendorRepository: VendorRepository,
   ) {}
 
   async createTransaction(params: CreateTransactionParams): Promise<void> {
     await this.databaseTransaction.runInTransaction(async () => {
-      const accounts = await this.accountRepository.getAll();
+      const accounts = await this.accountRepository.get([
+        Id.rehydrate(params.accountId),
+      ]);
       if (!accounts.length) {
         throw new Error("Account not found");
       }
       const account = accounts[0];
 
       let vendorId = null;
-      if (params.vendor){
+      if (params.vendor) {
         vendorId = params.vendor.id.getValue();
-      }else if (params.vendorName){
-        vendorId = (await this.vendorRepository.saveVendor(Vendor.create({name: params.vendorName, defaultCategoryId: null}))).getValue();
+      } else if (params.vendorName) {
+        vendorId = (
+          await this.vendorRepository.saveVendor(
+            Vendor.create({ name: params.vendorName, defaultCategoryId: null }),
+          )
+        ).getValue();
       }
 
       let categoryId = null;
-      if (params.categoryId){}
+      if (params.categoryId) {
+      }
 
       const transaction = Transaction.create({
         amount: params.amount,
         transactionDate: params.transactionDate,
         type: params.type,
+        accountId: params.accountId,
         vendorId: vendorId,
         categoryId: categoryId,
-        description: params.description
+        description: params.description,
       });
 
       if (transaction.type === TransactionType.CREDIT) {
@@ -65,7 +74,9 @@ export class SqliteFinancialTransactionService implements FinancialTransactionSe
       }
       const account = accounts[0];
 
-      const transactions = await this.transactionRepository.getTransaction([params.id]);
+      const transactions = await this.transactionRepository.getTransaction([
+        params.id,
+      ]);
       if (!transactions.length) {
         throw new Error("Transaction to delete not found");
       }

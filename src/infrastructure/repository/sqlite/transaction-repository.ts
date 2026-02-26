@@ -30,6 +30,11 @@ export class SqliteTransactionRepository implements TransactionRepository {
     const conditions: string[] = [];
     const values: any[] = [];
 
+    if (filter?.accountId) {
+      conditions.push(`account_id = ?`);
+      values.push(filter.accountId);
+    }
+
     if (filter?.categoryId) {
       conditions.push(`category_id = ?`);
       values.push(filter.categoryId);
@@ -67,11 +72,12 @@ export class SqliteTransactionRepository implements TransactionRepository {
     await this.db.runAsync(
       `
       INSERT INTO transactions 
-      (id, amount, category_id, created_at, description, transaction_date, transaction_type, updated_at, vendor_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (id, account_id, amount, category_id, created_at, description, transaction_date, transaction_type, updated_at, vendor_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         rowToInsert.id,
+        rowToInsert.account_id,
         rowToInsert.amount,
         rowToInsert.category_id,
         rowToInsert.created_at,
@@ -139,6 +145,7 @@ export class SqliteTransactionRepository implements TransactionRepository {
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
       amount: row.amount,
+      accountId: row.account_id,
       transactionDate: new Date(row.transaction_date),
       categoryId: row.category_id,
       vendorId: row.vendor_id,
@@ -150,9 +157,10 @@ export class SqliteTransactionRepository implements TransactionRepository {
   private formatObject(obj: Transaction): SqliteTransaction {
     return {
       amount: obj.amount,
+      account_id: obj.accountId,
       category_id: obj.categoryId || "",
       created_at: obj.createdAt.toISOString(),
-      description: obj.description,
+      description: obj.description || "",
       id: obj.id.getValue(),
       transaction_date: obj.transactionDate.toDateString(),
       transaction_type: obj.type,

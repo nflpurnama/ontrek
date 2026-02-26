@@ -2,12 +2,13 @@ import { TransactionType } from "../constants/transaction-type";
 import { Transaction } from "../entities/transaction";
 import { Id } from "../value-objects/id";
 
-export interface TransactionFilter{
+export interface TransactionFilter {
   startDate?: Date;
   endDate?: Date;
   vendorId?: string;
   categoryId?: string;
-  transactionType?: TransactionType; 
+  accountId?: string;
+  transactionType?: TransactionType;
 }
 
 export interface TransactionRepository {
@@ -15,5 +16,5 @@ export interface TransactionRepository {
   saveTransaction(transaction: Transaction): Promise<Id>;
   updateTransaction(transaction: Transaction): Promise<Id>;
   deleteTransaction(id: Id): Promise<void>;
-  findTransactions(filter: TransactionFilter): Promise<Transaction[]>
+  findTransactions(filter: TransactionFilter): Promise<Transaction[]>;
 }
