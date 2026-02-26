@@ -1,4 +1,3 @@
-import { parseTransactionType } from "@/src/domain/constants/transaction-type";
 import { Transaction } from "@/src/domain/entities/transaction";
 import {
   TransactionFilter,
@@ -7,6 +6,8 @@ import {
 import { Id } from "@/src/domain/value-objects/id";
 import * as SQLite from "expo-sqlite";
 import { SqliteTransaction } from "../../database/sqlite/schema/transaction";
+import { TransactionType } from "@/src/domain/constants/transaction-type";
+import { SpendingType } from "@/src/domain/constants/spending-type";
 
 export class SqliteTransactionRepository implements TransactionRepository {
   constructor(private readonly db: SQLite.SQLiteDatabase) {}
@@ -66,7 +67,7 @@ export class SqliteTransactionRepository implements TransactionRepository {
     const rowToInsert = this.formatObject(transaction);
     await this.db.runAsync(
       `
-      INSERT INTO transactions 
+      INSERT INTO transactions
       (id, amount, category_id, created_at, description, transaction_date, transaction_type, updated_at, vendor_id)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
@@ -142,7 +143,8 @@ export class SqliteTransactionRepository implements TransactionRepository {
       transactionDate: new Date(row.transaction_date),
       categoryId: row.category_id,
       vendorId: row.vendor_id,
-      type: parseTransactionType(row.transaction_type),
+      type: row.transaction_type as TransactionType,
+      spendingType: row.spending_type as SpendingType,
       description: row.description,
     });
   }
@@ -156,6 +158,7 @@ export class SqliteTransactionRepository implements TransactionRepository {
       id: obj.id.getValue(),
       transaction_date: obj.transactionDate.toDateString(),
       transaction_type: obj.type,
+      spending_type: obj.spendingType,
       updated_at: obj.updatedAt.toISOString(),
       vendor_id: obj.vendorId || "",
     };
