@@ -9,22 +9,25 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
-import { TransactionType } from "@/src/domain/constants/transaction-type";
+import {
+  TransactionType,
+  TransactionTypes,
+} from "@/src/domain/constants/transaction-type";
 import { AmountInput } from "@/src/presentation/components/inputs/amount-input";
-import { TransactionTypeInput } from "@/src/presentation/components/inputs/transaction-type-input";
 import { Vendor } from "@/src/domain/entities/vendor";
 import { VendorInput } from "@/src/presentation/components/inputs/vendor-input";
 import {
   SpendingType,
+  SpendingTypes,
 } from "@/src/domain/constants/spending-type";
-import { SpendingTypeSelector } from "@/src/presentation/components/inputs/spending-type-selector";
+import { SegmentedControl } from "@/src/presentation/components/inputs/segmented-input";
 
 export default function AddTransactionScreen() {
   const { createTransactionUseCase, findVendorsUseCase } = useDependencies();
 
   const [amount, setAmount] = useState<number>(0);
   const [description, setDescription] = useState<string>("");
-  const [type, setType] = useState<TransactionType>(TransactionType.DEBIT);
+  const [type, setType] = useState<TransactionType>("EXPENSE");
   const [spendingType, setSpendingType] = useState<SpendingType>("ESSENTIAL");
 
   const [vendorQuery, setVendorQuery] = useState<string>("");
@@ -35,7 +38,7 @@ export default function AddTransactionScreen() {
   const clearAll = () => {
     setAmount(0);
     setDescription("");
-    setType(TransactionType.DEBIT);
+    setType("EXPENSE");
     setVendorQuery("");
     setSpendingType("ESSENTIAL");
   };
@@ -80,12 +83,28 @@ export default function AddTransactionScreen() {
     };
   }, [findVendorsUseCase, vendorQuery]);
 
+  const SegmentedTransactionTypeInput = SegmentedControl<TransactionType>;
+  const SegmentedSpendingTypeInput = SegmentedControl<SpendingType>;
+
   return (
     <SafeAreaView style={styles.container}>
       <View>
         <Text style={styles.title}>Add Transaction</Text>
-        <TransactionTypeInput type={type} setType={setType} />
         <AmountInput value={amount} onChange={setAmount} />
+        <SegmentedTransactionTypeInput
+          value={type}
+          onChange={setType}
+          options={TransactionTypes}
+          style={{ marginBottom: 12 }}
+        />
+        {type === "EXPENSE" && (
+          <SegmentedSpendingTypeInput
+            value={spendingType}
+            onChange={setSpendingType}
+            options={SpendingTypes}
+            style={{ marginBottom: 12 }}
+          />
+        )}
         <VendorInput
           query={vendorQuery}
           setQuery={setVendorQuery}
@@ -98,12 +117,6 @@ export default function AddTransactionScreen() {
           onChangeText={setDescription}
           style={styles.input}
         />
-        {type === TransactionType.DEBIT && (
-          <SpendingTypeSelector
-            value={spendingType}
-            onChange={setSpendingType}
-          />
-        )}
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
           <Text style={styles.submitText}>Save Transaction</Text>
         </TouchableOpacity>
