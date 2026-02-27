@@ -67,7 +67,7 @@ export default function TransactionsPage() {
               <Text
                 style={[
                   styles.amount,
-                  item.type === TransactionType.DEBIT
+                  item.type === "EXPENSE"
                     ? styles.expense
                     : styles.income,
                 ]}
