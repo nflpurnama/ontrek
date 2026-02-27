@@ -93,7 +93,8 @@ export class SqliteTransactionRepository implements TransactionRepository {
           transaction_date = ?,
           transaction_type = ?,
           updated_at = ?,
-          vendor_id = ?
+          vendor_id = ?,
+          spending_type = ?
         WHERE id = ?
         `,
       [
@@ -104,6 +105,7 @@ export class SqliteTransactionRepository implements TransactionRepository {
         rowToUpdate.transaction_type,
         rowToUpdate.updated_at,
         rowToUpdate.vendor_id,
+        rowToUpdate.spending_type,
         rowToUpdate.id,
       ],
     );
