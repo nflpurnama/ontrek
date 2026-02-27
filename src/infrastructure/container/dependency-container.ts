@@ -15,15 +15,20 @@ import { DeleteTransactionUseCase } from "@/src/application/use-case/transaction
 import { CreateVendorUseCase } from "@/src/application/use-case/vendor/create-vendor";
 import { FindVendorsUseCase } from "@/src/application/use-case/vendor/find-vendors";
 
+import { drizzle } from "drizzle-orm/expo-sqlite"
+import { SqliteCategoryRepository } from "../repository/sqlite/category-repository";
+
 export async function createDependencies(): Promise<Dependencies> {
   //TODO: create migration
   await SQLite.deleteDatabaseAsync(SQLITE_DB_NAME);
   const db = await SQLite.openDatabaseAsync(SQLITE_DB_NAME);
   await initializeDatabase(db);
+  const drizzleDb = drizzle(db)
 
   const accountRepository = new SqliteAccountRepository(db);
   const transactionRepository = new SqliteTransactionRepository(db);
   const vendorRepository = new SqliteVendorRepository(db);
+  const categoryRepository = new SqliteCategoryRepository(drizzleDb);
 
   const ensureDefaultAccountUseCase = new EnsureDefaultAccountUseCase(accountRepository);
   await ensureDefaultAccountUseCase.execute();
