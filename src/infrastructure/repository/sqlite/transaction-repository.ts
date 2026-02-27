@@ -64,29 +64,23 @@ export class SqliteTransactionRepository implements TransactionRepository {
   }
 
   async saveTransaction(transaction: Transaction): Promise<Id> {
-    const rowToInsert = this.formatObject(transaction);
-    await this.db.runAsync(
-      `
-      INSERT INTO transactions
-      (id, amount, category_id, created_at, description, transaction_date, transaction_type, updated_at, vendor_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `,
-      [
-        rowToInsert.id,
-        rowToInsert.amount,
-        rowToInsert.category_id,
-        rowToInsert.created_at,
-        rowToInsert.description || "",
-        rowToInsert.transaction_date,
-        rowToInsert.transaction_type,
-        rowToInsert.updated_at,
-        rowToInsert.vendor_id,
-      ],
-    );
+    const row = this.formatObject(transaction);
+
+    const columns = Object.keys(row) as (keyof typeof row)[];
+    const placeholders = columns.map(() => "?").join(", ");
+    const values = columns.map((key) => row[key]);
+
+    const sql = `
+    INSERT INTO transactions (${columns.join(", ")})
+    VALUES (${placeholders})
+  `;
+
+    await this.db.runAsync(sql, values);
 
     return transaction.id;
   }
 
+  //TODO: we can probably extract the saveTransaction and updateTransaction methods (maybe even search as well)
   async updateTransaction(transaction: Transaction): Promise<Id> {
     const rowToUpdate = this.formatObject(transaction);
     const result = await this.db.runAsync(

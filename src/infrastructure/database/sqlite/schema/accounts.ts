@@ -8,6 +8,7 @@ export const ACCOUNTS_TABLE_INIT_QUERY = `
     );
   `
 
+//TODO: the initialization query should be based on this, the create/updates as well.
 export interface SqliteAccount{
     id: string,
     name: string,
