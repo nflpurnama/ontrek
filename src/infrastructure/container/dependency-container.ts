@@ -17,14 +17,14 @@ import { FindVendorsUseCase } from "@/src/application/use-case/vendor/find-vendo
 
 import { drizzle } from "drizzle-orm/expo-sqlite"
 import { SqliteCategoryRepository } from "../repository/sqlite/category-repository";
+import { EnsureDefaultCategoriesUseCase } from "@/src/application/use-case/category/ensure-default-categories";
 
-export async function createDependencies(): Promise<Dependencies> {
+import { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
+
+export async function createDependencies(db: SQLite.SQLiteDatabase, drizzleDb: ExpoSQLiteDatabase<any>): Promise<Dependencies> {
   //TODO: create migration
-  await SQLite.deleteDatabaseAsync(SQLITE_DB_NAME);
-  const db = await SQLite.openDatabaseAsync(SQLITE_DB_NAME);
-  await initializeDatabase(db);
-  const drizzleDb = drizzle(db)
 
+  await initializeDatabase(db);
   const accountRepository = new SqliteAccountRepository(db);
   const transactionRepository = new SqliteTransactionRepository(db);
   const vendorRepository = new SqliteVendorRepository(db);
