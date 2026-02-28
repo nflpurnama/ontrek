@@ -1,0 +1,21 @@
+export const DEFAULT_CATEGORY_NAMES = [
+  "Housing",
+  "Utilities",
+  "Internet",
+  "Phone",
+  "Insurance",
+  "Groceries",
+  "Dining Out",
+  "Transportation",
+  "Vehicle Maintenance",
+  "Medical",
+  "Fitness",
+  "Education",
+  "Work Expenses",
+  "Entertainment",
+  "Travel",
+  "Shopping",
+  "Gifts",
+  "Donations",
+  "Debt & Financial"
+]
