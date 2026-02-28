@@ -11,9 +11,7 @@ import { eq, inArray } from "drizzle-orm";
 
 export class SqliteCategoryRepository implements CategoryRepository {
   constructor(
-    private readonly db: ExpoSQLiteDatabase<Record<string, never>> & {
-      $client: SQLite.SQLiteDatabase;
-    },
+    private readonly db: ExpoSQLiteDatabase<any>
   ) {}
 
   async getCategory(ids: Id[]): Promise<Category[]> {
