@@ -21,9 +21,15 @@ import {
   SpendingTypes,
 } from "@/src/domain/constants/spending-type";
 import { SegmentedControl } from "@/src/presentation/components/inputs/segmented-input";
+import { Category } from "@/src/domain/entities/category";
+import { HorizontalPillSelector } from "@/src/presentation/components/pill-selector-input";
 
 export default function AddTransactionScreen() {
-  const { createTransactionUseCase, findVendorsUseCase } = useDependencies();
+  const {
+    createTransactionUseCase,
+    findVendorsUseCase,
+    getAllCategoriesUseCase,
+  } = useDependencies();
 
   const [amount, setAmount] = useState<number>(0);
   const [description, setDescription] = useState<string>("");
@@ -33,6 +39,8 @@ export default function AddTransactionScreen() {
   const [vendorQuery, setVendorQuery] = useState<string>("");
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [vendorSuggestions, setVendorSuggestions] = useState<Vendor[]>([]);
+  const [categoryId, setCategoryId] = useState<string | null>(null);
+  const [categoryList, setCategoryList] = useState<Category[]>([]);
   // const [loading, setLoading] = useState(false);
 
   const clearAll = () => {
@@ -41,6 +49,7 @@ export default function AddTransactionScreen() {
     setType("EXPENSE");
     setVendorQuery("");
     setSpendingType("ESSENTIAL");
+    setCategoryId(null);
   };
 
   const handleSubmit = async () => {
@@ -53,7 +62,7 @@ export default function AddTransactionScreen() {
       await createTransactionUseCase.execute({
         vendorName: vendorQuery,
         vendor: selectedVendor,
-        categoryId: null, // replace later
+        categoryId: categoryId,
         transactionDate: new Date(),
         type,
         amount: amount,
@@ -83,6 +92,15 @@ export default function AddTransactionScreen() {
     };
   }, [findVendorsUseCase, vendorQuery]);
 
+  useEffect(() => {
+    const getCategories = async () => {
+      const categoryList = await getAllCategoriesUseCase.execute();
+      setCategoryList(categoryList);
+    };
+
+    getCategories();
+  }, []);
+
   const SegmentedTransactionTypeInput = SegmentedControl<TransactionType>;
   const SegmentedSpendingTypeInput = SegmentedControl<SpendingType>;
 
@@ -105,6 +123,16 @@ export default function AddTransactionScreen() {
             style={{ marginBottom: 12 }}
           />
         )}
+        {(categoryList?.length > 0) && (
+          <HorizontalPillSelector
+            value={categoryId}
+            onChange={setCategoryId}
+            options={categoryList.map((c) => ({
+              label: c.name,
+              value: c.id.getValue(),
+            }))}
+          />
+        )}
         <VendorInput
           query={vendorQuery}
           setQuery={setVendorQuery}
@@ -120,6 +148,7 @@ export default function AddTransactionScreen() {
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
           <Text style={styles.submitText}>Save Transaction</Text>
         </TouchableOpacity>
+
       </View>
     </SafeAreaView>
   );
