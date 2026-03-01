@@ -17,6 +17,7 @@ import { SQLITE_DB_NAME } from "@/src/config/database";
 export default function RootLayout() {
   const [deps, setDeps] = useState<Dependencies | null>(null);
   try{
+    console.log("delete run.");
     deleteDatabaseSync(SQLITE_DB_NAME);
   }catch{
     console.log("delete failed.");
