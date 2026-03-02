@@ -25,9 +25,9 @@ export async function createDependencies(db: SQLite.SQLiteDatabase, drizzleDb: E
   //TODO: create migration
 
   await initializeDatabase(db);
-  const accountRepository = new SqliteAccountRepository(db);
+  const accountRepository = new SqliteAccountRepository(drizzleDb);
   const transactionRepository = new SqliteTransactionRepository(db);
-  const vendorRepository = new SqliteVendorRepository(db);
+  const vendorRepository = new SqliteVendorRepository(drizzleDb);
   const categoryRepository = new SqliteCategoryRepository(drizzleDb);
 
   const ensureDefaultAccountUseCase = new EnsureDefaultAccountUseCase(
