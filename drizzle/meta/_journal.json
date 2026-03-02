@@ -15,6 +15,13 @@
       "when": 1772461401069,
       "tag": "0001_naive_saracen",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1772464555428,
+      "tag": "0002_curious_falcon",
+      "breakpoints": true
     }
   ]
 }
