@@ -4,7 +4,7 @@ export class GetDashboardUseCase {
   constructor(private readonly accountRepo: AccountRepository) {}
 
   async execute() {
-    const accounts = await this.accountRepo.getAll();
+    const accounts = await this.accountRepo.getAllAccounts();
     const account = accounts[0]
 
     return {

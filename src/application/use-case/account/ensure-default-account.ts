@@ -5,11 +5,11 @@ export class EnsureDefaultAccountUseCase {
   constructor(private readonly accountRepo: AccountRepository) {}
 
   async execute() {
-    const accounts = await this.accountRepo.getAll();
-    
+    const accounts = await this.accountRepo.getAllAccounts();
+
     if (accounts.length < 1){
         const defaultAccount = Account.createDefault();
-        this.accountRepo.save(defaultAccount);
+        this.accountRepo.saveAccount(defaultAccount);
     }
 
   }

@@ -21,7 +21,7 @@ export class SqliteFinancialTransactionService implements FinancialTransactionSe
 
   async createTransaction(params: CreateTransactionParams): Promise<void> {
     await this.databaseTransaction.runInTransaction(async () => {
-      const accounts = await this.accountRepository.getAll();
+      const accounts = await this.accountRepository.getAllAccounts();
       if (!accounts.length) {
         throw new Error("Account not found");
       }
@@ -54,13 +54,13 @@ export class SqliteFinancialTransactionService implements FinancialTransactionSe
       }
 
       await this.transactionRepository.saveTransaction(transaction);
-      await this.accountRepository.update(account);
+      await this.accountRepository.updateAccount(account);
     });
   }
 
   async deleteTransaction(params: DeleteTransactionParams): Promise<void> {
     await this.databaseTransaction.runInTransaction(async () => {
-      const accounts = await this.accountRepository.getAll();
+      const accounts = await this.accountRepository.getAllAccounts();
       if (!accounts.length) {
         throw new Error("Account not found");
       }
@@ -78,7 +78,7 @@ export class SqliteFinancialTransactionService implements FinancialTransactionSe
         account.credit(transaction.amount);
       }
 
-      await this.accountRepository.update(account);
+      await this.accountRepository.updateAccount(account);
       await this.transactionRepository.deleteTransaction(transaction.id);
     });
   }
