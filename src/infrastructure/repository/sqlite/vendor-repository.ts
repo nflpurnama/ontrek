@@ -1,133 +1,115 @@
+import { eq, inArray } from "drizzle-orm";
+import { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
 import { Id } from "@/src/domain/value-objects/id";
-import * as SQLite from "expo-sqlite";
-import { VendorFilter, VendorRepository } from "@/src/domain/repository/vendor-repository";
 import { Vendor } from "@/src/domain/entities/vendor";
-import { SqliteVendor } from "../../database/sqlite/schema/vendors";
+import {
+  VendorFilter,
+  VendorRepository,
+} from "@/src/domain/repository/vendor-repository";
+import {
+  SelectSqliteVendor,
+  SQLITE_VENDORS_TABLE,
+} from "../../database/sqlite/schema/vendors";
 
 export class SqliteVendorRepository implements VendorRepository {
-  constructor(private readonly db: SQLite.SQLiteDatabase) {}
-
-  async getAllVendors(): Promise<Vendor[]> {
-    const result: SqliteVendor[] = await this.db.getAllAsync<any>(
-      `SELECT * FROM vendors`
-    );
-
-    if (!result) return [];
-
-    return result.map((row) => this.formatRow(row));
-  }
+  constructor(private readonly db: ExpoSQLiteDatabase<any>) {}
 
   async findVendors(filter?: VendorFilter): Promise<Vendor[]> {
-      let query = `SELECT * FROM vendors`;
-      const conditions: string[] = [];
-      const values: any[] = [];
-  
-      if (filter?.name) {
-        conditions.push(`name LIKE ? COLLATE NOCASE`);
-        values.push(`${filter.name}%`);
-      }
-  
-      if (conditions.length > 0) {
-        query += ` WHERE ` + conditions.join(" AND ");
-      }
-  
-      query += ` ORDER BY name ASC`;
-  
-      const rows = await this.db.getAllAsync<any>(query, values);
-  
-      return rows.map(this.formatRow);
+    let query = `SELECT * FROM vendors`;
+    const conditions: string[] = [];
+
+    if (filter?.name) {
+      conditions.push(`name LIKE '${filter.name}%' COLLATE NOCASE`);
     }
 
-  async getVendor(ids: Id[]): Promise<Vendor[]> {
-    const placeholders = ids.map(() => "?").join(",");
-    const values = ids.map((id) => id.getValue());
-
-    const result: SqliteVendor[] = await this.db.getAllAsync<any>(
-      `SELECT * FROM vendors WHERE id IN (${placeholders})`,
-      values,
-    );
-
-    if (!result) return [];
-
-    return result.map((row) => this.formatRow(row));
-  }
-
-  async saveVendor(vendor: Vendor): Promise<Id> {
-    const rowToInsert = this.formatObject(vendor);
-    await this.db.runAsync(
-      `
-      INSERT INTO vendors 
-      (id, created_at, updated_at, name, category_id)
-      VALUES (?, ?, ?, ?, ?)
-      `,
-      [
-        rowToInsert.id,
-        rowToInsert.created_at,
-        rowToInsert.updated_at,
-        rowToInsert.name,
-        rowToInsert.category_id,
-      ],
-    );
-
-    return vendor.id;
-  }
-
-  async updateVendor(vendor: Vendor): Promise<Id> {
-    const rowToUpdate = this.formatObject(vendor);
-    const result = await this.db.runAsync(
-      `
-        UPDATE vendors
-        SET
-          updated_at = ?,
-          name = ?,
-          category_id = ?,
-        WHERE id = ?
-        `,
-      [
-        rowToUpdate.updated_at,
-        rowToUpdate.name,
-        rowToUpdate.category_id,
-        rowToUpdate.id,
-      ],
-    );
-
-    if (result.changes === 0) {
-      throw new Error(
-        `Vendor with id ${vendor.id.getValue()} does not exist.`,
-      );
+    if (conditions.length > 0) {
+      query += ` WHERE ` + conditions.join(" AND ");
     }
 
-    return vendor.id;
+    query += ` ORDER BY name ASC`;
+
+    const rows = await this.db.all<any>(query);
+
+    return rows.map((row) => this.formatToDomain(row));
   }
 
-  async deleteVendor(id: Id): Promise<void> {
-    const result = await this.db.runAsync(
-      `DELETE FROM vendors WHERE id = ?`,
-      [id.getValue()],
-    );
-
-    if (result.changes === 0) {
-      throw new Error(`Vendor with id ${id.getValue()} does not exist.`);
-    }
-  }
-
-  private formatRow(row: SqliteVendor): Vendor {
+  private formatToDomain(row: SelectSqliteVendor): Vendor {
     return Vendor.rehydrate({
       id: row.id,
-      createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at),
+      createdAt: new Date(row.createdAt),
+      updatedAt: new Date(row.updatedAt),
       name: row.name,
-      defaultCategoryId: row.category_id,
+      defaultCategoryId: row.categoryId,
     });
   }
 
-  private formatObject(obj: Vendor): SqliteVendor {
+  private formatFromDomain(obj: Vendor): SelectSqliteVendor {
     return {
+      categoryId: obj.defaultCategoryId,
+      createdAt: obj.createdAt.toISOString(),
+      updatedAt: obj.updatedAt.toISOString(),
       id: obj.id.getValue(),
-      created_at: obj.createdAt.toISOString(),
-      updated_at: obj.updatedAt.toISOString(),
       name: obj.name,
-      category_id: obj.defaultCategoryId,
     };
+  }
+
+  async getVendors(ids: Id[]): Promise<Vendor[]> {
+    if (ids.length === 0) return [];
+
+    const rows = await this.db
+      .select()
+      .from(SQLITE_VENDORS_TABLE)
+      .where(
+        inArray(
+          SQLITE_VENDORS_TABLE.id,
+          ids.map((id) => id.getValue()),
+        ),
+      );
+
+    return rows.map((row) => this.formatToDomain(row));
+  }
+
+  async getAllVendors(): Promise<Vendor[]> {
+    const rows = await this.db.select().from(SQLITE_VENDORS_TABLE);
+    return rows.map((row) => this.formatToDomain(row));
+  }
+
+  async saveVendor(Vendor: Vendor): Promise<Id> {
+    const row = this.formatFromDomain(Vendor);
+
+    await this.db.insert(SQLITE_VENDORS_TABLE).values(row);
+
+    return Vendor.id;
+  }
+
+  async updateVendor(Vendor: Vendor): Promise<Id> {
+    const row = this.formatFromDomain(Vendor);
+
+    const { id, ...updateFields } = row;
+
+    const result = await this.db
+      .update(SQLITE_VENDORS_TABLE)
+      .set(updateFields)
+      .where(eq(SQLITE_VENDORS_TABLE.id, id));
+
+    if (result.changes === 0) {
+      throw new Error("Vendor: Id not found:" + Vendor.id.getValue(), {
+        cause: result,
+      });
+    }
+
+    return Vendor.id;
+  }
+
+  async deleteVendor(id: Id): Promise<void> {
+    const result = await this.db
+      .delete(SQLITE_VENDORS_TABLE)
+      .where(eq(SQLITE_VENDORS_TABLE.id, id.getValue()));
+
+    if (result.changes === 0) {
+      throw new Error("Vendor: Id not found:" + id.getValue(), {
+        cause: result,
+      });
+    }
   }
 }
