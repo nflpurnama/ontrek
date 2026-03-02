@@ -50,7 +50,7 @@ export class SqliteCategoryRepository implements CategoryRepository {
     const result = await this.db
       .update(SQLITE_CATEGORIES_TABLE)
       .set(updateFields)
-      .where(eq(SQLITE_CATEGORIES_TABLE, id));
+      .where(eq(SQLITE_CATEGORIES_TABLE.id, id));
 
     if (result.changes === 0) {
       throw new Error("Categories: Id not found", { cause: result });
@@ -62,7 +62,7 @@ export class SqliteCategoryRepository implements CategoryRepository {
   async deleteCategory(id: Id): Promise<void> {
     const result = await this.db
       .delete(SQLITE_CATEGORIES_TABLE)
-      .where(eq(SQLITE_CATEGORIES_TABLE, id.getValue()));
+      .where(eq(SQLITE_CATEGORIES_TABLE.id, id.getValue()));
 
     if (result.changes === 0) {
       throw new Error("Categories: Id not found", { cause: result });
