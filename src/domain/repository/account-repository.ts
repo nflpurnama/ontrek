@@ -2,9 +2,9 @@ import { Account } from "../entities/account";
 import { Id } from "../value-objects/id";
 
 export interface AccountRepository {
-  get(ids: Id[]): Promise<Account[]>;
-  getAll(): Promise<Account[]>;
-  save(account: Account): Promise<Id>;
-  update(account: Account): Promise<Id>;
-  delete(id: Id): Promise<void>;
+  getAccounts(ids: Id[]): Promise<Account[]>;
+  getAllAccounts(): Promise<Account[]>;
+  saveAccount(account: Account): Promise<Id>;
+  updateAccount(account: Account): Promise<Id>;
+  deleteAccount(id: Id): Promise<void>;
 }
