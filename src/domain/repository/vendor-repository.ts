@@ -6,7 +6,7 @@ export interface VendorFilter{
 }
 
 export interface VendorRepository {
-  getVendor(ids: Id[]): Promise<Vendor[]>;
+  getVendors(ids: Id[]): Promise<Vendor[]>;
   getAllVendors(): Promise<Vendor[]>;
   saveVendor(vendor: Vendor): Promise<Id>;
   updateVendor(vendor: Vendor): Promise<Id>;
