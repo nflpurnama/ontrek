@@ -1,100 +1,86 @@
 import { Account } from "@/src/domain/entities/account";
 import { AccountRepository } from "@/src/domain/repository/account-repository";
 import { Id } from "@/src/domain/value-objects/id";
-import { SqliteAccount } from "../../database/sqlite/schema/accounts";
-import * as SQLite from "expo-sqlite";
+import { SelectSqliteAccount, SQLITE_ACCOUNTS_TABLE } from "../../database/sqlite/schema/accounts";
+import { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
+import { eq, inArray } from "drizzle-orm";
 
 export class SqliteAccountRepository implements AccountRepository {
-  constructor(private readonly db: SQLite.SQLiteDatabase) {}
+  constructor(private readonly db: ExpoSQLiteDatabase<any>) {}
 
-  private formatRow(row: SqliteAccount): Account {
+  private formatToDomain(row: SelectSqliteAccount): Account {
     return Account.rehydrate({
       id: row.id,
-      createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at),
+      createdAt: new Date(row.createdAt),
+      updatedAt: new Date(row.updatedAt),
       name: row.name,
       balance: row.balance,
     });
   }
 
-  async getAll(): Promise<Account[]> {
-    const result: SqliteAccount[] = await this.db.getAllAsync<any>(
-      `SELECT * FROM accounts`
-    );
-
-    if (!result) return [];
-
-    return result.map(row => this.formatRow(row));
+  private formatFromDomain(obj: Account): SelectSqliteAccount {
+    return {
+      balance: obj.balance,
+      createdAt: obj.createdAt.toISOString(),
+      updatedAt: obj.updatedAt.toISOString(),
+      id: obj.id.getValue(),
+      name: obj.name
+    }
   }
 
-  async get(ids: Id[]): Promise<Account[]> {
-    const placeholders = ids.map(() => "?").join(",");
-    const values = ids.map((id) => id.getValue());
+  async getAccounts(ids: Id[]): Promise<Account[]> {
+    if (ids.length === 0) return [];
 
-    const result: SqliteAccount[] = await this.db.getAllAsync<any>(
-      `SELECT * FROM accounts WHERE id IN (${placeholders})`,
-      values,
-    );
-
-    if (!result) return [];
-
-    return result.map(row => this.formatRow(row));
-  }
-
-  async save(account: Account): Promise<Id> {
-    await this.db.runAsync(
-      `
-      INSERT INTO accounts 
-      (id, name, balance, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?)
-      `,
-      [
-        account.id.getValue(),
-        account.name,
-        account.balance,
-        account.createdAt.toISOString(),
-        account.updatedAt.toISOString(),
-      ],
-    );
-
-    return account.id;
-  }
-
-  async update(account: Account): Promise<Id> {
-    const result = await this.db.runAsync(
-      `
-    UPDATE accounts
-    SET
-      name = ?,
-      balance = ?,
-      updated_at = ?
-    WHERE id = ?
-    `,
-      [
-        account.name,
-        account.balance,
-        account.updatedAt.toISOString(),
-        account.id.getValue(),
-      ],
-    );
-
-    if (result.changes === 0) {
-      throw new Error(
-        `Account with id ${account.id.getValue()} does not exist.`,
+    const rows = await this.db
+      .select()
+      .from(SQLITE_ACCOUNTS_TABLE)
+      .where(
+        inArray(
+          SQLITE_ACCOUNTS_TABLE.id,
+          ids.map((id) => id.getValue()),
+        ),
       );
-    }
 
-    return account.id;
+    return rows.map((row) => this.formatToDomain(row));
   }
 
-  async delete(id: Id): Promise<void> {
-    const result = await this.db.runAsync(
-      `DELETE FROM accounts WHERE id = ?`,
-      [id.getValue()],
-    );
-
-    if (result.changes === 0) {
-      throw new Error(`Account with id ${id.getValue()} does not exist.`);
-    }
+  async getAllAccounts(): Promise<Account[]> {
+    const rows = await this.db.select().from(SQLITE_ACCOUNTS_TABLE);
+    return rows.map((row) => this.formatToDomain(row));
   }
+
+  async saveAccount(account: Account): Promise<Id> {
+      const row = this.formatFromDomain(account);
+
+      await this.db.insert(SQLITE_ACCOUNTS_TABLE).values(row);
+
+      return account.id;
+    }
+
+    async updateAccount(account: Account): Promise<Id> {
+      const row = this.formatFromDomain(account);
+
+      const { id, ...updateFields } = row;
+
+      const result = await this.db
+        .update(SQLITE_ACCOUNTS_TABLE)
+        .set(updateFields)
+        .where(eq(SQLITE_ACCOUNTS_TABLE.id, id));
+
+      if (result.changes === 0) {
+        throw new Error("Account: Id not found:" + account.id.getValue(), { cause: result });
+      }
+
+      return account.id;
+    }
+
+    async deleteAccount(id: Id): Promise<void> {
+      const result = await this.db
+        .delete(SQLITE_ACCOUNTS_TABLE)
+        .where(eq(SQLITE_ACCOUNTS_TABLE.id, id.getValue()));
+
+      if (result.changes === 0) {
+        throw new Error("Account: Id not found:" + id.getValue(), { cause: result });
+      }
+    }
 }
