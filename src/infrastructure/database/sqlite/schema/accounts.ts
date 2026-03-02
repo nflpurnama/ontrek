@@ -1,18 +1,12 @@
-export const ACCOUNTS_TABLE_INIT_QUERY = `
-    CREATE TABLE IF NOT EXISTS accounts (
-      id TEXT PRIMARY KEY NOT NULL,
-      name TEXT NOT NULL,
-      balance INTEGER NOT NULL,
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL
-    );
-  `
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core"
 
-//TODO: the initialization query should be based on this, the create/updates as well.
-export interface SqliteAccount{
-    id: string,
-    name: string,
-    balance: number,
-    created_at: string,
-    updated_at: string
-}
+export const SQLITE_ACCOUNTS_TABLE = sqliteTable('accounts', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  balance: integer('balance').notNull(),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull()
+})
+
+export type InsertSqliteAccount = typeof SQLITE_ACCOUNTS_TABLE.$inferInsert;
+export type SelectSqliteAccount = typeof SQLITE_ACCOUNTS_TABLE.$inferSelect;
