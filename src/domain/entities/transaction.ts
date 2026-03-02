@@ -60,8 +60,8 @@ export class Transaction {
     id: string;
     createdAt: Date;
     updatedAt: Date;
-    vendorId: string;
-    categoryId: string;
+    vendorId: string | null;
+    categoryId: string | null;
     transactionDate: Date;
     type: TransactionType;
     spendingType: SpendingType;

@@ -5,25 +5,109 @@ import {
 } from "@/src/domain/repository/transaction-repository";
 import { Id } from "@/src/domain/value-objects/id";
 import * as SQLite from "expo-sqlite";
-import { SqliteTransaction } from "../../database/sqlite/schema/transaction";
+import {
+  SelectSqliteTransaction,
+  SQLITE_TRANSACTIONS_TABLE,
+} from "../../database/sqlite/schema/transaction";
 import { TransactionType } from "@/src/domain/constants/transaction-type";
 import { SpendingType } from "@/src/domain/constants/spending-type";
+import { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
+import { eq, inArray } from "drizzle-orm";
 
 export class SqliteTransactionRepository implements TransactionRepository {
-  constructor(private readonly db: SQLite.SQLiteDatabase) {}
+  constructor(private readonly db: ExpoSQLiteDatabase<any>) {}
+
+  private formatToDomain(row: SelectSqliteTransaction): Transaction {
+    return Transaction.rehydrate({
+      id: row.id,
+      createdAt: new Date(row.createdAt),
+      updatedAt: new Date(row.updatedAt),
+      amount: row.amount,
+      transactionDate: new Date(row.transactionDate),
+      categoryId: row.categoryId,
+      type: row.transactionType as TransactionType,
+      spendingType: row.spendingType as SpendingType,
+      description: row.description,
+      vendorId: row.vendorId,
+    });
+  }
+
+  private formatFromDomain(obj: Transaction): SelectSqliteTransaction {
+    return {
+      id: obj.id.getValue(),
+      createdAt: obj.createdAt.toISOString(),
+      updatedAt: obj.updatedAt.toISOString(),
+      amount: obj.amount,
+      transactionDate: obj.transactionDate.toISOString(),
+      transactionType: obj.type,
+      spendingType: obj.spendingType,
+      categoryId: obj.categoryId,
+      vendorId: obj.vendorId,
+      description: obj.description,
+    };
+  }
+
+  async saveTransaction(Transaction: Transaction): Promise<Id> {
+    const row = this.formatFromDomain(Transaction);
+
+    console.log("saving transaction", row);
+
+    await this.db.insert(SQLITE_TRANSACTIONS_TABLE).values(row);
+
+    const rows = await this.db.select().from(SQLITE_TRANSACTIONS_TABLE);
+    console.log("rows", rows)
+
+    return Transaction.id;
+  }
+
+  async updateTransaction(Transaction: Transaction): Promise<Id> {
+    const row = this.formatFromDomain(Transaction);
+
+    const { id, ...updateFields } = row;
+
+    const result = await this.db
+      .update(SQLITE_TRANSACTIONS_TABLE)
+      .set(updateFields)
+      .where(eq(SQLITE_TRANSACTIONS_TABLE.id, id));
+
+    if (result.changes === 0) {
+      throw new Error(
+        "Transaction: Id not found:" + Transaction.id.getValue(),
+        {
+          cause: result,
+        },
+      );
+    }
+
+    return Transaction.id;
+  }
+
+  async deleteTransaction(id: Id): Promise<void> {
+    const result = await this.db
+      .delete(SQLITE_TRANSACTIONS_TABLE)
+      .where(eq(SQLITE_TRANSACTIONS_TABLE.id, id.getValue()));
+
+    if (result.changes === 0) {
+      throw new Error("Transaction: Id not found:" + id.getValue(), {
+        cause: result,
+      });
+    }
+  }
 
   async getTransaction(ids: Id[]): Promise<Transaction[]> {
-    const placeholders = ids.map(() => "?").join(",");
-    const values = ids.map((id) => id.getValue());
+    if (ids.length === 0) return [];
 
-    const result: SqliteTransaction[] = await this.db.getAllAsync<any>(
-      `SELECT * FROM transactions WHERE id IN (${placeholders})`,
-      values,
-    );
+    const rows = await this.db
+      .select()
+      .from(SQLITE_TRANSACTIONS_TABLE)
+      .where(
+        inArray(
+          SQLITE_TRANSACTIONS_TABLE.id,
+          ids.map((id) => id.getValue()),
+        ),
+      );
 
-    if (!result) return [];
-
-    return result.map((row) => this.formatRow(row));
+    return rows.map((row) => this.formatToDomain(row));
   }
 
   async findTransactions(filter: TransactionFilter): Promise<Transaction[]> {
@@ -34,11 +118,6 @@ export class SqliteTransactionRepository implements TransactionRepository {
     if (filter?.categoryId) {
       conditions.push(`category_id = ?`);
       values.push(filter.categoryId);
-    }
-
-    if (filter?.vendorId) {
-      conditions.push(`vendor_id = ?`);
-      values.push(filter.vendorId);
     }
 
     if (filter?.transactionType) {
@@ -58,105 +137,8 @@ export class SqliteTransactionRepository implements TransactionRepository {
 
     query += ` ORDER BY transaction_date DESC`;
 
-    const rows = await this.db.getAllAsync<any>(query, values);
+    const rows = await this.db.all<SelectSqliteTransaction>(query);
 
-    return rows.map(this.formatRow);
-  }
-
-  async saveTransaction(transaction: Transaction): Promise<Id> {
-    const row = this.formatObject(transaction);
-
-    const columns = Object.keys(row) as (keyof typeof row)[];
-    const placeholders = columns.map(() => "?").join(", ");
-    const values = columns.map((key) => row[key]);
-
-    const sql = `
-    INSERT INTO transactions (${columns.join(", ")})
-    VALUES (${placeholders})
-  `;
-
-    await this.db.runAsync(sql, values);
-
-    return transaction.id;
-  }
-
-  //TODO: we can probably extract the saveTransaction and updateTransaction methods (maybe even search as well)
-  async updateTransaction(transaction: Transaction): Promise<Id> {
-    const rowToUpdate = this.formatObject(transaction);
-    const result = await this.db.runAsync(
-      `
-        UPDATE transactions
-        SET
-          amount = ?,
-          category_id = ?,
-          description, = ?,
-          transaction_date = ?,
-          transaction_type = ?,
-          updated_at = ?,
-          vendor_id = ?,
-          spending_type = ?
-        WHERE id = ?
-        `,
-      [
-        rowToUpdate.amount,
-        rowToUpdate.category_id,
-        rowToUpdate.description || "",
-        rowToUpdate.transaction_date,
-        rowToUpdate.transaction_type,
-        rowToUpdate.updated_at,
-        rowToUpdate.vendor_id,
-        rowToUpdate.spending_type,
-        rowToUpdate.id,
-      ],
-    );
-
-    if (result.changes === 0) {
-      throw new Error(
-        `Transaction with id ${transaction.id.getValue()} does not exist.`,
-      );
-    }
-
-    return transaction.id;
-  }
-
-  async deleteTransaction(id: Id): Promise<void> {
-    const result = await this.db.runAsync(
-      `DELETE FROM transactions WHERE id = ?`,
-      [id.getValue()],
-    );
-
-    if (result.changes === 0) {
-      throw new Error(`Transaction with id ${id.getValue()} does not exist.`);
-    }
-  }
-
-  private formatRow(row: SqliteTransaction): Transaction {
-    return Transaction.rehydrate({
-      id: row.id,
-      createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at),
-      amount: row.amount,
-      transactionDate: new Date(row.transaction_date),
-      categoryId: row.category_id,
-      vendorId: row.vendor_id,
-      type: row.transaction_type as TransactionType,
-      spendingType: row.spending_type as SpendingType,
-      description: row.description,
-    });
-  }
-
-  private formatObject(obj: Transaction): SqliteTransaction {
-    return {
-      amount: obj.amount,
-      category_id: obj.categoryId || "",
-      created_at: obj.createdAt.toISOString(),
-      description: obj.description,
-      id: obj.id.getValue(),
-      transaction_date: obj.transactionDate.toDateString(),
-      transaction_type: obj.type,
-      spending_type: obj.spendingType,
-      updated_at: obj.updatedAt.toISOString(),
-      vendor_id: obj.vendorId || "",
-    };
+    return rows.map(this.formatToDomain);
   }
 }

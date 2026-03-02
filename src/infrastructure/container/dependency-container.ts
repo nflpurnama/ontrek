@@ -6,9 +6,7 @@ import { DeleteTransactionUseCase } from "@/src/application/use-case/transaction
 import { ViewTransactionsUseCase } from "@/src/application/use-case/transaction/view-transaction";
 import { CreateVendorUseCase } from "@/src/application/use-case/vendor/create-vendor";
 import { FindVendorsUseCase } from "@/src/application/use-case/vendor/find-vendors";
-import { SQLITE_DB_NAME } from "@/src/config/database";
 import * as SQLite from "expo-sqlite";
-import { initializeDatabase } from "../database/sqlite/init";
 import { SqliteTransaction } from "../database/sqlite/sqlite-transaction";
 import { SqliteAccountRepository } from "../repository/sqlite/account-repository";
 import { SqliteTransactionRepository } from "../repository/sqlite/transaction-repository";
@@ -21,12 +19,12 @@ import { EnsureDefaultCategoriesUseCase } from "@/src/application/use-case/categ
 
 import { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
 
-export async function createDependencies(db: SQLite.SQLiteDatabase, drizzleDb: ExpoSQLiteDatabase<any>): Promise<Dependencies> {
-  //TODO: create migration
-
-  await initializeDatabase(db);
+export async function createDependencies(
+  db: SQLite.SQLiteDatabase,
+  drizzleDb: ExpoSQLiteDatabase<any>,
+): Promise<Dependencies> {
   const accountRepository = new SqliteAccountRepository(drizzleDb);
-  const transactionRepository = new SqliteTransactionRepository(db);
+  const transactionRepository = new SqliteTransactionRepository(drizzleDb);
   const vendorRepository = new SqliteVendorRepository(drizzleDb);
   const categoryRepository = new SqliteCategoryRepository(drizzleDb);
 

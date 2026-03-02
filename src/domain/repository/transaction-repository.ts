@@ -7,7 +7,7 @@ export interface TransactionFilter{
   endDate?: Date;
   vendorId?: string;
   categoryId?: string;
-  transactionType?: TransactionType; 
+  transactionType?: TransactionType;
 }
 
 export interface TransactionRepository {
