@@ -13,33 +13,34 @@ import { deleteDatabaseSync, openDatabaseSync } from "expo-sqlite";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import migrations from "@/drizzle/migrations";
 import { SQLITE_DB_NAME } from "@/src/config/database";
+import * as schema from "@/src/infrastructure/database/sqlite/schema"
 
 export default function RootLayout() {
   const [deps, setDeps] = useState<Dependencies | null>(null);
-  try{
-    console.log("delete run.");
-    deleteDatabaseSync(SQLITE_DB_NAME);
-  }catch{
-    console.log("delete failed.");
-  }
+
   const db = openDatabaseSync(SQLITE_DB_NAME);
-  const drizzleDb = drizzle(db);
-  const { success, error } = useMigrations(drizzleDb, migrations);
-  if (error)
-    throw new Error("Migration failed. Please contact developer", {
-      cause: error,
-    });
+  const drizzleDb = drizzle(db, { schema });
+  const { success } = useMigrations(drizzleDb, migrations);
 
   useEffect(() => {
-    const init = async () => {
+    if (!success || deps) return;
+
+    async function bootstrap() {
+      try {
+        console.log("delete run.");
+        deleteDatabaseSync(SQLITE_DB_NAME);
+      } catch {
+        console.log("delete failed.");
+      }
+
       const created = await createDependencies(db, drizzleDb);
       setDeps(created);
-    };
+    }
 
-    init();
-  }, []);
+    bootstrap();
+  }, [success]);
 
-  if (!deps) {
+  if (!success || !deps) {
     return <ActivityIndicator />;
   }
 

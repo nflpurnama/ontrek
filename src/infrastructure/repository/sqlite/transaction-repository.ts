@@ -50,12 +50,7 @@ export class SqliteTransactionRepository implements TransactionRepository {
   async saveTransaction(Transaction: Transaction): Promise<Id> {
     const row = this.formatFromDomain(Transaction);
 
-    console.log("saving transaction", row);
-
     await this.db.insert(SQLITE_TRANSACTIONS_TABLE).values(row);
-
-    const rows = await this.db.select().from(SQLITE_TRANSACTIONS_TABLE);
-    console.log("rows", rows)
 
     return Transaction.id;
   }
@@ -137,8 +132,8 @@ export class SqliteTransactionRepository implements TransactionRepository {
 
     query += ` ORDER BY transaction_date DESC`;
 
-    const rows = await this.db.all<SelectSqliteTransaction>(query);
+    const rows = await this.db.select().from(SQLITE_TRANSACTIONS_TABLE);
 
-    return rows.map(this.formatToDomain);
+    return rows.map(row => this.formatToDomain(row));
   }
 }
