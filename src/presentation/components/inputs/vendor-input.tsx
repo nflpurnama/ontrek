@@ -26,24 +26,20 @@ export function VendorInput({
     setQuery(input.name);
     setSuggestions([]);
     setVendor(input);
+    setIsFocused(false);
   }, [setQuery, setSuggestions, setVendor]);
 
   useEffect(() => {
     setSuggestions(queryResults);
-    if (
-      suggestions.length >= 1 &&
-      suggestions[0].name.toLowerCase() === query.toLowerCase()
-    ) {
-      handleVendorSelect(suggestions[0]);
-    }
-  }, [queryResults, query, suggestions, handleVendorSelect]);
+  }, [queryResults]);
 
   const shouldShowSuggestions =
-    isFocused && suggestions?.length > 0 && query?.length > 0;
+    isFocused && suggestions?.length > 0 && query?.length > 0 && (query !== suggestions[0].name);
 
   const handleTyping = (input: string) => {
     setQuery(input);
     setVendor(null);
+    setIsFocused(true);
   };
 
   return (
