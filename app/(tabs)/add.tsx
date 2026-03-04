@@ -95,22 +95,17 @@ export default function AddTransactionScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <TransactionForm
-        amount={amount}
-        categoryId={categoryId}
+        amount={{value: amount, setter: setAmount}}
+        categoryId={{value: categoryId, setter: setCategoryId}}
         categoryOptions={categoryList}
-        description={description}
+        description={{value:description, setter: setDescription}}
         handleSubmit={handleSubmit}
-        setAmount={setAmount}
-        setCategoryId={setCategoryId}
-        setDescription={setDescription}
         setSelectedVendor={setSelectedVendor}
-        setSpendingType={setSpendingType}
-        setType={setType}
-        setVendorQuery={setVendorQuery}
-        spendingType={spendingType}
-        type={type}
-        vendorQuery={vendorQuery}
+        spendingType={{value: spendingType, setter: setSpendingType}}
+        transactionType={{value: type, setter: setType}}
+        vendorQuery={{value: vendorQuery, setter: setVendorQuery}}
         vendorSuggestions={vendorSuggestions}
+        contextType={"CREATE"}
       ></TransactionForm>
     </SafeAreaView>
   );

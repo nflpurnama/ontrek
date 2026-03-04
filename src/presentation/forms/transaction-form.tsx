@@ -20,67 +20,63 @@ import {
 import { Category } from "@/src/domain/entities/category";
 import { Vendor } from "@/src/domain/entities/vendor";
 
-type TransactionFormProps = {
-  amount: number;
-  setAmount: (input: number) => void;
-  type: TransactionType;
-  setType: (input: TransactionType) => void;
-  spendingType: SpendingType;
-  setSpendingType: (input: SpendingType) => void;
+type contextType = "EDIT" | "CREATE";
+
+type setter<T> = (input: T) => void;
+
+type TransactionFormContext = {
+  contextType: contextType;
+  amount: { value: number; setter: setter<number> };
+  transactionType: { value: TransactionType; setter: setter<TransactionType> };
+  spendingType: { value: SpendingType; setter: setter<SpendingType> };
+  categoryId: { value: string | null; setter: setter<string | null> };
+  vendorQuery: { value: string; setter: setter<string> };
+  description: { value: string; setter: setter<string> };
+  vendorSuggestions: Vendor[];
   categoryOptions: Category[];
-  categoryId: string | null,
-  setCategoryId: (input: string | null) => void;
-  vendorQuery: string,
-  setVendorQuery: (input: string) => void;
-  vendorSuggestions: Vendor[]
   setSelectedVendor: (input: Vendor | null) => void;
-  description: string;
-  setDescription: (input: string) => void;
   handleSubmit: () => void;
+  handleDelete?: () => void;
 };
 
 const TransactionForm = ({
+  contextType,
   amount,
-  setAmount,
-  type,
-  setType,
+  transactionType,
   spendingType,
-  setSpendingType,
-  categoryOptions,
   categoryId,
-  setCategoryId,
   vendorQuery,
-  setVendorQuery,
-  vendorSuggestions,
-  setSelectedVendor,
   description,
-  setDescription,
+  vendorSuggestions,
+  categoryOptions,
+  setSelectedVendor,
   handleSubmit,
-}: TransactionFormProps) => {
+  handleDelete
+}: TransactionFormContext) => {
   const SegmentedTransactionTypeInput = SegmentedControl<TransactionType>;
   const SegmentedSpendingTypeInput = SegmentedControl<SpendingType>;
 
   return (
     <View>
-      <AmountInput value={amount} onChange={setAmount} />
+      <AmountInput value={amount.value} onChange={amount.setter} />
       <SegmentedTransactionTypeInput
-        value={type}
-        onChange={setType}
+        value={transactionType.value}
+        onChange={transactionType.setter}
         options={TransactionTypes}
         style={{ marginBottom: 12 }}
       />
-      {type === "EXPENSE" && (
+      {transactionType.value === "EXPENSE" && (
         <SegmentedSpendingTypeInput
-          value={spendingType}
-          onChange={setSpendingType}
+          value={spendingType.value}
+          onChange={spendingType.setter}
           options={SpendingTypes}
           style={{ marginBottom: 12 }}
         />
       )}
       {categoryOptions?.length > 0 && (
         <HorizontalPillSelector
-          value={categoryId}
-          onChange={setCategoryId}
+          value={categoryId.value}
+          onChange={categoryId.setter}
           options={categoryOptions.map((c) => ({
             label: c.name,
             value: c.id.getValue(),
@@ -88,20 +84,27 @@ const TransactionForm = ({
         />
       )}
       <VendorInput
-        query={vendorQuery}
-        setQuery={setVendorQuery}
+        query={vendorQuery.value}
+        setQuery={vendorQuery.setter}
         queryResults={vendorSuggestions}
         setVendor={setSelectedVendor}
       ></VendorInput>
       <TextInput
         placeholder="Description"
-        value={description}
-        onChangeText={setDescription}
+        value={description.value}
+        onChangeText={description.setter}
         style={styles.input}
       />
-      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-        <Text style={styles.submitText}>Save Transaction</Text>
-      </TouchableOpacity>
+
+      <View>
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          <Text style={styles.submitText}>Save Transaction</Text>
+        </TouchableOpacity>
+
+        {(contextType === "EDIT") && <TouchableOpacity style={styles.submitButton} onPress={handleDelete}>
+          <Text style={styles.submitText}>Save Transaction</Text>
+        </TouchableOpacity>}
+      </View>
     </View>
   );
 };
@@ -128,6 +131,13 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     backgroundColor: "#111827",
+    padding: 18,
+    borderRadius: 14,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  deleteButton: {
+    backgroundColor: "#bc0000",
     padding: 18,
     borderRadius: 14,
     alignItems: "center",
