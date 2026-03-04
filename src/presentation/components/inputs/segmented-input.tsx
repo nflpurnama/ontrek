@@ -1,4 +1,3 @@
-import { TransactionType } from '@/src/domain/constants/transaction-type';
 import React from 'react';
 import { View, Text, Pressable, StyleSheet, ViewStyle } from 'react-native';
 

@@ -7,16 +7,12 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from "react-native";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Transaction } from "@/src/domain/entities/transaction";
-import { TransactionType } from "@/src/domain/constants/transaction-type";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
-import { Ionicons } from "@expo/vector-icons";
-import { Id } from "@/src/domain/value-objects/id";
 
 export default function TransactionsPage() {
-  const { viewTransactionsUseCase, deleteTransactionUseCase } =
-    useDependencies();
+  const { viewTransactionsUseCase } = useDependencies();
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,10 +29,7 @@ export default function TransactionsPage() {
     setLoading(false);
   };
 
-  const handleDelete = async (id: Id) => {
-    await deleteTransactionUseCase.execute({ id: id });
-    load();
-  };
+  const router = useRouter();
 
   useFocusEffect(() => {
     load();
@@ -59,7 +52,12 @@ export default function TransactionsPage() {
         keyExtractor={(item) => item.id.getValue()}
         contentContainerStyle={{ paddingBottom: 100 }}
         renderItem={({ item }) => (
-          <View style={styles.card}>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() =>
+              router.navigate(`/transactions/${item.id.getValue()}`)
+            }
+          >
             <View style={styles.row}>
               <Text style={styles.description}>
                 {item.description ?? "No description"}
@@ -67,9 +65,7 @@ export default function TransactionsPage() {
               <Text
                 style={[
                   styles.amount,
-                  item.type === "EXPENSE"
-                    ? styles.expense
-                    : styles.income,
+                  item.type === "EXPENSE" ? styles.expense : styles.income,
                 ]}
               >
                 Rp {item.signedAmount.toLocaleString()}
@@ -79,11 +75,7 @@ export default function TransactionsPage() {
             <Text style={styles.date}>
               {item.transactionDate.toLocaleDateString()}
             </Text>
-
-            <TouchableOpacity onPress={() => handleDelete(item.id)}>
-              <Ionicons name="trash"></Ionicons>
-            </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
         )}
       />
     </View>

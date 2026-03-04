@@ -1,26 +1,32 @@
 import { Vendor } from "@/src/domain/entities/vendor";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
 export function VendorInput({
   query,
   setQuery,
   queryResults,
-  setVendor
+  setVendor,
 }: {
   query: string;
   setQuery: (input: string) => void;
   queryResults: Vendor[];
-  setVendor: (input: Vendor | null) => void
+  setVendor: (input: Vendor | null) => void;
 }) {
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const [suggestions, setSuggestions] = useState<Vendor[]>(queryResults);
+
+  const handleVendorSelect = useCallback((input: Vendor) => {
+    setQuery(input.name);
+    setSuggestions([]);
+    setVendor(input);
+  }, [setQuery, setSuggestions, setVendor]);
 
   useEffect(() => {
     setSuggestions(queryResults);
@@ -30,21 +36,15 @@ export function VendorInput({
     ) {
       handleVendorSelect(suggestions[0]);
     }
-  }, [queryResults]);
+  }, [queryResults, query, suggestions, handleVendorSelect]);
 
   const shouldShowSuggestions =
-  isFocused && suggestions?.length > 0 && query?.length > 0;
-
-  const handleVendorSelect = (input: Vendor) => {
-    setQuery(input.name);
-    setSuggestions([]);
-    setVendor(input);
-  };
+    isFocused && suggestions?.length > 0 && query?.length > 0;
 
   const handleTyping = (input: string) => {
     setQuery(input);
-    setVendor(null)
-  }
+    setVendor(null);
+  };
 
   return (
     <View>

@@ -38,7 +38,7 @@ export default function RootLayout() {
     }
 
     bootstrap();
-  }, [success]);
+  }, [success, db, deps, drizzleDb]);
 
   if (!success || !deps) {
     return <ActivityIndicator />;

@@ -4,7 +4,6 @@ import {
   TransactionRepository,
 } from "@/src/domain/repository/transaction-repository";
 import { Id } from "@/src/domain/value-objects/id";
-import * as SQLite from "expo-sqlite";
 import {
   SelectSqliteTransaction,
   SQLITE_TRANSACTIONS_TABLE,
@@ -12,7 +11,7 @@ import {
 import { TransactionType } from "@/src/domain/constants/transaction-type";
 import { SpendingType } from "@/src/domain/constants/spending-type";
 import { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
-import { eq, inArray } from "drizzle-orm";
+import { and, between, eq, inArray, SQL } from "drizzle-orm";
 
 export class SqliteTransactionRepository implements TransactionRepository {
   constructor(private readonly db: ExpoSQLiteDatabase<any>) {}
@@ -105,35 +104,21 @@ export class SqliteTransactionRepository implements TransactionRepository {
     return rows.map((row) => this.formatToDomain(row));
   }
 
-  async findTransactions(filter: TransactionFilter): Promise<Transaction[]> {
-    let query = `SELECT * FROM transactions`;
-    const conditions: string[] = [];
-    const values: any[] = [];
+  async findTransactions({
+    categoryId,
+    endDate,
+    startDate,
+    transactionType,
+    vendorId,
+  }: TransactionFilter): Promise<Transaction[]> {
+    const filters: SQL[] = [];
 
-    if (filter?.categoryId) {
-      conditions.push(`category_id = ?`);
-      values.push(filter.categoryId);
-    }
+    if (categoryId) filters.push(eq(SQLITE_TRANSACTIONS_TABLE.categoryId, categoryId));
+    if (startDate && endDate) filters.push(between(SQLITE_TRANSACTIONS_TABLE.transactionDate, startDate.toISOString(), endDate.toISOString()));
+    if (transactionType) filters.push(eq(SQLITE_TRANSACTIONS_TABLE.transactionType, transactionType));
+    if (vendorId) filters.push(eq(SQLITE_TRANSACTIONS_TABLE.vendorId, vendorId));
 
-    if (filter?.transactionType) {
-      conditions.push(`transaction_type = ?`);
-      values.push(filter.transactionType);
-    }
-
-    if (filter?.startDate && filter?.endDate) {
-      conditions.push(`transaction_date BETWEEN ? AND ?`);
-      values.push(filter.startDate.toISOString());
-      values.push(filter.endDate.toISOString());
-    }
-
-    if (conditions.length > 0) {
-      query += ` WHERE ` + conditions.join(" AND ");
-    }
-
-    query += ` ORDER BY transaction_date DESC`;
-
-    const rows = await this.db.select().from(SQLITE_TRANSACTIONS_TABLE);
-
-    return rows.map(row => this.formatToDomain(row));
+    const result = await this.db.select().from(SQLITE_TRANSACTIONS_TABLE).where(and(...filters))
+    return result.map(row => this.formatToDomain(row));
   }
 }

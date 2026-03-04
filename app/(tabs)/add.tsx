@@ -1,9 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
   StyleSheet,
   Alert,
 } from "react-native";
@@ -11,18 +7,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import {
   TransactionType,
-  TransactionTypes,
 } from "@/src/domain/constants/transaction-type";
-import { AmountInput } from "@/src/presentation/components/inputs/amount-input";
 import { Vendor } from "@/src/domain/entities/vendor";
-import { VendorInput } from "@/src/presentation/components/inputs/vendor-input";
 import {
   SpendingType,
-  SpendingTypes,
 } from "@/src/domain/constants/spending-type";
-import { SegmentedControl } from "@/src/presentation/components/inputs/segmented-input";
 import { Category } from "@/src/domain/entities/category";
-import { HorizontalPillSelector } from "@/src/presentation/components/pill-selector-input";
 import TransactionForm from "@/src/presentation/forms/transaction-form";
 
 export default function AddTransactionScreen() {
@@ -100,7 +90,7 @@ export default function AddTransactionScreen() {
     };
 
     getCategories();
-  }, []);
+  }, [getAllCategoriesUseCase]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -131,5 +121,5 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 24,
     backgroundColor: "#f8fafc",
-  }
+  },
 });

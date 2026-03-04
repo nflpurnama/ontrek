@@ -1,5 +1,4 @@
 import { Id } from "@/src/domain/value-objects/id";
-import * as SQLite from "expo-sqlite";
 import { CategoryRepository } from "@/src/domain/repository/category-repository";
 import { Category } from "@/src/domain/entities/category";
 import { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";

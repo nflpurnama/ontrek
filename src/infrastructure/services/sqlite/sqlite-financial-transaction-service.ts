@@ -1,4 +1,3 @@
-import { TransactionType } from "@/src/domain/constants/transaction-type";
 import { Transaction } from "@/src/domain/entities/transaction";
 import { AccountRepository } from "@/src/domain/repository/account-repository";
 import { TransactionRepository } from "@/src/domain/repository/transaction-repository";

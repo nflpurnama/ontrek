@@ -1,7 +1,7 @@
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { Vendor } from "@/src/domain/entities/vendor";
 import { useFocusEffect } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
