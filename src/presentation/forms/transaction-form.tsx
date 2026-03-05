@@ -19,11 +19,9 @@ import {
 } from "@/src/domain/constants/spending-type";
 import { Category } from "@/src/domain/entities/category";
 import { Vendor } from "@/src/domain/entities/vendor";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type contextType = "EDIT" | "CREATE";
-
-type setter<T> = (input: T) => void;
 
 export type TransactionFormData = {
   amount: number;
@@ -32,15 +30,15 @@ export type TransactionFormData = {
   category: string | null;
   vendor: Vendor | null;
   vendorName: string;
-  description: string
-}
+  description: string;
+};
 
 export type TransactionFormContext = {
   contextType: contextType;
   vendorSuggestions: Vendor[];
   categoryOptions: Category[];
-  setSelectedVendor: (input: Vendor | null) => void;
   handleSubmit: (formData: TransactionFormData) => void;
+  handleVendorSearch: (vendorName: string) => void;
   handleDelete?: (formData: TransactionFormData) => void;
 };
 
@@ -48,15 +46,17 @@ export const TransactionForm = ({
   contextType,
   vendorSuggestions,
   categoryOptions,
+  handleVendorSearch,
   handleSubmit,
-  handleDelete
+  handleDelete,
 }: TransactionFormContext) => {
   const SegmentedTransactionTypeInput = SegmentedControl<TransactionType>;
   const SegmentedSpendingTypeInput = SegmentedControl<SpendingType>;
 
   const [amount, setAmount] = useState<number>(0);
 
-  const [transactionType, setTransactionType] = useState<TransactionType>("EXPENSE");
+  const [transactionType, setTransactionType] =
+    useState<TransactionType>("EXPENSE");
 
   const [spendingType, setSpendingType] = useState<SpendingType>("ESSENTIAL");
 
@@ -67,15 +67,11 @@ export const TransactionForm = ({
 
   const [description, setDescription] = useState<string>("");
 
-  const [suggestion, setSuggestion] = useState<Vendor | null>(null);
+  // const [suggestions, setSuggestions] = useState<Vendor[]>([]);
 
-  useEffect(() => {
-    if (vendorSuggestions.length < 1) {
-      setSuggestion(null)
-    }else{
-      setSuggestion(vendorSuggestions[0])
-    }
-  }, vendorSuggestions)
+  // useEffect(() => {
+  // setSuggestions(vendorSuggestions)
+  // }, vendorSuggestions)
 
   return (
     <View>
@@ -105,10 +101,11 @@ export const TransactionForm = ({
         />
       )}
       <VendorInput
-        query={vendorName}
-        setQuery={setVendorName}
-        queryResults={vendorSuggestions}
-        setVendor={setVendor}
+        vendorName={vendorName}
+        setVendorName={setVendorName}
+        vendorSuggestions={vendorSuggestions}
+        handleSelect={setVendor}
+        handleSearch={handleVendorSearch}
       ></VendorInput>
       <TextInput
         placeholder="Description"
@@ -118,17 +115,41 @@ export const TransactionForm = ({
       />
 
       <View>
-        <TouchableOpacity style={styles.submitButton} onPress={() => handleSubmit({
-          amount, category, description, spendingType, transactionType, vendor, vendorName
-        })}>
+        <TouchableOpacity
+          style={styles.submitButton}
+          onPress={() =>
+            handleSubmit({
+              amount,
+              category,
+              description,
+              spendingType,
+              transactionType,
+              vendor,
+              vendorName,
+            })
+          }
+        >
           <Text style={styles.submitText}>Save Transaction</Text>
         </TouchableOpacity>
 
-        {(contextType === "EDIT" && handleDelete) && <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete({
-          amount, category, description, spendingType, transactionType, vendor, vendorName
-        })}>
-          <Text style={styles.submitText}>Delete Transaction</Text>
-        </TouchableOpacity>}
+        {contextType === "EDIT" && handleDelete && (
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() =>
+              handleDelete({
+                amount,
+                category,
+                description,
+                spendingType,
+                transactionType,
+                vendor,
+                vendorName,
+              })
+            }
+          >
+            <Text style={styles.submitText}>Delete Transaction</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );

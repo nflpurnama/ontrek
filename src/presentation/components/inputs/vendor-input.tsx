@@ -1,52 +1,79 @@
 import { Vendor } from "@/src/domain/entities/vendor";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
+  Keyboard,
 } from "react-native";
 
+export type VendorInputData = {
+  vendorName: string;
+  vendor: Vendor | null;
+};
+
 export function VendorInput({
-  query,
-  setQuery,
-  queryResults,
-  setVendor,
+  vendorSuggestions,
+  handleSelect,
+  handleSearch,
+  setVendorName,
+  vendorName
 }: {
-  query: string;
-  setQuery: (input: string) => void;
-  queryResults: Vendor[];
-  setVendor: (input: Vendor | null) => void;
+  vendorSuggestions: Vendor[];
+  handleSelect: (input: Vendor | null) => void;
+  handleSearch: (query: string) => void;
+  setVendorName: (query: string) => void;
+  vendorName: string;
 }) {
   const [isFocused, setIsFocused] = useState<boolean>(false);
-  const [suggestions, setSuggestions] = useState<Vendor[]>(queryResults);
-
-  const handleVendorSelect = useCallback((input: Vendor) => {
-    setQuery(input.name);
-    setSuggestions([]);
-    setVendor(input);
-    setIsFocused(false);
-  }, [setQuery, setSuggestions, setVendor]);
+  const [suggestions, setSuggestions] = useState<Vendor[]>(vendorSuggestions);
 
   useEffect(() => {
-    setSuggestions(queryResults);
-  }, [queryResults]);
+    const hideSub = Keyboard.addListener("keyboardDidHide", () => {
+      setIsFocused(false);
+    });
+
+    return () => {
+      hideSub.remove();
+    };
+  }, []);
+
+  const handleVendorSelect = (input: Vendor) => {
+    setIsFocused(false);
+    setVendorName(input.name);
+    handleSelect(input);
+  };
+
+  useEffect(() => {
+    setSuggestions(vendorSuggestions);
+  }, [vendorSuggestions]);
+
+  useEffect(() => {
+    const id = setTimeout(() => {
+      handleSearch(vendorName);
+    }, 300);
+
+    return () => clearTimeout(id);
+  }, [vendorName, handleSearch]);
 
   const shouldShowSuggestions =
-    isFocused && suggestions?.length > 0 && query?.length > 0 && (query !== suggestions[0].name);
+    isFocused &&
+    suggestions?.length > 0 &&
+    vendorName?.length > 0 &&
+    vendorName !== suggestions[0].name;
 
   const handleTyping = (input: string) => {
-    setQuery(input);
-    setVendor(null);
     setIsFocused(true);
+    setVendorName(input);
   };
 
   return (
     <View>
       {shouldShowSuggestions && (
         <View style={styles.dropdown}>
-          {suggestions.map((vendor: Vendor) => (
+          {[suggestions[0]].map((vendor: Vendor) => (
             <TouchableOpacity
               key={vendor.id.getValue()}
               onPress={() => handleVendorSelect(vendor)}
@@ -59,11 +86,10 @@ export function VendorInput({
       )}
       <TextInput
         placeholder="Where/who did you purchase from? (ex: Sigmamart)"
-        value={query}
+        value={vendorName}
         onChangeText={handleTyping}
         style={styles.input}
         onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
       />
     </View>
   );

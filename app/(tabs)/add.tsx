@@ -1,19 +1,10 @@
 import React, { useEffect, useState } from "react";
-import {
-  StyleSheet,
-  Alert,
-} from "react-native";
+import { StyleSheet, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
-import {
-  TransactionType,
-} from "@/src/domain/constants/transaction-type";
 import { Vendor } from "@/src/domain/entities/vendor";
-import {
-  SpendingType,
-} from "@/src/domain/constants/spending-type";
 import { Category } from "@/src/domain/entities/category";
-import TransactionForm from "@/src/presentation/forms/transaction-form";
+import {TransactionForm, TransactionFormData} from "@/src/presentation/forms/transaction-form";
 
 export default function AddTransactionScreen() {
   const {
@@ -22,28 +13,10 @@ export default function AddTransactionScreen() {
     getAllCategoriesUseCase,
   } = useDependencies();
 
-  const [amount, setAmount] = useState<number>(0);
-  const [description, setDescription] = useState<string>("");
-  const [type, setType] = useState<TransactionType>("EXPENSE");
-  const [spendingType, setSpendingType] = useState<SpendingType>("ESSENTIAL");
-
-  const [vendorQuery, setVendorQuery] = useState<string>("");
-  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [vendorSuggestions, setVendorSuggestions] = useState<Vendor[]>([]);
-  const [categoryId, setCategoryId] = useState<string | null>(null);
   const [categoryList, setCategoryList] = useState<Category[]>([]);
-  // const [loading, setLoading] = useState(false);
 
-  const clearAll = () => {
-    setAmount(0);
-    setDescription("");
-    setType("EXPENSE");
-    setVendorQuery("");
-    setSpendingType("ESSENTIAL");
-    setCategoryId(null);
-  };
-
-  const handleSubmit = async () => {
+  const handleSubmit = async ({ amount, category, description, spendingType, transactionType, vendor, vendorName }: TransactionFormData) => {
     if (!amount) {
       Alert.alert("Error", "Amount is required");
       return;
@@ -51,37 +24,24 @@ export default function AddTransactionScreen() {
 
     try {
       await createTransactionUseCase.execute({
-        vendorName: vendorQuery,
-        vendor: selectedVendor,
-        categoryId: categoryId,
+        vendorName: vendorName,
+        vendor,
+        categoryId: category,
         transactionDate: new Date(),
-        type,
-        amount: amount,
+        type: transactionType,
+        amount,
         description,
-        spendingType: spendingType,
+        spendingType,
       });
-
-      clearAll();
     } catch (err: any) {
       Alert.alert("Error", err.message);
     }
   };
 
-  useEffect(() => {
-    if (!vendorQuery.trim()) {
-      setVendorSuggestions([]);
-      return;
-    }
-
-    const timeout = setTimeout(async () => {
-      const results = await findVendorsUseCase.execute({ name: vendorQuery });
-      setVendorSuggestions(results);
-    }, 300);
-
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [findVendorsUseCase, vendorQuery]);
+  const handleSearch = async (vendorName: string) => {
+    const result = await findVendorsUseCase.execute({name: vendorName});
+    setVendorSuggestions(result)
+  };
 
   useEffect(() => {
     const getCategories = async () => {
@@ -95,15 +55,9 @@ export default function AddTransactionScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <TransactionForm
-        amount={{value: amount, setter: setAmount}}
-        categoryId={{value: categoryId, setter: setCategoryId}}
         categoryOptions={categoryList}
-        description={{value:description, setter: setDescription}}
         handleSubmit={handleSubmit}
-        setSelectedVendor={setSelectedVendor}
-        spendingType={{value: spendingType, setter: setSpendingType}}
-        transactionType={{value: type, setter: setType}}
-        vendorQuery={{value: vendorQuery, setter: setVendorQuery}}
+        handleVendorSearch={handleSearch}
         vendorSuggestions={vendorSuggestions}
         contextType={"CREATE"}
       ></TransactionForm>
