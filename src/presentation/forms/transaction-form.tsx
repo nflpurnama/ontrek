@@ -19,64 +19,85 @@ import {
 } from "@/src/domain/constants/spending-type";
 import { Category } from "@/src/domain/entities/category";
 import { Vendor } from "@/src/domain/entities/vendor";
+import { useEffect, useState } from "react";
 
 type contextType = "EDIT" | "CREATE";
 
 type setter<T> = (input: T) => void;
 
-type TransactionFormContext = {
+export type TransactionFormData = {
+  amount: number;
+  transactionType: TransactionType;
+  spendingType: SpendingType;
+  category: string | null;
+  vendor: Vendor | null;
+  vendorName: string;
+  description: string
+}
+
+export type TransactionFormContext = {
   contextType: contextType;
-  amount: { value: number; setter: setter<number> };
-  transactionType: { value: TransactionType; setter: setter<TransactionType> };
-  spendingType: { value: SpendingType; setter: setter<SpendingType> };
-  categoryId: { value: string | null; setter: setter<string | null> };
-  vendorQuery: { value: string; setter: setter<string> };
-  description: { value: string; setter: setter<string> };
   vendorSuggestions: Vendor[];
   categoryOptions: Category[];
   setSelectedVendor: (input: Vendor | null) => void;
-  handleSubmit: () => void;
-  handleDelete?: () => void;
+  handleSubmit: (formData: TransactionFormData) => void;
+  handleDelete?: (formData: TransactionFormData) => void;
 };
 
-const TransactionForm = ({
+export const TransactionForm = ({
   contextType,
-  amount,
-  transactionType,
-  spendingType,
-  categoryId,
-  vendorQuery,
-  description,
   vendorSuggestions,
   categoryOptions,
-  setSelectedVendor,
   handleSubmit,
   handleDelete
 }: TransactionFormContext) => {
   const SegmentedTransactionTypeInput = SegmentedControl<TransactionType>;
   const SegmentedSpendingTypeInput = SegmentedControl<SpendingType>;
 
+  const [amount, setAmount] = useState<number>(0);
+
+  const [transactionType, setTransactionType] = useState<TransactionType>("EXPENSE");
+
+  const [spendingType, setSpendingType] = useState<SpendingType>("ESSENTIAL");
+
+  const [category, setCategory] = useState<string | null>(null);
+
+  const [vendor, setVendor] = useState<Vendor | null>(null);
+  const [vendorName, setVendorName] = useState<string>("");
+
+  const [description, setDescription] = useState<string>("");
+
+  const [suggestion, setSuggestion] = useState<Vendor | null>(null);
+
+  useEffect(() => {
+    if (vendorSuggestions.length < 1) {
+      setSuggestion(null)
+    }else{
+      setSuggestion(vendorSuggestions[0])
+    }
+  }, vendorSuggestions)
+
   return (
     <View>
-      <AmountInput value={amount.value} onChange={amount.setter} />
+      <AmountInput value={amount} onChange={setAmount} />
       <SegmentedTransactionTypeInput
-        value={transactionType.value}
-        onChange={transactionType.setter}
+        value={transactionType}
+        onChange={setTransactionType}
         options={TransactionTypes}
         style={{ marginBottom: 12 }}
       />
-      {transactionType.value === "EXPENSE" && (
+      {transactionType === "EXPENSE" && (
         <SegmentedSpendingTypeInput
-          value={spendingType.value}
-          onChange={spendingType.setter}
+          value={spendingType}
+          onChange={setSpendingType}
           options={SpendingTypes}
           style={{ marginBottom: 12 }}
         />
       )}
       {categoryOptions?.length > 0 && (
         <HorizontalPillSelector
-          value={categoryId.value}
-          onChange={categoryId.setter}
+          value={category}
+          onChange={setCategory}
           options={categoryOptions.map((c) => ({
             label: c.name,
             value: c.id.getValue(),
@@ -84,25 +105,29 @@ const TransactionForm = ({
         />
       )}
       <VendorInput
-        query={vendorQuery.value}
-        setQuery={vendorQuery.setter}
+        query={vendorName}
+        setQuery={setVendorName}
         queryResults={vendorSuggestions}
-        setVendor={setSelectedVendor}
+        setVendor={setVendor}
       ></VendorInput>
       <TextInput
         placeholder="Description"
-        value={description.value}
-        onChangeText={description.setter}
+        value={description}
+        onChangeText={setDescription}
         style={styles.input}
       />
 
       <View>
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+        <TouchableOpacity style={styles.submitButton} onPress={() => handleSubmit({
+          amount, category, description, spendingType, transactionType, vendor, vendorName
+        })}>
           <Text style={styles.submitText}>Save Transaction</Text>
         </TouchableOpacity>
 
-        {(contextType === "EDIT") && <TouchableOpacity style={styles.submitButton} onPress={handleDelete}>
-          <Text style={styles.submitText}>Save Transaction</Text>
+        {(contextType === "EDIT" && handleDelete) && <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete({
+          amount, category, description, spendingType, transactionType, vendor, vendorName
+        })}>
+          <Text style={styles.submitText}>Delete Transaction</Text>
         </TouchableOpacity>}
       </View>
     </View>
@@ -168,5 +193,3 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
 });
-
-export default TransactionForm;
