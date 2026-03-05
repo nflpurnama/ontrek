@@ -56,7 +56,7 @@ export const TransactionForm = ({
   const [amount, setAmount] = useState<number>(0);
 
   const [transactionType, setTransactionType] =
-    useState<TransactionType>("EXPENSE");
+    useState<TransactionType | null>(null);
 
   const [spendingType, setSpendingType] = useState<SpendingType>("ESSENTIAL");
 
@@ -73,11 +73,19 @@ export const TransactionForm = ({
   // setSuggestions(vendorSuggestions)
   // }, vendorSuggestions)
 
+  const handleTransactionType = (value: string) => {
+    if (value.toLowerCase() == 'e') setTransactionType("EXPENSE");
+    else if (value.toLowerCase() == 'i') setTransactionType("INCOME");
+    else setTransactionType(null)
+  }
+
   return (
     <View>
+      <TextInput placeholder={"Expense or income? [e, i]"} value={transactionType ?? undefined} onChangeText={handleTransactionType}/>
+
       <AmountInput value={amount} onChange={setAmount} />
       <SegmentedTransactionTypeInput
-        value={transactionType}
+        value={transactionType ?? "EXPENSE"}
         onChange={setTransactionType}
         options={TransactionTypes}
         style={{ marginBottom: 12 }}
@@ -123,7 +131,7 @@ export const TransactionForm = ({
               category,
               description,
               spendingType,
-              transactionType,
+              transactionType: (transactionType ?? "EXPENSE"),
               vendor,
               vendorName,
             })
@@ -141,7 +149,7 @@ export const TransactionForm = ({
                 category,
                 description,
                 spendingType,
-                transactionType,
+                transactionType: transactionType ?? "EXPENSE",
                 vendor,
                 vendorName,
               })
