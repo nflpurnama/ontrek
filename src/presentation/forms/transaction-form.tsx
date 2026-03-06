@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AmountInput } from "../components/inputs/amount-input";
+import AmountInput from "../components/inputs/amount-input";
 import { HorizontalPillSelector } from "../components/pill-selector-input";
 import { VendorInput } from "../components/inputs/vendor-input";
 import { SegmentedControl } from "../components/inputs/segmented-input";
@@ -19,7 +19,8 @@ import {
 } from "@/src/domain/constants/spending-type";
 import { Category } from "@/src/domain/entities/category";
 import { Vendor } from "@/src/domain/entities/vendor";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import TerminalInput from "../components/inputs/terminal-input";
 
 type contextType = "EDIT" | "CREATE";
 
@@ -50,9 +51,6 @@ export const TransactionForm = ({
   handleSubmit,
   handleDelete,
 }: TransactionFormContext) => {
-  const SegmentedTransactionTypeInput = SegmentedControl<TransactionType>;
-  const SegmentedSpendingTypeInput = SegmentedControl<SpendingType>;
-
   const [amount, setAmount] = useState<number>(0);
 
   const [transactionType, setTransactionType] =
@@ -67,60 +65,90 @@ export const TransactionForm = ({
 
   const [description, setDescription] = useState<string>("");
 
-  // const [suggestions, setSuggestions] = useState<Vendor[]>([]);
-
-  // useEffect(() => {
-  // setSuggestions(vendorSuggestions)
-  // }, vendorSuggestions)
-
   const handleTransactionType = (value: string) => {
-    if (value.toLowerCase() == 'e') setTransactionType("EXPENSE");
-    else if (value.toLowerCase() == 'i') setTransactionType("INCOME");
-    else setTransactionType(null)
-  }
+    if (value.toLowerCase() == "e") setTransactionType("EXPENSE");
+    else if (value.toLowerCase() == "i") setTransactionType("INCOME");
+    else setTransactionType(null);
+  };
+
+  const [showPrompts, setShowPrompts] = useState<boolean>();
+  const transactionTypeRef = useRef<TextInput>(null);
+  const amountRef = useRef<TextInput>(null);
+  const vendorRef = useRef<TextInput>(null);
+  const categoryRef = useRef<TextInput>(null);
+  const descriptionRef = useRef<TextInput>(null);
+
+  useEffect(() => {
+    setShowPrompts(false);
+  });
 
   return (
     <View>
-      <TextInput placeholder={"Expense or income? [e, i]"} value={transactionType ?? undefined} onChangeText={handleTransactionType}/>
+      <TerminalInput prompt="Expense or Income?" showPrompt={showPrompts}>
+        <TextInput
+          ref={transactionTypeRef}
+          placeholder={"[e, i]"}
+          value={transactionType ?? undefined}
+          onChangeText={handleTransactionType}
+          inputAccessoryViewButtonLabel="test"
+          autoFocus
+          onSubmitEditing={() => amountRef?.current?.focus()}
+        />
+      </TerminalInput>
 
-      <AmountInput value={amount} onChange={setAmount} />
-      <SegmentedTransactionTypeInput
-        value={transactionType ?? "EXPENSE"}
-        onChange={setTransactionType}
-        options={TransactionTypes}
-        style={{ marginBottom: 12 }}
-      />
-      {transactionType === "EXPENSE" && (
-        <SegmentedSpendingTypeInput
-          value={spendingType}
-          onChange={setSpendingType}
-          options={SpendingTypes}
-          style={{ marginBottom: 12 }}
+      <TerminalInput
+        prompt={`How much did you ${transactionType === "INCOME" ? "earn" : "spend"}?`}
+        showPrompt={showPrompts}
+      >
+        <AmountInput
+          ref={amountRef}
+          amount={amount}
+          setter={setAmount}
+          onSubmitEditing={() => vendorRef?.current?.focus()}
         />
-      )}
-      {categoryOptions?.length > 0 && (
-        <HorizontalPillSelector
-          value={category}
-          onChange={setCategory}
-          options={categoryOptions.map((c) => ({
-            label: c.name,
-            value: c.id.getValue(),
-          }))}
-        />
-      )}
-      <VendorInput
-        vendorName={vendorName}
-        setVendorName={setVendorName}
-        vendorSuggestions={vendorSuggestions}
-        handleSelect={setVendor}
-        handleSearch={handleVendorSearch}
-      ></VendorInput>
-      <TextInput
-        placeholder="Description"
-        value={description}
-        onChangeText={setDescription}
-        style={styles.input}
-      />
+      </TerminalInput>
+
+      <TerminalInput
+        prompt={`Where did you ${transactionType === "INCOME" ? "earn" : "spend"}?`}
+        showPrompt={showPrompts}
+      >
+        <VendorInput
+          ref={vendorRef}
+          vendorName={vendorName}
+          setVendorName={setVendorName}
+          vendorSuggestions={vendorSuggestions}
+          handleSelect={setVendor}
+          handleSearch={handleVendorSearch}
+          placeholder="source"
+          onSubmitEditing={() => categoryRef?.current?.focus()}
+        ></VendorInput>
+      </TerminalInput>
+
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <TerminalInput prompt="Category - Description" showPrompt={showPrompts}>
+          <TextInput
+            ref={categoryRef}
+            placeholder={"catetgory"}
+            value={category ?? undefined}
+            onChangeText={setCategory}
+            inputAccessoryViewButtonLabel="test"
+            onSubmitEditing={() => descriptionRef?.current?.focus()}
+          />
+        </TerminalInput>
+
+        <Text>-</Text>
+
+        <TerminalInput prompt="Description">
+          <TextInput
+            ref={descriptionRef}
+            placeholder={"description"}
+            value={description ?? undefined}
+            onChangeText={setDescription}
+            inputAccessoryViewButtonLabel="test"
+            autoFocus
+          />
+        </TerminalInput>
+      </View>
 
       <View>
         <TouchableOpacity
@@ -131,7 +159,7 @@ export const TransactionForm = ({
               category,
               description,
               spendingType,
-              transactionType: (transactionType ?? "EXPENSE"),
+              transactionType: transactionType ?? "EXPENSE",
               vendor,
               vendorName,
             })
@@ -164,6 +192,10 @@ export const TransactionForm = ({
 };
 
 const styles = StyleSheet.create({
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   container: {
     flex: 1,
     padding: 24,

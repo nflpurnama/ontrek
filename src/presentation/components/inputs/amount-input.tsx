@@ -1,53 +1,60 @@
-import { useEffect, useState } from "react";
-import { View, StyleSheet, TextInput, Text } from "react-native";
+import { Ref, useEffect, useState } from "react";
+import { View, StyleSheet, TextInput, Text, TextInputProps } from "react-native";
 import {
   formatCurrency,
   parseCurrency,
 } from "../../utility/formatter/currency";
 
-export function AmountInput({
-  value,
-  onChange,
-}: {
-  value: number;
-  onChange: (input: number) => void;
-}) {
+type AmountInputProps =
+TextInputProps
+& {ref: Ref<TextInput>}
+& {
+  amount: number;
+  setter: (input: number) => void;
+}
+
+const AmountInput = ({
+  amount,
+  setter,
+  ref,
+  ...props
+}: AmountInputProps) => {
   const [display, setDisplay] = useState<string>("");
 
   useEffect(() => {
-  if (!value) {
+  if (!amount) {
     setDisplay("");
   } else {
-    setDisplay(formatCurrency(value));
+    setDisplay(formatCurrency(amount));
   }
-  }, [value]);
+  }, [amount]);
 
 
   const handleChange = (input: string) => {
     const parsedAmount = parseCurrency(input);
 
     if (isNaN(parsedAmount)) {
-      onChange(0);
+      setter(0);
       setDisplay("");
       return;
     }
 
     const formattedAmount = formatCurrency(parsedAmount);
 
-    onChange(parsedAmount);
+    setter(parsedAmount);
     setDisplay(formattedAmount);
   };
 
   return (
     <View style={styles.amountContainer}>
-      <Text style={styles.currency}>Rp</Text>
+      <Text>Rp</Text>
       <TextInput
-        style={styles.amountInput}
+        ref={ref}
         placeholder="0"
         keyboardType="numeric"
         onChangeText={handleChange}
         value={display}
-        autoFocus
+        {...props}
       />
     </View>
   );
@@ -55,7 +62,8 @@ export function AmountInput({
 
 const styles = StyleSheet.create({
   amountContainer: {
-    marginVertical: 24,
+    // marginVertical: 24,
+    paddingStart: 5,
     flexDirection: "row",
     alignItems: "center",
   },
@@ -72,3 +80,5 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
 });
+
+export default AmountInput;

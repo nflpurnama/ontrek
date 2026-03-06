@@ -1,5 +1,5 @@
 import { Vendor } from "@/src/domain/entities/vendor";
-import { useEffect, useRef, useState } from "react";
+import { Ref, useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,26 +7,35 @@ import {
   TouchableOpacity,
   View,
   Keyboard,
+  TextInputProps,
 } from "react-native";
 
-export type VendorInputData = {
+export type VendorInputData =
+{
   vendorName: string;
   vendor: Vendor | null;
 };
+
+type VendorInputProps =
+TextInputProps
+& {ref: Ref<TextInput>}
+& {
+  vendorSuggestions: Vendor[];
+  handleSelect: (input: Vendor | null) => void;
+  handleSearch: (query: string) => void;
+  setVendorName: (query: string) => void;
+  vendorName: string;
+}
 
 export function VendorInput({
   vendorSuggestions,
   handleSelect,
   handleSearch,
   setVendorName,
-  vendorName
-}: {
-  vendorSuggestions: Vendor[];
-  handleSelect: (input: Vendor | null) => void;
-  handleSearch: (query: string) => void;
-  setVendorName: (query: string) => void;
-  vendorName: string;
-}) {
+  vendorName,
+  ref,
+  ...props
+}: VendorInputProps) {
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const [suggestions, setSuggestions] = useState<Vendor[]>(vendorSuggestions);
 
@@ -85,11 +94,12 @@ export function VendorInput({
         </View>
       )}
       <TextInput
-        placeholder="Where/who did you purchase from? (ex: Sigmamart)"
+        ref={ref}
         value={vendorName}
         onChangeText={handleTyping}
-        style={styles.input}
         onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        {...props}
       />
     </View>
   );
