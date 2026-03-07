@@ -82,6 +82,7 @@ export const TransactionForm = ({
     setShowPrompts(false);
   });
 
+  {/*TODO: use backspace on empty field to navigate to previous field */}
   return (
     <View>
       <TerminalInput prompt="Expense or Income?" showPrompt={showPrompts}>
@@ -112,6 +113,7 @@ export const TransactionForm = ({
         prompt={`Where did you ${transactionType === "INCOME" ? "earn" : "spend"}?`}
         showPrompt={showPrompts}
       >
+        {/*TODO: Vendor suggestion styling is not appearing*/}
         <VendorInput
           ref={vendorRef}
           vendorName={vendorName}
@@ -125,13 +127,14 @@ export const TransactionForm = ({
       </TerminalInput>
 
       <View style={{ flexDirection: "row", alignItems: "center" }}>
+        {/* TODO: Categories are not getting recognized*/}
+        {/*TODO: How to handle category suggestion? Can we add keyboard autocorrect? i.e. get keyboard height, above it add options*/}
         <TerminalInput prompt="Category - Description" showPrompt={showPrompts}>
           <TextInput
             ref={categoryRef}
-            placeholder={"catetgory"}
+            placeholder={"category"}
             value={category ?? undefined}
             onChangeText={setCategory}
-            inputAccessoryViewButtonLabel="test"
             onSubmitEditing={() => descriptionRef?.current?.focus()}
           />
         </TerminalInput>
