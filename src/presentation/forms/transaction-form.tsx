@@ -127,7 +127,7 @@ export const TransactionForm = ({
       </TerminalInput>
 
       <View style={{ flexDirection: "row", alignItems: "center" }}>
-        {/* TODO: Categories are not getting recognized*/}
+        {/* TODO: Categories are not getting recognized, this is because we send the category name, not the id reference.*/}
         {/*TODO: How to handle category suggestion? Can we add keyboard autocorrect? i.e. get keyboard height, above it add options*/}
         <TerminalInput prompt="Category - Description" showPrompt={showPrompts}>
           <TextInput
