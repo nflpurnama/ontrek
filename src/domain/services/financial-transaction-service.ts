@@ -1,5 +1,6 @@
 import { SpendingType } from "../constants/spending-type";
 import { TransactionType } from "../constants/transaction-type";
+import { Category } from "../entities/category";
 import { Vendor } from "../entities/vendor";
 import { Id } from "../value-objects/id";
 
@@ -9,7 +10,7 @@ export interface CreateTransactionParams {
   amount: number;
   vendorName: string | null;
   vendor: Vendor | null;
-  categoryId: string | null;
+  category: Category | null;
   description: string | null;
   spendingType: SpendingType;
 }

@@ -28,7 +28,7 @@ export type TransactionFormData = {
   amount: number;
   transactionType: TransactionType;
   spendingType: SpendingType;
-  category: string | null;
+  category: Category | null;
   vendor: Vendor | null;
   vendorName: string;
   description: string;
@@ -58,7 +58,7 @@ export const TransactionForm = ({
 
   const [spendingType, setSpendingType] = useState<SpendingType>("ESSENTIAL");
 
-  const [category, setCategory] = useState<string | null>(null);
+  const [category, setCategory] = useState<Category | null>(null);
 
   const [vendor, setVendor] = useState<Vendor | null>(null);
   const [vendorName, setVendorName] = useState<string>("");

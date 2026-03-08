@@ -26,7 +26,7 @@ export default function AddTransactionScreen() {
       await createTransactionUseCase.execute({
         vendorName: vendorName,
         vendor,
-        categoryId: category,
+        category,
         transactionDate: new Date(),
         type: transactionType,
         amount,

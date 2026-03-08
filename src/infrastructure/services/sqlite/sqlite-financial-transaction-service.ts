@@ -33,8 +33,7 @@ export class SqliteFinancialTransactionService implements FinancialTransactionSe
         vendorId = (await this.vendorRepository.saveVendor(Vendor.create({name: params.vendorName, defaultCategoryId: null}))).getValue();
       }
 
-      let categoryId = null;
-      if (params.categoryId){}
+      let categoryId = params.category?.id.getValue() ?? null;
 
       const transaction = Transaction.create({
         amount: params.amount,
