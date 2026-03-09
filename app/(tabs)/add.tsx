@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { StyleSheet, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { Vendor } from "@/src/domain/entities/vendor";
 import { Category } from "@/src/domain/entities/category";
 import {TransactionForm, TransactionFormData} from "@/src/presentation/forms/transaction-form";
+import { useFocusEffect, useRouter } from "expo-router";
 
 export default function AddTransactionScreen() {
   const {
@@ -13,8 +14,14 @@ export default function AddTransactionScreen() {
     getAllCategoriesUseCase,
   } = useDependencies();
 
+
+  const [key, setKey] = useState<number>(0);
+
+  useFocusEffect(useCallback(()=>{setKey(prev => prev + 1)},[]))
+
   const [vendorSuggestions, setVendorSuggestions] = useState<Vendor[]>([]);
   const [categoryList, setCategoryList] = useState<Category[]>([]);
+  const router = useRouter();
 
   const handleSubmit = async ({ amount, category, description, spendingType, transactionType, vendor, vendorName }: TransactionFormData) => {
     if (!amount) {
@@ -33,6 +40,7 @@ export default function AddTransactionScreen() {
         description,
         spendingType,
       });
+      router.back();
     } catch (err: any) {
       Alert.alert("Error", err.message);
     }
@@ -55,6 +63,7 @@ export default function AddTransactionScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <TransactionForm
+        key={key}
         categoryOptions={categoryList}
         handleSubmit={handleSubmit}
         handleVendorSearch={handleSearch}
