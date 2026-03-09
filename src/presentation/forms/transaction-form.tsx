@@ -93,15 +93,18 @@ export const TransactionForm = ({
     setPhase("REVIEW");
   };
 
-  const buildFormData = (): TransactionFormData => ({
-    amount,
-    category,
-    description,
-    spendingType,
-    transactionType,
-    vendor,
-    vendorName,
-  });
+  const buildFormData = (): TransactionFormData => {
+    if (!transactionType) throw new Error("Transaction Type cannot be empty");
+    return {
+      amount,
+      category,
+      description,
+      spendingType,
+      transactionType,
+      vendor,
+      vendorName,
+  }
+};
 
   return (
     <View style={styles.container}>
@@ -137,7 +140,7 @@ export const TransactionForm = ({
             <TextInput
               ref={transactionTypeRef}
               placeholder="[e / i]"
-              value={transactionType}
+              value={transactionType ?? undefined}
               onChangeText={handleTransactionType}
               autoFocus
               onSubmitEditing={() => amountRef?.current?.focus()}

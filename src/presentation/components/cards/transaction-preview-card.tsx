@@ -19,7 +19,7 @@ type TransactionPreviewCardProps = {
   vendor: Vendor | null;
   vendorName: string;
   description: string;
-  transactionType: TransactionType;
+  transactionType: TransactionType | null;
   category: Category | null;
   onAmountChange: (amount: number) => void;
   onVendorNameChange: (name: string) => void;
