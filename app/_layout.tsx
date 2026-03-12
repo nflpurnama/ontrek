@@ -1,6 +1,6 @@
 import { Slot } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator } from "react-native";
+import { ActivityIndicator, Text } from "react-native";
 
 import {
   Dependencies,
@@ -15,24 +15,20 @@ import migrations from "@/drizzle/migrations";
 import { SQLITE_DB_NAME } from "@/src/config/database";
 import * as schema from "@/src/infrastructure/database/sqlite/schema"
 
+import { SafeAreaView } from "react-native-safe-area-context";
+
 export default function RootLayout() {
   const [deps, setDeps] = useState<Dependencies | null>(null);
 
   const db = openDatabaseSync(SQLITE_DB_NAME);
   const drizzleDb = drizzle(db, { schema });
-  const { success } = useMigrations(drizzleDb, migrations);
+  const { success, error } = useMigrations(drizzleDb, migrations);
 
   useEffect(() => {
+    if (error) throw new Error(`Failed to run migrations: ${error.message}`);
     if (!success || deps) return;
 
     async function bootstrap() {
-      try {
-        console.log("delete run.");
-        deleteDatabaseSync(SQLITE_DB_NAME);
-      } catch {
-        console.log("delete failed.");
-      }
-
       const created = await createDependencies(db, drizzleDb);
       setDeps(created);
     }
@@ -40,7 +36,21 @@ export default function RootLayout() {
     bootstrap();
   }, [success, db, deps, drizzleDb]);
 
-  if (!success || !deps) {
+  if (!success && !error){
+    return <SafeAreaView style={{margin: 10}}>
+        <Text>Running Migrations...</Text>
+      </SafeAreaView>
+  }
+
+  if (error){
+    return <SafeAreaView style={{margin: 10}}>
+        <Text>Running Migrations...</Text>
+        <Text>Migrations failed...{error.message}</Text>
+      </SafeAreaView>
+
+  }
+
+  if (!deps) {
     return <ActivityIndicator />;
   }
 
