@@ -6,13 +6,13 @@ import {
   DeleteTransactionParams,
   FinancialTransactionService,
 } from "@/src/domain/services/financial-transaction-service";
-import { SqliteTransaction } from "../../database/sqlite/sqlite-transaction";
+import { DatabaseTransaction } from "@/src/domain/database/database-transaction";
 import { VendorRepository } from "@/src/domain/repository/vendor-repository";
 import { Vendor } from "@/src/domain/entities/vendor";
 
 export class SqliteFinancialTransactionService implements FinancialTransactionService {
   constructor(
-    private readonly databaseTransaction: SqliteTransaction,
+    private readonly databaseTransaction: DatabaseTransaction,
     private readonly accountRepository: AccountRepository,
     private readonly transactionRepository: TransactionRepository,
     private readonly vendorRepository: VendorRepository
