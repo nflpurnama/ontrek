@@ -4,42 +4,39 @@
     "slug": "ontrek",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/ontrek-icon.png",
+    "splash": {
+      "image": "./assets/images/ontrek-splash.png",
+      "resizeMode": "cover"
+    },
     "scheme": "ontrek",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "android": {
+      "splash": {
+        "image": "./assets/images/ontrek-splash.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#1C2833"
+      }
+    },
     "ios": {
       "supportsTablet": true
     },
-    "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
-      },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
-    },
-    "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
-    },
     "plugins": [
+      "expo-sqlite",
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
           "backgroundColor": "#ffffff",
+          "image": "./assets/images/ontrek-icon.png",
           "dark": {
+            "image": "./assets/images/ontrek-icon.png",
             "backgroundColor": "#000000"
-          }
+          },
+          "imageWidth": 200
         }
-      ],
-      "expo-sqlite"
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
