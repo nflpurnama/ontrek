@@ -38,7 +38,11 @@ export async function createDependencies(
   await ensureDefaultAccountUseCase.execute();
   await ensureDefaultCategoriesUseCase.execute();
 
-  const getDashboardUseCase = new GetDashboardUseCase(accountRepository);
+  const getDashboardUseCase = new GetDashboardUseCase(
+    accountRepository,
+    transactionRepository,
+    categoryRepository,
+  );
 
   const sqliteTransaction = new SqliteTransaction(db);
   const financialTransactionService = new SqliteFinancialTransactionService(

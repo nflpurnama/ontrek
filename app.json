@@ -29,6 +29,9 @@
       "eas": {
         "projectId": "a1f59bb1-f518-4196-8af1-8b2c1510355e"
       }
+    },
+    "ios": {
+      "bundleIdentifier": "com.kenali.ontrek"
     }
   },
   "ios": {
