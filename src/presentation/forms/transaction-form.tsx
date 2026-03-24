@@ -24,7 +24,7 @@ import {
 
 type ContextType = "EDIT" | "CREATE";
 
-type FormPhase = "type" | "amount" | "vendor" | "category" | "note" | "review";
+type FormPhase = "type" | "amount" | "vendor" | "category" | "note";
 
 const PHASE_ORDER: FormPhase[] = [
   "type",
@@ -32,7 +32,6 @@ const PHASE_ORDER: FormPhase[] = [
   "vendor",
   "category",
   "note",
-  "review",
 ];
 
 export type TransactionFormData = {
@@ -78,17 +77,8 @@ export const TransactionForm = ({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (phase !== "review") {
-      setTimeout(() => inputRef.current?.focus(), 50);
-    }
+    setTimeout(() => inputRef.current?.focus(), 50);
   }, [phase]);
-
-  const navigateToPhase = useCallback((targetPhase: FormPhase) => {
-    setPhase(targetPhase);
-    setInputValue("");
-  }, []);
-
-
 
   const handleTypeSubmit = useCallback((value: string) => {
     const lower = value.toLowerCase().trim();
@@ -113,6 +103,12 @@ export const TransactionForm = ({
     }
   }, []);
 
+  const handleAmountNext = useCallback(() => {
+    if (amount > 0) {
+      setPhase("vendor");
+    }
+  }, [amount]);
+
   const handleVendorSubmit = useCallback((value: string) => {
     if (!value.trim()) {
       setVendor(null);
@@ -131,11 +127,33 @@ export const TransactionForm = ({
   }, []);
 
   const handleNoteSubmit = useCallback((value: string) => {
+    if (!transactionType) {
+      setPhase("type");
+      return;
+    }
+    if (!amount) {
+      setPhase("amount");
+      return;
+    }
     setDescription(value.trim());
-    setPhase("review");
     setInputValue("");
     Keyboard.dismiss();
-  }, []);
+    handleSubmit(buildFormData());
+  }, [transactionType, amount]);
+
+  const buildFormData = (): TransactionFormData => {
+    if (!transactionType) throw new Error("Transaction Type cannot be empty");
+    if (!amount) throw new Error("Amount cannot be empty");
+    return {
+      amount,
+      category,
+      description,
+      spendingType,
+      transactionType,
+      vendor,
+      vendorName,
+    };
+  };
 
   const handleSubmitPhase = useCallback(() => {
     switch (phase) {
@@ -187,33 +205,9 @@ export const TransactionForm = ({
     setPhase("note");
   }, []);
 
-  const handleAutoSelect = useCallback(() => {
-    if (phase === "vendor" && vendorSuggestions.length === 1) {
-      const exactMatch =
-        inputValue.toLowerCase() === vendorSuggestions[0].name.toLowerCase();
-      if (exactMatch) {
-        handleVendorSelect(vendorSuggestions[0]);
-      }
-    }
-  }, [phase, vendorSuggestions, inputValue, handleVendorSelect]);
-
-  useEffect(() => {
-    handleAutoSelect();
-  }, [vendorSuggestions, handleAutoSelect]);
-
-  const buildFormData = (): TransactionFormData => {
-    if (!transactionType) throw new Error("Transaction Type cannot be empty");
-    if (!amount) throw new Error("Amount cannot be empty");
-    return {
-      amount,
-      category,
-      description,
-      spendingType,
-      transactionType,
-      vendor,
-      vendorName,
-    };
-  };
+  const navigateToPhase = useCallback((targetPhase: FormPhase) => {
+    setPhase(targetPhase);
+  }, []);
 
   const renderPills = () => {
     const pills: React.ReactNode[] = [];
@@ -285,7 +279,7 @@ export const TransactionForm = ({
           <TextInput
             ref={inputRef}
             style={styles.input}
-            placeholder="e / i"
+            placeholder="expense or income? (e / i)"
             placeholderTextColor="#999"
             value={inputValue}
             onChangeText={setInputValue}
@@ -303,11 +297,18 @@ export const TransactionForm = ({
             <TextInput
               ref={inputRef}
               style={styles.amountInput}
-              placeholder="0"
+              placeholder={
+                transactionType === "INCOME"
+                  ? "how much did you earn?"
+                  : "how much did you spend?"
+              }
               placeholderTextColor="#999"
-              value={inputValue}
-              onChangeText={setInputValue}
-              onSubmitEditing={handleSubmitPhase}
+              value={amount > 0 ? formatCurrency(amount) : ""}
+              onChangeText={(text) => {
+                const raw = parseCurrency(text);
+                setAmount(raw);
+              }}
+              onSubmitEditing={handleAmountNext}
               returnKeyType="next"
               keyboardType="numeric"
               autoCorrect={false}
@@ -327,7 +328,11 @@ export const TransactionForm = ({
             <TextInput
               ref={inputRef}
               style={styles.input}
-              placeholder="vendor (optional)"
+              placeholder={
+                transactionType === "INCOME"
+                  ? "where did you earn?"
+                  : "where did you spend?"
+              }
               placeholderTextColor="#999"
               value={inputValue}
               onChangeText={handleVendorChange}
@@ -350,7 +355,7 @@ export const TransactionForm = ({
             <TextInput
               ref={inputRef}
               style={styles.input}
-              placeholder="category (optional)"
+              placeholder="category (tap or type to select)"
               placeholderTextColor="#999"
               value={inputValue}
               onChangeText={setInputValue}
@@ -366,7 +371,7 @@ export const TransactionForm = ({
           <TextInput
             ref={inputRef}
             style={styles.input}
-            placeholder="note (optional)"
+            placeholder="add a note (optional)"
             placeholderTextColor="#999"
             value={inputValue}
             onChangeText={setInputValue}
@@ -376,35 +381,76 @@ export const TransactionForm = ({
           />
         );
 
-      case "review":
-        return null;
-
       default:
         return null;
     }
   };
 
-  const getPrompt = () => {
-    switch (phase) {
-      case "type":
-        return "Expense or Income?";
-      case "amount":
-        return transactionType === "INCOME"
-          ? "How much did you earn?"
-          : "How much did you spend?";
-      case "vendor":
-        return transactionType === "INCOME"
-          ? "Where did you earn?"
-          : "Where did you spend?";
-      case "category":
-        return "Category?";
-      case "note":
-        return "Add a note?";
-      case "review":
-        return "Review your transaction";
-      default:
-        return "";
+  const renderPillsRow = () => {
+    const pills: React.ReactNode[] = [];
+
+    if (transactionType) {
+      pills.push(
+        <TypePill
+          key="type"
+          transactionType={transactionType}
+          onPress={() => navigateToPhase("type")}
+        />
+      );
     }
+
+    if (amount > 0) {
+      pills.push(
+        <TouchableOpacity
+          key="amount"
+          style={styles.pillCompact}
+          onPress={() => navigateToPhase("amount")}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.pillPhase}>AMT</Text>
+          <Text style={styles.pillLabelCompact}>
+            {formatCurrency(amount)}
+          </Text>
+        </TouchableOpacity>
+      );
+    }
+
+    if (vendor || vendorName) {
+      pills.push(
+        <VendorPill
+          key="vendor"
+          vendor={vendor}
+          vendorName={vendorName}
+          onPress={() => navigateToPhase("vendor")}
+        />
+      );
+    }
+
+    if (category) {
+      pills.push(
+        <CategoryPill
+          key="category"
+          category={category}
+          onPress={() => navigateToPhase("category")}
+        />
+      );
+    }
+
+    if (description) {
+      pills.push(
+        <NotePill
+          key="note"
+          note={description}
+          onPress={() => navigateToPhase("note")}
+        />
+      );
+    }
+
+    if (pills.length === 0) {
+      return null;
+    }
+
+    return <View style={styles.pillsRow}>{pills}</View>;
   };
 
   return (
@@ -414,61 +460,10 @@ export const TransactionForm = ({
       keyboardVerticalOffset={100}
     >
       <View style={styles.content}>
-        {phase !== "type" && renderPills()}
-
-        {phase !== "review" && (
-          <View style={styles.inputSection}>
-            <Text style={styles.prompt}>{getPrompt()}</Text>
-            {renderInput()}
-          </View>
-        )}
-
-        {phase === "review" && (
-          <View style={styles.reviewSection}>
-            <View style={styles.reviewCard}>
-              <Text style={styles.reviewType}>
-                {transactionType === "EXPENSE" ? "Expense" : "Income"}
-              </Text>
-              <Text style={styles.reviewAmount}>
-                {formatCurrency(amount)}
-              </Text>
-              {(vendor || vendorName) && (
-                <Text style={styles.reviewVendor}>
-                  {vendor?.name ?? vendorName}
-                </Text>
-              )}
-              {category && (
-                <Text style={styles.reviewCategory}>{category.name}</Text>
-              )}
-              {description && (
-                <Text style={styles.reviewNote}>{description}</Text>
-              )}
-            </View>
-
-            <TouchableOpacity
-              style={styles.submitButton}
-              onPress={() => handleSubmit(buildFormData())}
-            >
-              <Text style={styles.submitText}>Save Transaction</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => navigateToPhase("type")}
-            >
-              <Text style={styles.backText}>← Start Over</Text>
-            </TouchableOpacity>
-
-            {contextType === "EDIT" && handleDelete && (
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => handleDelete(buildFormData())}
-              >
-                <Text style={styles.submitText}>Delete Transaction</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
+        <View style={styles.inputSection}>
+          {renderPillsRow()}
+          {renderInput()}
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -493,26 +488,42 @@ const styles = StyleSheet.create({
     marginRight: 8,
     marginBottom: 8,
   },
+  pillCompact: {
+    backgroundColor: "#1a1a1a",
+    borderWidth: 1,
+    borderColor: "#333",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginRight: 8,
+    marginBottom: 8,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  pillsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginBottom: 8,
+  },
   pillPhase: {
     color: "#666",
     fontSize: 9,
     fontWeight: "700",
     letterSpacing: 1,
-    marginBottom: 2,
+    marginRight: 4,
   },
   pillLabel: {
     color: "#fff",
     fontSize: 13,
     fontWeight: "600",
   },
+  pillLabelCompact: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
+  },
   inputSection: {
     marginTop: "auto",
-  },
-  prompt: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 8,
-    fontWeight: "500",
   },
   input: {
     backgroundColor: "#f5f5f5",
@@ -540,70 +551,5 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#333",
     paddingVertical: 16,
-  },
-  reviewSection: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  reviewCard: {
-    backgroundColor: "#f5f5f5",
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 24,
-  },
-  reviewType: {
-    fontSize: 14,
-    color: "#666",
-    textTransform: "uppercase",
-    letterSpacing: 1,
-    marginBottom: 4,
-  },
-  reviewAmount: {
-    fontSize: 36,
-    fontWeight: "700",
-    color: "#111",
-    marginBottom: 8,
-  },
-  reviewVendor: {
-    fontSize: 18,
-    color: "#333",
-    marginBottom: 4,
-  },
-  reviewCategory: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 4,
-  },
-  reviewNote: {
-    fontSize: 14,
-    color: "#666",
-    fontStyle: "italic",
-  },
-  submitButton: {
-    backgroundColor: "#111827",
-    padding: 18,
-    borderRadius: 14,
-    alignItems: "center",
-  },
-  deleteButton: {
-    backgroundColor: "#bc0000",
-    padding: 18,
-    borderRadius: 14,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  backButton: {
-    padding: 14,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  submitText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  backText: {
-    color: "#666",
-    fontSize: 14,
   },
 });
