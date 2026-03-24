@@ -110,6 +110,8 @@ export const TransactionForm = ({
     if (!value.trim()) {
       setVendor(null);
       setVendorName("");
+    } else {
+      setVendorName(value.trim());
     }
     setPhase("category");
     setInputValue("");
@@ -118,10 +120,15 @@ export const TransactionForm = ({
   const handleCategorySubmit = useCallback((value: string) => {
     if (!value.trim()) {
       setCategory(null);
+    } else {
+      const matchedCategory = categoryOptions.find(
+        (c) => c.name.toLowerCase() === value.trim().toLowerCase()
+      );
+      setCategory(matchedCategory ?? null);
     }
     setPhase("note");
     setInputValue("");
-  }, []);
+  }, [categoryOptions]);
 
   const handleNoteSubmit = useCallback((value: string) => {
     if (!transactionType) {
@@ -132,11 +139,20 @@ export const TransactionForm = ({
       setPhase("amount");
       return;
     }
-    setDescription(value.trim());
+    const trimmedDescription = value.trim();
+    setDescription(trimmedDescription);
     setInputValue("");
     Keyboard.dismiss();
-    handleSubmit(buildFormData());
-  }, [transactionType, amount]);
+    handleSubmit({
+      amount,
+      category,
+      description: trimmedDescription,
+      spendingType,
+      transactionType,
+      vendor,
+      vendorName,
+    });
+  }, [transactionType, amount, category, vendor, vendorName, spendingType]);
 
   const buildFormData = (): TransactionFormData => {
     if (!transactionType) throw new Error("Transaction Type cannot be empty");

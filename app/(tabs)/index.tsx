@@ -70,9 +70,9 @@ export default function Index() {
   return (
     <View style={styles.container}>
       <View style={styles.topBar}>
-        <View style={styles.dot} />
-        <View style={styles.dot} />
-        <View style={styles.dot} />
+        <View style={[styles.dot, { backgroundColor: t.colors.expense }]} />
+        <View style={[styles.dot, { backgroundColor: t.colors.income }]} />
+        <View style={[styles.dot, { backgroundColor: t.colors.accent }]} />
         <Text style={styles.terminalTitle}>ontrek@dashboard</Text>
       </View>
       
@@ -175,9 +175,9 @@ const styles = StyleSheet.create({
     borderBottomColor: t.colors.border,
   },
   dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     marginRight: 8,
   },
   terminalTitle: {
