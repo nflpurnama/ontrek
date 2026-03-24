@@ -16,31 +16,49 @@
       "splash": {
         "image": "./assets/images/ontrek-splash.png",
         "resizeMode": "contain",
-        "backgroundColor": "#1C2833"
+        "backgroundColor": "#ffffff"
+      },
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/ontrek-icon-dark.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.kenali.ontrek"
+    },
+    "package": "com.kenali.ontrek",
+    "extra": {
+      "eas": {
+        "projectId": "a1f59bb1-f518-4196-8af1-8b2c1510355e"
       }
-    },
-    "ios": {
-      "supportsTablet": true
-    },
-    "plugins": [
-      "expo-sqlite",
-      "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "backgroundColor": "#ffffff",
-          "image": "./assets/images/ontrek-icon.png",
-          "dark": {
-            "image": "./assets/images/ontrek-icon.png",
-            "backgroundColor": "#000000"
-          },
-          "imageWidth": 200
-        }
-      ]
-    ],
-    "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
     }
-  }
+  },
+  "ios": {
+    "supportsTablet": true
+  },
+  "plugins": [
+    "expo-sqlite",
+    "expo-router",
+    [
+      "expo-splash-screen",
+      {
+        "backgroundColor": "#ffffff",
+        "image": "./assets/images/ontrek-splash.png",
+        "dark": {
+          "image": "./assets/images/ontrek-splash-dark.png",
+          "backgroundColor": "#000000"
+        },
+        "imageWidth": 200
+      }
+    ]
+  ],
+  "experiments": {
+    "typedRoutes": true,
+    "reactCompiler": true
+  },
+  "extra": {
+    "router": {},
+    "eas": {
+      "projectId": "a1f59bb1-f518-4196-8af1-8b2c1510355e"
+    }
+  },
+  "owner": "nfpurnama"
 }

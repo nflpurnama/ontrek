@@ -51,6 +51,7 @@ const AmountInput = ({
       <TextInput
         ref={ref}
         placeholder="0"
+        placeholderTextColor="#666"
         keyboardType="numeric"
         onChangeText={handleChange}
         value={display}

@@ -1,7 +1,7 @@
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { Vendor } from "@/src/domain/entities/vendor";
 import { useFocusEffect } from "expo-router";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -10,16 +10,16 @@ export default function AccountPage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     const results = await findVendorsUseCase.execute({});
     setLoading(false);
     setVendors(results);
-  };
+  }, [findVendorsUseCase]);
 
-  useFocusEffect(() => {
+  useFocusEffect(useCallback(() => {
     load();
-  });
+  }, [load]));
 
   if (loading) {
     return (

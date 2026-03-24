@@ -1,0 +1,161 @@
+import React from "react";
+import { Text, TouchableOpacity, StyleSheet } from "react-native";
+import { TransactionType } from "@/src/domain/constants/transaction-type";
+import { Category } from "@/src/domain/entities/category";
+import { Vendor } from "@/src/domain/entities/vendor";
+
+export type PhaseType = "type" | "amount" | "vendor" | "category" | "note";
+
+type TransactionPillProps = {
+  phase: PhaseType;
+  label: string;
+  onPress: () => void;
+};
+
+export const TransactionPill = ({
+  phase,
+  label,
+  onPress,
+}: TransactionPillProps) => {
+  return (
+    <TouchableOpacity
+      style={styles.pill}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <Text style={styles.phase}>{phase.toUpperCase()}</Text>
+      <Text style={styles.label}>{label}</Text>
+    </TouchableOpacity>
+  );
+};
+
+type AmountPillProps = {
+  onPress: () => void;
+};
+
+export const AmountPill = ({ onPress }: AmountPillProps) => {
+  return (
+    <TouchableOpacity
+      style={styles.pill}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <Text style={styles.phase}>AMOUNT</Text>
+      <Text style={styles.label}>0</Text>
+    </TouchableOpacity>
+  );
+};
+
+type TypePillProps = {
+  transactionType: TransactionType;
+  onPress: () => void;
+};
+
+export const TypePill = ({
+  transactionType,
+  onPress,
+}: TypePillProps) => {
+  const label = transactionType === "EXPENSE" ? "Expense" : "Income";
+
+  return (
+    <TouchableOpacity
+      style={styles.pill}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <Text style={styles.phase}>TYPE</Text>
+      <Text style={styles.label}>{label}</Text>
+    </TouchableOpacity>
+  );
+};
+
+type VendorPillProps = {
+  vendor: Vendor | null;
+  vendorName: string;
+  onPress: () => void;
+};
+
+export const VendorPill = ({
+  vendor,
+  vendorName,
+  onPress,
+}: VendorPillProps) => {
+  const label = vendor?.name ?? vendorName;
+
+  return (
+    <TouchableOpacity
+      style={styles.pill}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <Text style={styles.phase}>VENDOR</Text>
+      <Text style={styles.label}>{label || "—"}</Text>
+    </TouchableOpacity>
+  );
+};
+
+type CategoryPillProps = {
+  category: Category | null;
+  onPress: () => void;
+};
+
+export const CategoryPill = ({
+  category,
+  onPress,
+}: CategoryPillProps) => {
+  return (
+    <TouchableOpacity
+      style={styles.pill}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <Text style={styles.phase}>CATEGORY</Text>
+      <Text style={styles.label}>{category?.name ?? "—"}</Text>
+    </TouchableOpacity>
+  );
+};
+
+type NotePillProps = {
+  note: string;
+  onPress: () => void;
+};
+
+export const NotePill = ({ note, onPress }: NotePillProps) => {
+  const truncated = note.length > 20 ? note.slice(0, 20) + "…" : note;
+
+  return (
+    <TouchableOpacity
+      style={styles.pill}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <Text style={styles.phase}>NOTE</Text>
+      <Text style={styles.label}>{truncated || "—"}</Text>
+    </TouchableOpacity>
+  );
+};
+
+const styles = StyleSheet.create({
+  pill: {
+    backgroundColor: "#1a1a1a",
+    borderWidth: 1,
+    borderColor: "#333",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  phase: {
+    color: "#666",
+    fontSize: 9,
+    fontWeight: "700",
+    letterSpacing: 1,
+    marginBottom: 2,
+  },
+  label: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+});

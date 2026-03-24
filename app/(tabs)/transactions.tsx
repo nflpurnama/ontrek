@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -17,23 +17,20 @@ export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Example filter (can be controlled by UI later)
-  const filter = {
-    // type: TransactionType.DEBIT,
-  };
+  const filter = {};
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     const result = await viewTransactionsUseCase.execute(filter);
     setTransactions(result);
     setLoading(false);
-  };
+  }, [viewTransactionsUseCase]);
 
   const router = useRouter();
 
-  useFocusEffect(() => {
+  useFocusEffect(useCallback(() => {
     load();
-  });
+  }, [load]));
 
   if (loading) {
     return (
@@ -71,6 +68,14 @@ export default function TransactionsPage() {
                 Rp {item.signedAmount.toLocaleString()}
               </Text>
             </View>
+
+
+              <Text style={styles.description}>
+                {item.vendorId ?? "No Vendor"}
+              </Text>
+              <Text style={styles.description}>
+                {item.categoryId || "No Category"}
+              </Text>
 
             <Text style={styles.date}>
               {item.transactionDate.toLocaleDateString()}
