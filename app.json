@@ -5,6 +5,9 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/ontrek-icon.png",
+    "cli": {
+      "appVersionSource": "remote"
+    },
     "splash": {
       "image": "./assets/images/ontrek-splash.png",
       "resizeMode": "cover"
