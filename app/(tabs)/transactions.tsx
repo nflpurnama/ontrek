@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Transaction } from "@/src/domain/entities/transaction";
+import { Vendor } from "@/src/domain/entities/vendor";
+import { Category } from "@/src/domain/entities/category";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { terminalTheme } from "@/src/presentation/theme/terminal";
 
@@ -39,10 +41,14 @@ type TransactionGroup = {
 
 const TransactionCard = ({ 
   date, 
-  transactions 
+  transactions,
+  vendorMap,
+  categoryMap,
 }: { 
   date: string; 
-  transactions: Transaction[] 
+  transactions: Transaction[];
+  vendorMap: Map<string, string>;
+  categoryMap: Map<string, string>;
 }) => {
   const router = useRouter();
 
@@ -56,36 +62,35 @@ const TransactionCard = ({
           <TouchableOpacity
             key={item.id.getValue()}
             style={[
-              styles.transactionRow,
+              styles.transactionContainer,
               index < transactions.length - 1 && styles.transactionBorder,
             ]}
             onPress={() =>
               router.navigate(`/transactions/${item.id.getValue()}`)
             }
           >
-            <Text
-              style={[
-                styles.amount,
-                item.type === "EXPENSE" ? styles.expense : styles.income,
-              ]}
-            >
-              {item.type === "EXPENSE" ? "-" : "+"}Rp {formatCurrency(item.amount)}
-            </Text>
-            <Text style={styles.separator}>  </Text>
-            <Text style={styles.vendor}>
-              {item.vendorId ?? "—"}
-            </Text>
-            <Text style={styles.separator}>  </Text>
-            <Text style={styles.category}>
-              {item.categoryId ?? "—"}
-            </Text>
+            <View style={styles.transactionRow}>
+              <Text
+                style={[
+                  styles.amount,
+                  item.type === "EXPENSE" ? styles.expense : styles.income,
+                ]}
+              >
+                {item.type === "EXPENSE" ? "-" : "+"}Rp {formatCurrency(item.amount)}
+              </Text>
+              <Text style={styles.separator}>  </Text>
+              <Text style={styles.vendor}>
+                {item.vendorId ? vendorMap.get(item.vendorId) ?? "—" : "—"}
+              </Text>
+              <Text style={styles.separator}>  </Text>
+              <Text style={styles.category}>
+                {item.categoryId ? categoryMap.get(item.categoryId) ?? "—" : "—"}
+              </Text>
+            </View>
             {item.description && (
-              <>
-                <Text style={styles.separator}>  </Text>
-                <Text style={styles.description} numberOfLines={1}>
-                  {item.description}
-                </Text>
-              </>
+              <Text style={styles.description} numberOfLines={2}>
+                {item.description}
+              </Text>
             )}
           </TouchableOpacity>
         ))}
@@ -96,23 +101,43 @@ const TransactionCard = ({
 };
 
 export default function TransactionsPage() {
-  const { viewTransactionsUseCase } = useDependencies();
+  const { viewTransactionsUseCase, getAllCategoriesUseCase, findVendorsUseCase } = useDependencies();
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
   const filter = {};
 
   const load = useCallback(async () => {
     setLoading(true);
-    const result = await viewTransactionsUseCase.execute(filter);
-    setTransactions(result);
+    const [transactionsResult, categoriesResult, vendorsResult] = await Promise.all([
+      viewTransactionsUseCase.execute(filter),
+      getAllCategoriesUseCase.execute(),
+      findVendorsUseCase.execute({}),
+    ]);
+    setTransactions(transactionsResult);
+    setCategories(categoriesResult);
+    setVendors(vendorsResult);
     setLoading(false);
-  }, [viewTransactionsUseCase]);
+  }, [viewTransactionsUseCase, getAllCategoriesUseCase, findVendorsUseCase]);
 
   useFocusEffect(useCallback(() => {
     load();
   }, [load]));
+
+  const vendorMap = useMemo(() => {
+    const map = new Map<string, string>();
+    vendors.forEach((v) => map.set(v.id.getValue(), v.name));
+    return map;
+  }, [vendors]);
+
+  const categoryMap = useMemo(() => {
+    const map = new Map<string, string>();
+    categories.forEach((c) => map.set(c.id.getValue(), c.name));
+    return map;
+  }, [categories]);
 
   const groupedTransactions = useMemo((): TransactionGroup[] => {
     const groups: { [key: string]: Transaction[] } = {};
@@ -161,6 +186,8 @@ export default function TransactionsPage() {
               key={group.date}
               date={group.date}
               transactions={group.transactions}
+              vendorMap={vendorMap}
+              categoryMap={categoryMap}
             />
           ))}
         </ScrollView>
@@ -239,10 +266,12 @@ const styles = StyleSheet.create({
     color: t.colors.border,
     textAlign: "center",
   },
+  transactionContainer: {
+    paddingVertical: t.spacing.sm,
+  },
   transactionRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: t.spacing.sm,
     flexWrap: "wrap" as const,
   },
   transactionBorder: {
@@ -278,6 +307,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: t.colors.muted,
     flex: 1,
+    width: "100%",
+    marginTop: t.spacing.xs,
   },
   emptyContainer: {
     flex: 1,
