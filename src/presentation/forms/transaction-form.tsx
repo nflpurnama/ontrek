@@ -81,18 +81,12 @@ export const TransactionForm = ({
   }, [phase]);
 
   const handleTypeSubmit = useCallback((value: string) => {
-    const lower = value.toLowerCase().trim();
-    if (lower === "e") {
-      setTransactionType("EXPENSE");
-    } else if (lower === "i") {
-      setTransactionType("INCOME");
-    } else {
-      setTransactionType(null);
+    if (!transactionType) {
       return;
     }
     setPhase("amount");
     setInputValue("");
-  }, []);
+  }, [transactionType]);
 
   const handleAmountSubmit = useCallback((value: string) => {
     const parsed = parseCurrency(value);
@@ -275,14 +269,34 @@ export const TransactionForm = ({
   const renderInput = () => {
     switch (phase) {
       case "type":
+        const lower = inputValue.toLowerCase();
+        const typeDisplay =
+          lower === "e" || lower === "expense"
+            ? "expense"
+            : lower === "i" || lower === "income"
+            ? "income"
+            : inputValue;
+
         return (
           <TextInput
             ref={inputRef}
             style={styles.input}
             placeholder="expense or income? (e / i)"
             placeholderTextColor="#999"
-            value={inputValue}
-            onChangeText={setInputValue}
+            value={typeDisplay}
+            onChangeText={(text) => {
+              const t = text.toLowerCase();
+              if (t === "e" || t === "expense") {
+                setInputValue("e");
+                setTransactionType("EXPENSE");
+              } else if (t === "i" || t === "income") {
+                setInputValue("i");
+                setTransactionType("INCOME");
+              } else {
+                setInputValue("");
+                setTransactionType(null);
+              }
+            }}
             onSubmitEditing={handleSubmitPhase}
             returnKeyType="next"
             autoCapitalize="none"
