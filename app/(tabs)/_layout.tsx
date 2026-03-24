@@ -12,8 +12,6 @@ export default function TabsLayout() {
       tabBar={(props) => <FloatingTabBar {...props} />}
     >
       <Tabs.Screen name="index" options={{ title: "Dashboard" }} />
-      <Tabs.Screen name="accounts" options={{ href: null, title: "Accounts"}} />
-      <Tabs.Screen name="vendors" options={{ href: null, title: "Vendors"}} />
       <Tabs.Screen name="transactions" options={{ title: "Transactions" }} />
       <Tabs.Screen name="add" options={{ title: "Add" }} />
     </Tabs>
@@ -22,12 +20,17 @@ export default function TabsLayout() {
 
 function FloatingTabBar({ state, descriptors, navigation }: any) {
 const insets = useSafeAreaInsets(); 
-  
+
+const visibleRoutes = state.routes.filter((route: any) => 
+  route.name !== "accounts" && route.name !== "vendors"
+);
+
 return (
     <View style={[styles.wrapper, {bottom: insets.bottom + 15}]}>
       <View style={styles.container}>
-        {state.routes.map((route: any, index: number) => {
-          const isFocused = state.index === index;
+        {visibleRoutes.map((route: any, index: number) => {
+          const actualIndex = state.routes.findIndex((r: any) => r.name === route.name);
+          const isFocused = state.index === actualIndex;
         //   const { options } = descriptors[route.key];
 
           const onPress = () => {
@@ -39,10 +42,6 @@ return (
               ? "home"
               : route.name === "transactions"
               ? "receipt"
-              : route.name === "accounts"
-              ? "wallet" 
-              : route.name === "vendors"
-              ? "business"
               : "add";
 
           return (
