@@ -9,7 +9,9 @@ export class EnsureDefaultCategoriesUseCase {
     const categories = await this.repository.getAllCategories();
 
     if (categories.length < 1){
-        DEFAULT_CATEGORY_NAMES.map(name => this.repository.saveCategory(Category.create({name})))
+        for (const name of DEFAULT_CATEGORY_NAMES) {
+            await this.repository.saveCategory(Category.create({name}));
+        }
     }
   }
 }

@@ -34,6 +34,10 @@ export class SqliteCategoryRepository implements CategoryRepository {
     return rows.map((row) => this.formatToDomain(row));
   }
   async saveCategory(category: Category): Promise<Id> {
+    if (!category) {
+      throw new Error("Category cannot be null or undefined");
+    }
+    
     const row = this.formatFromDomain(category);
 
     await this.db.insert(SQLITE_CATEGORIES_TABLE).values(row);
@@ -42,6 +46,10 @@ export class SqliteCategoryRepository implements CategoryRepository {
   }
 
   async updateCategory(category: Category): Promise<Id> {
+    if (!category) {
+      throw new Error("Category cannot be null or undefined");
+    }
+    
     const row = this.formatFromDomain(category);
 
     const { id, ...updateFields } = row;
