@@ -17,12 +17,17 @@ import * as schema from "@/src/infrastructure/database/sqlite/schema"
 
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useFonts } from "@expo-google-fonts/jetbrains-mono";
+
 type DatabaseState = {
   db: SQLiteDatabase;
   drizzleDb: ReturnType<typeof drizzle>;
 };
 
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    "JetBrains Mono": require("../assets/fonts/JetBrainsMono-Regular.ttf"),
+  });
   const [deps, setDeps] = useState<Dependencies | null>(null);
   const [dbState, setDbState] = useState<DatabaseState | null>(null);
   const [dbError, setDbError] = useState<string | null>(null);
@@ -86,7 +91,7 @@ export default function RootLayout() {
     );
   }
 
-  if (!dbState || !success || !deps) {
+  if (!fontsLoaded || !dbState || !success || !deps) {
     return (
       <SafeAreaView style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <Text>Running Migrations...</Text>

@@ -1,7 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import Svg, { Path, G } from "react-native-svg";
 import { CategoryBreakdown } from "@/src/application/types/dashboard";
+import { terminalTheme } from "@/src/presentation/theme/terminal";
+
+const t = terminalTheme;
 
 const COLORS = [
   "#3B82F6", // blue
@@ -178,32 +181,39 @@ const styles = StyleSheet.create({
     position: "absolute",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: t.colors.background,
     borderRadius: 999,
+    borderWidth: 1,
+    borderColor: t.colors.border,
   },
   categoryName: {
-    fontSize: 14,
+    fontFamily: t.fonts.mono,
+    fontSize: 11,
     fontWeight: "600",
     textAlign: "center",
   },
   amount: {
-    fontSize: 20,
+    fontFamily: t.fonts.mono,
+    fontSize: 16,
     fontWeight: "700",
-    color: "#111827",
+    color: t.colors.primary,
     marginTop: 2,
   },
   percentage: {
-    fontSize: 12,
-    color: "#6B7280",
+    fontFamily: t.fonts.mono,
+    fontSize: 10,
+    color: t.colors.secondary,
     marginTop: 2,
   },
   totalLabel: {
-    fontSize: 12,
-    color: "#6B7280",
+    fontFamily: t.fonts.mono,
+    fontSize: 10,
+    color: t.colors.secondary,
   },
   totalAmount: {
-    fontSize: 18,
+    fontFamily: t.fonts.mono,
+    fontSize: 14,
     fontWeight: "700",
-    color: "#111827",
+    color: t.colors.primary,
   },
 });

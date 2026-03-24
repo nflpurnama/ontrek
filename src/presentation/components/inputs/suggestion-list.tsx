@@ -8,6 +8,9 @@ import {
 } from "react-native";
 import { Vendor } from "@/src/domain/entities/vendor";
 import { Category } from "@/src/domain/entities/category";
+import { terminalTheme } from "../../theme/terminal";
+
+const t = terminalTheme;
 
 type SuggestionListProps<T extends Vendor | Category> = {
   items: T[];
@@ -62,8 +65,10 @@ function getItemKey(item: Vendor | Category, index: number): string {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#f5f5f5",
+    backgroundColor: t.colors.card,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: t.colors.border,
     paddingVertical: 8,
     paddingHorizontal: 4,
     marginBottom: 8,
@@ -73,25 +78,20 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   pill: {
-    backgroundColor: "#fff",
+    backgroundColor: t.colors.background,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: t.colors.border,
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 20,
-    elevation: 1,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    shadowOffset: { width: 0, height: 1 },
   },
   pillText: {
-    color: "#333",
+    color: t.colors.primary,
     fontSize: 14,
     fontWeight: "500",
   },
   empty: {
-    color: "#888",
+    color: t.colors.muted,
     fontSize: 13,
     textAlign: "center",
     paddingVertical: 8,

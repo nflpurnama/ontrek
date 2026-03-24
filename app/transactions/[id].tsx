@@ -7,11 +7,51 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { Transaction } from "@/src/domain/entities/transaction";
 import { Id } from "@/src/domain/value-objects/id";
+import { terminalTheme } from "@/src/presentation/theme/terminal";
+
+const t = terminalTheme;
+
+const formatCurrency = (amount: number): string => {
+  if (amount >= 1000000) {
+    return `${(amount / 1000000).toFixed(1)}M`;
+  } else if (amount >= 1000) {
+    return `${(amount / 1000).toFixed(0)}k`;
+  }
+  return amount.toLocaleString();
+};
+
+const formatDate = (date: Date): string => {
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).toUpperCase();
+};
+
+const TerminalCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <View style={styles.card}>
+    <View style={styles.cardHeader}>
+      <Text style={styles.cardTitle}>{t.ascii.tl}{title}{t.ascii.tr}</Text>
+    </View>
+    <View style={styles.cardContent}>
+      {children}
+    </View>
+    <Text style={styles.cardFooter}>{t.ascii.bl}{t.ascii.h.repeat(20)}{t.ascii.br}</Text>
+  </View>
+);
+
+const TerminalRow = ({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) => (
+  <View style={styles.row}>
+    <Text style={styles.label}>{label}</Text>
+    <Text style={[styles.value, valueColor ? { color: valueColor } : null]}>{value}</Text>
+  </View>
+);
 
 export default function TransactionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -65,183 +105,210 @@ export default function TransactionDetailScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={t.colors.primary} />
       </View>
     );
   }
 
   if (!transaction) {
     return (
-      <SafeAreaView style={styles.container}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backText}>← Back</Text>
-        </TouchableOpacity>
-        <View style={styles.center}>
-          <Text style={styles.errorText}>Transaction not found.</Text>
+      <View style={styles.container}>
+        <View style={styles.topBar}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <Text style={styles.backText}>← back</Text>
+          </TouchableOpacity>
         </View>
-      </SafeAreaView>
+        <View style={styles.center}>
+          <Text style={styles.errorText}>[ transaction not found ]</Text>
+        </View>
+      </View>
     );
   }
 
   const isExpense = transaction.type === "EXPENSE";
 
   return (
-    <SafeAreaView style={styles.container}>
-      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-        <Text style={styles.backText}>← Back</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.title}>Transaction Detail</Text>
-
-      <View style={styles.card}>
-        <View style={styles.row}>
-          <Text style={styles.label}>Amount</Text>
-          <Text style={[styles.amount, isExpense ? styles.expense : styles.income]}>
-            Rp {transaction.signedAmount.toLocaleString()}
-          </Text>
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.row}>
-          <Text style={styles.label}>Type</Text>
-          <Text style={styles.value}>{transaction.type}</Text>
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.row}>
-          <Text style={styles.label}>Date</Text>
-          <Text style={styles.value}>
-            {transaction.transactionDate.toLocaleDateString()}
-          </Text>
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.row}>
-          <Text style={styles.label}>Vendor</Text>
-          <Text style={styles.value}>
-            {transaction.vendorId ?? "—"}
-          </Text>
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.row}>
-          <Text style={styles.label}>Category</Text>
-          <Text style={styles.value}>
-            {transaction.categoryId ?? "—"}
-          </Text>
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.row}>
-          <Text style={styles.label}>Note</Text>
-          <Text style={styles.value}>
-            {transaction.description ?? "—"}
-          </Text>
+    <View style={styles.container}>
+      <View style={styles.topBar}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <Text style={styles.backText}>← back</Text>
+        </TouchableOpacity>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>TRANSACTION</Text>
         </View>
       </View>
 
-      <TouchableOpacity
-        style={[styles.deleteButton, deleting && styles.deleteButtonDisabled]}
-        onPress={handleDelete}
-        disabled={deleting}
-      >
-        <Text style={styles.deleteText}>
-          {deleting ? "Deleting..." : "Delete Transaction"}
-        </Text>
-      </TouchableOpacity>
-    </SafeAreaView>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+        <TerminalCard title="DETAILS">
+          <TerminalRow 
+            label="AMOUNT" 
+            value={`${isExpense ? "-" : "+"}Rp ${formatCurrency(transaction.amount)}`}
+            valueColor={isExpense ? t.colors.expense : t.colors.income}
+          />
+          <View style={styles.divider} />
+          <TerminalRow 
+            label="DATE" 
+            value={formatDate(transaction.transactionDate)}
+          />
+          <View style={styles.divider} />
+          <TerminalRow 
+            label="TYPE" 
+            value={transaction.type}
+            valueColor={isExpense ? t.colors.expense : t.colors.income}
+          />
+        </TerminalCard>
+
+        <TerminalCard title="INFO">
+          <TerminalRow 
+            label="VENDOR" 
+            value={transaction.vendorId ?? "—"}
+            valueColor={transaction.vendorId ? t.colors.primary : undefined}
+          />
+          <View style={styles.divider} />
+          <TerminalRow 
+            label="CATEGORY" 
+            value={transaction.categoryId ?? "—"}
+            valueColor={transaction.categoryId ? t.colors.accent : undefined}
+          />
+          <View style={styles.divider} />
+          <TerminalRow 
+            label="NOTE" 
+            value={transaction.description ?? "—"}
+            valueColor={transaction.description ? t.colors.secondary : undefined}
+          />
+        </TerminalCard>
+
+        <TouchableOpacity
+          style={[styles.deleteButton, deleting && styles.deleteButtonDisabled]}
+          onPress={handleDelete}
+          disabled={deleting}
+        >
+          <Text style={styles.deleteText}>
+            {deleting ? "deleting..." : "[ delete transaction ]"}
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
-    paddingHorizontal: 20,
-    paddingTop: 12,
+    backgroundColor: t.colors.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: t.colors.background,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  content: {
+    padding: t.spacing.lg,
+    paddingBottom: 100,
+  },
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: t.spacing.lg,
+    paddingTop: 50,
+    paddingBottom: t.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: t.colors.border,
+  },
+  backButton: {
+    paddingRight: t.spacing.md,
+  },
+  backText: {
+    fontFamily: t.fonts.mono,
+    fontSize: 14,
+    color: t.colors.primary,
+  },
+  titleContainer: {
+    flex: 1,
+  },
+  title: {
+    fontFamily: t.fonts.mono,
+    fontSize: 14,
+    color: t.colors.secondary,
   },
   center: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-  backButton: {
-    marginBottom: 12,
-  },
-  backText: {
-    fontSize: 16,
-    color: "#555",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    marginBottom: 20,
-    color: "#1C2833",
+  errorText: {
+    fontFamily: t.fonts.mono,
+    fontSize: 14,
+    color: t.colors.muted,
   },
   card: {
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
-    marginBottom: 24,
+    marginBottom: t.spacing.lg,
+  },
+  cardHeader: {
+    backgroundColor: t.colors.card,
+    paddingHorizontal: t.spacing.md,
+    paddingTop: t.spacing.sm,
+    borderTopLeftRadius: t.border.radius,
+    borderTopRightRadius: t.border.radius,
+  },
+  cardTitle: {
+    fontFamily: t.fonts.mono,
+    fontSize: 12,
+    color: t.colors.secondary,
+  },
+  cardContent: {
+    backgroundColor: t.colors.card,
+    padding: t.spacing.lg,
+  },
+  cardFooter: {
+    fontFamily: t.fonts.mono,
+    fontSize: 10,
+    color: t.colors.border,
+    textAlign: "center",
   },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: t.spacing.sm,
   },
   divider: {
     height: 1,
-    backgroundColor: "#F0F0F0",
+    backgroundColor: t.colors.border,
   },
   label: {
-    fontSize: 15,
-    color: "#777",
+    fontFamily: t.fonts.mono,
+    fontSize: 13,
+    color: t.colors.muted,
   },
   value: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#1C2833",
-    flexShrink: 1,
+    fontFamily: t.fonts.mono,
+    fontSize: 14,
+    fontWeight: "600",
+    color: t.colors.secondary,
     textAlign: "right",
-    marginLeft: 16,
-  },
-  amount: {
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  expense: {
-    color: "#EF4444",
-  },
-  income: {
-    color: "#10B981",
-  },
-  errorText: {
-    fontSize: 16,
-    color: "#777",
+    maxWidth: "60%",
   },
   deleteButton: {
-    backgroundColor: "#C0392B",
-    padding: 18,
-    borderRadius: 14,
+    backgroundColor: t.colors.card,
+    borderWidth: 1,
+    borderColor: t.colors.expense,
+    padding: t.spacing.lg,
+    borderRadius: t.border.radius,
     alignItems: "center",
+    marginTop: t.spacing.md,
   },
   deleteButtonDisabled: {
-    backgroundColor: "#E0A09A",
+    opacity: 0.5,
   },
   deleteText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
+    fontFamily: t.fonts.mono,
+    fontSize: 14,
+    color: t.colors.expense,
   },
 });

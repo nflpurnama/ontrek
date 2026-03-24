@@ -21,6 +21,9 @@ import {
   CategoryPill,
   NotePill,
 } from "../components/inputs/transaction-pill";
+import { terminalTheme } from "../theme/terminal";
+
+const t = terminalTheme;
 
 type ContextType = "EDIT" | "CREATE";
 
@@ -282,7 +285,7 @@ export const TransactionForm = ({
             ref={inputRef}
             style={styles.input}
             placeholder="expense or income? (e / i)"
-            placeholderTextColor="#999"
+            placeholderTextColor={t.colors.muted}
             value={typeDisplay}
             onChangeText={(text) => {
               const t = text.toLowerCase();
@@ -316,7 +319,7 @@ export const TransactionForm = ({
                   ? "how much did you earn?"
                   : "how much did you spend?"
               }
-              placeholderTextColor="#999"
+              placeholderTextColor={t.colors.muted}
               value={amount > 0 ? formatCurrency(amount) : ""}
               onChangeText={(text) => {
                 const raw = parseCurrency(text);
@@ -347,7 +350,7 @@ export const TransactionForm = ({
                   ? "where did you earn?"
                   : "where did you spend?"
               }
-              placeholderTextColor="#999"
+              placeholderTextColor={t.colors.muted}
               value={inputValue}
               onChangeText={handleVendorChange}
               onSubmitEditing={handleSubmitPhase}
@@ -370,7 +373,7 @@ export const TransactionForm = ({
               ref={inputRef}
               style={styles.input}
               placeholder="category (tap or type to select)"
-              placeholderTextColor="#999"
+              placeholderTextColor={t.colors.muted}
               value={inputValue}
               onChangeText={setInputValue}
               onSubmitEditing={handleSubmitPhase}
@@ -386,7 +389,7 @@ export const TransactionForm = ({
             ref={inputRef}
             style={styles.input}
             placeholder="add a note (optional)"
-            placeholderTextColor="#999"
+            placeholderTextColor={t.colors.muted}
             value={inputValue}
             onChangeText={setInputValue}
             onSubmitEditing={handleSubmitPhase}
@@ -493,9 +496,9 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   pill: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: t.colors.card,
     borderWidth: 1,
-    borderColor: "#333",
+    borderColor: t.colors.border,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -503,9 +506,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   pillCompact: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: t.colors.card,
     borderWidth: 1,
-    borderColor: "#333",
+    borderColor: t.colors.border,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 16,
@@ -520,19 +523,19 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   pillPhase: {
-    color: "#666",
+    color: t.colors.muted,
     fontSize: 9,
     fontWeight: "700",
     letterSpacing: 1,
     marginRight: 4,
   },
   pillLabel: {
-    color: "#fff",
+    color: t.colors.secondary,
     fontSize: 13,
     fontWeight: "600",
   },
   pillLabelCompact: {
-    color: "#fff",
+    color: t.colors.secondary,
     fontSize: 12,
     fontWeight: "600",
   },
@@ -540,30 +543,37 @@ const styles = StyleSheet.create({
     marginTop: "auto",
   },
   input: {
-    backgroundColor: "#f5f5f5",
+    backgroundColor: t.colors.card,
+    borderWidth: 1,
+    borderColor: t.colors.border,
     borderRadius: 12,
     padding: 16,
     fontSize: 18,
-    color: "#333",
+    fontFamily: t.fonts.mono,
+    color: t.colors.primary,
   },
   amountRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f5f5f5",
+    backgroundColor: t.colors.card,
+    borderWidth: 1,
+    borderColor: t.colors.border,
     borderRadius: 12,
     paddingHorizontal: 16,
   },
   currencyPrefix: {
     fontSize: 24,
     fontWeight: "600",
-    color: "#333",
+    fontFamily: t.fonts.mono,
+    color: t.colors.secondary,
     marginRight: 8,
   },
   amountInput: {
     flex: 1,
     fontSize: 24,
     fontWeight: "600",
-    color: "#333",
+    fontFamily: t.fonts.mono,
+    color: t.colors.primary,
     paddingVertical: 16,
   },
 });

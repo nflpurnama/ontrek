@@ -3,6 +3,9 @@ import { Text, TouchableOpacity, StyleSheet } from "react-native";
 import { TransactionType } from "@/src/domain/constants/transaction-type";
 import { Category } from "@/src/domain/entities/category";
 import { Vendor } from "@/src/domain/entities/vendor";
+import { terminalTheme } from "../../theme/terminal";
+
+const t = terminalTheme;
 
 export type PhaseType = "type" | "amount" | "vendor" | "category" | "note";
 
@@ -137,9 +140,9 @@ export const NotePill = ({ note, onPress }: NotePillProps) => {
 
 const styles = StyleSheet.create({
   pill: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: t.colors.card,
     borderWidth: 1,
-    borderColor: "#333",
+    borderColor: t.colors.border,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 16,
@@ -149,14 +152,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   phase: {
-    color: "#666",
+    color: t.colors.muted,
     fontSize: 9,
     fontWeight: "700",
     letterSpacing: 1,
     marginRight: 4,
   },
   label: {
-    color: "#fff",
+    color: t.colors.secondary,
     fontSize: 13,
     fontWeight: "600",
   },

@@ -5,6 +5,9 @@ import { useFocusEffect } from "expo-router";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { DashboardData } from "@/src/application/types/dashboard";
 import { PieChart } from "@/src/presentation/components/dashboard/pie-chart";
+import { terminalTheme } from "@/src/presentation/theme/terminal";
+
+const t = terminalTheme;
 
 const formatCurrency = (amount: number): string => {
   if (amount >= 1000000) {
@@ -14,6 +17,25 @@ const formatCurrency = (amount: number): string => {
   }
   return amount.toLocaleString();
 };
+
+const TerminalCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <View style={styles.card}>
+    <View style={styles.cardHeader}>
+      <Text style={styles.cardTitle}>{t.ascii.tl}{title}{t.ascii.tr}</Text>
+    </View>
+    <View style={styles.cardContent}>
+      {children}
+    </View>
+    <Text style={styles.cardFooter}>{t.ascii.bl}{t.ascii.h.repeat(20)}{t.ascii.br}</Text>
+  </View>
+);
+
+const TerminalRow = ({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) => (
+  <View style={styles.row}>
+    <Text style={styles.label}>{label}</Text>
+    <Text style={[styles.value, valueColor ? { color: valueColor } : null]}>{value}</Text>
+  </View>
+);
 
 export default function Index() {
   const { getDashboardUseCase } = useDependencies();
@@ -33,7 +55,7 @@ export default function Index() {
   if (!dashboard) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color={t.colors.primary} />
       </View>
     );
   }
@@ -46,207 +68,230 @@ export default function Index() {
     : "0";
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Current Balance */}
-      <View style={styles.card}>
-        <Text style={styles.label}>Current Balance</Text>
-        <Text style={styles.balance}>
-          Rp {currentBalance.toLocaleString()}
-        </Text>
+    <View style={styles.container}>
+      <View style={styles.topBar}>
+        <View style={styles.dot} />
+        <View style={styles.dot} />
+        <View style={styles.dot} />
+        <Text style={styles.terminalTitle}>ontrek@dashboard</Text>
       </View>
-
-      {/* This Month */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>This Month</Text>
-        <View style={styles.summaryRow}>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Income</Text>
-            <Text style={[styles.summaryValue, styles.income]}>
-              +{formatCurrency(currentMonth.totalIncome)}
-            </Text>
-          </View>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Expenses</Text>
-            <Text style={[styles.summaryValue, styles.expense]}>
-              -{formatCurrency(currentMonth.totalExpenses)}
-            </Text>
-          </View>
-        </View>
-        <View style={styles.netRow}>
-          <Text style={styles.netLabel}>Net</Text>
-          <Text
-            style={[
-              styles.netValue,
-              currentMonth.net >= 0 ? styles.income : styles.expense,
-            ]}
-          >
-            {currentMonth.net >= 0 ? "+" : ""}
-            {formatCurrency(currentMonth.net)}
+      
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+        <TerminalCard title="BALANCE">
+          <Text style={styles.balanceValue}>
+            Rp {currentBalance.toLocaleString()}
           </Text>
-        </View>
-      </View>
+        </TerminalCard>
 
-      {/* Expenses by Category */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Expenses by Category</Text>
-        {currentMonth.byCategory.length > 0 ? (
-          <View style={styles.chartContainer}>
-            <PieChart
-              data={currentMonth.byCategory}
-              size={200}
-            />
+        <TerminalCard title="THIS MONTH">
+          <TerminalRow 
+            label="INCOME" 
+            value={`+${formatCurrency(currentMonth.totalIncome)}`} 
+            valueColor={t.colors.income} 
+          />
+          <TerminalRow 
+            label="EXPENSE" 
+            value={`-${formatCurrency(currentMonth.totalExpenses)}`} 
+            valueColor={t.colors.expense} 
+          />
+          <View style={styles.divider} />
+          <TerminalRow 
+            label="NET" 
+            value={`${currentMonth.net >= 0 ? "+" : ""}${formatCurrency(currentMonth.net)}`} 
+            valueColor={currentMonth.net >= 0 ? t.colors.income : t.colors.expense} 
+          />
+        </TerminalCard>
+
+        <TerminalCard title="CATEGORIES">
+          {currentMonth.byCategory.length > 0 ? (
+            <View style={styles.chartContainer}>
+              <PieChart
+                data={currentMonth.byCategory}
+                size={180}
+              />
+            </View>
+          ) : (
+            <Text style={styles.emptyText}>[ no data ]</Text>
+          )}
+        </TerminalCard>
+
+        <TerminalCard title="VS LAST MONTH">
+          <View style={styles.comparisonContainer}>
+            <View style={styles.comparisonItem}>
+              <Text style={styles.comparisonLabel}>THIS</Text>
+              <Text style={styles.comparisonValue}>
+                {formatCurrency(currentMonth.net)}
+              </Text>
+            </View>
+            <Text style={styles.arrow}>→</Text>
+            <View style={styles.comparisonItem}>
+              <Text style={styles.comparisonLabel}>LAST</Text>
+              <Text style={styles.comparisonValue}>
+                {formatCurrency(previousMonth.net)}
+              </Text>
+            </View>
           </View>
-        ) : (
-          <Text style={styles.emptyText}>No expenses this month</Text>
-        )}
-      </View>
-
-      {/* vs Last Month */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>vs Last Month</Text>
-        <View style={styles.comparisonRow}>
-          <View style={styles.comparisonItem}>
-            <Text style={styles.comparisonLabel}>This Month</Text>
-            <Text style={styles.comparisonValue}>
-              {formatCurrency(currentMonth.net)}
+          <View style={styles.deltaContainer}>
+            <Text style={styles.deltaLabel}>DELTA:</Text>
+            <Text style={[
+              styles.deltaValue,
+              { color: netChange >= 0 ? t.colors.income : t.colors.expense }
+            ]}>
+              {netChange >= 0 ? "+" : "-"}{formatCurrency(netChangeAbs)} ({netChangePercent}%)
             </Text>
           </View>
-          <View style={styles.comparisonItem}>
-            <Text style={styles.comparisonLabel}>Last Month</Text>
-            <Text style={styles.comparisonValue}>
-              {formatCurrency(previousMonth.net)}
-            </Text>
-          </View>
-        </View>
-        <Text
-          style={[
-            styles.deltaText,
-            netChange >= 0 ? styles.income : styles.expense,
-          ]}
-        >
-          {netChange >= 0 ? "+" : "-"}
-          {formatCurrency(netChangeAbs)} ({netChangePercent}%)
-        </Text>
-      </View>
-    </ScrollView>
+        </TerminalCard>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F7FA",
+    backgroundColor: t.colors.background,
+  },
+  scrollView: {
+    flex: 1,
   },
   content: {
-    padding: 16,
-    paddingTop: 60,
+    padding: t.spacing.lg,
+    paddingTop: t.spacing.sm,
     paddingBottom: 100,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#F5F7FA",
+    backgroundColor: t.colors.background,
+  },
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: t.spacing.lg,
+    paddingTop: 50,
+    paddingBottom: t.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: t.colors.border,
+  },
+  dot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  terminalTitle: {
+    fontFamily: t.fonts.mono,
+    fontSize: 14,
+    color: t.colors.secondary,
+    marginLeft: t.spacing.md,
   },
   card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
+    marginBottom: t.spacing.lg,
+  },
+  cardHeader: {
+    backgroundColor: t.colors.card,
+    paddingHorizontal: t.spacing.md,
+    paddingTop: t.spacing.sm,
+    borderTopLeftRadius: t.border.radius,
+    borderTopRightRadius: t.border.radius,
+  },
+  cardTitle: {
+    fontFamily: t.fonts.mono,
+    fontSize: 12,
+    color: t.colors.secondary,
+  },
+  cardContent: {
+    backgroundColor: t.colors.card,
+    padding: t.spacing.lg,
+  },
+  cardFooter: {
+    fontFamily: t.fonts.mono,
+    fontSize: 10,
+    color: t.colors.border,
+    textAlign: "center",
+  },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: t.spacing.sm,
   },
   label: {
+    fontFamily: t.fonts.mono,
+    fontSize: 13,
+    color: t.colors.secondary,
+  },
+  value: {
+    fontFamily: t.fonts.mono,
     fontSize: 14,
-    color: "#6B7280",
-    marginBottom: 4,
-  },
-  balance: {
-    fontSize: 32,
     fontWeight: "700",
-    color: "#111827",
+    color: t.colors.primary,
   },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#111827",
-    marginBottom: 16,
-  },
-  summaryRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  summaryItem: {
-    flex: 1,
-    alignItems: "center",
-  },
-  summaryLabel: {
-    fontSize: 12,
-    color: "#6B7280",
-    marginBottom: 4,
-  },
-  summaryValue: {
-    fontSize: 20,
+  balanceValue: {
+    fontFamily: t.fonts.mono,
+    fontSize: 28,
     fontWeight: "700",
+    color: t.colors.primary,
+    textAlign: "center",
   },
-  netRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#F3F4F6",
-  },
-  netLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#111827",
-  },
-  netValue: {
-    fontSize: 20,
-    fontWeight: "700",
-  },
-  income: {
-    color: "#10B981",
-  },
-  expense: {
-    color: "#EF4444",
+  divider: {
+    height: 1,
+    backgroundColor: t.colors.border,
+    marginVertical: t.spacing.sm,
   },
   chartContainer: {
     alignItems: "center",
-    paddingVertical: 8,
+    paddingVertical: t.spacing.sm,
   },
   emptyText: {
-    textAlign: "center",
-    color: "#9CA3AF",
+    fontFamily: t.fonts.mono,
     fontSize: 14,
-    paddingVertical: 40,
+    color: t.colors.muted,
+    textAlign: "center",
+    paddingVertical: t.spacing.xl,
   },
-  comparisonRow: {
+  comparisonContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 12,
+    justifyContent: "space-around",
+    alignItems: "center",
+    marginBottom: t.spacing.md,
   },
   comparisonItem: {
-    flex: 1,
     alignItems: "center",
   },
   comparisonLabel: {
-    fontSize: 12,
-    color: "#6B7280",
-    marginBottom: 4,
+    fontFamily: t.fonts.mono,
+    fontSize: 10,
+    color: t.colors.muted,
+    marginBottom: t.spacing.xs,
   },
   comparisonValue: {
+    fontFamily: t.fonts.mono,
     fontSize: 16,
     fontWeight: "600",
-    color: "#111827",
+    color: t.colors.primary,
   },
-  deltaText: {
-    textAlign: "center",
+  arrow: {
+    fontFamily: t.fonts.mono,
+    fontSize: 20,
+    color: t.colors.muted,
+  },
+  deltaContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingTop: t.spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: t.colors.border,
+  },
+  deltaLabel: {
+    fontFamily: t.fonts.mono,
+    fontSize: 12,
+    color: t.colors.secondary,
+    marginRight: t.spacing.sm,
+  },
+  deltaValue: {
+    fontFamily: t.fonts.mono,
     fontSize: 14,
     fontWeight: "600",
   },

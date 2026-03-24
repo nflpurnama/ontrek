@@ -1,7 +1,10 @@
 import { Tabs } from "expo-router";
-import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { terminalTheme } from "@/src/presentation/theme/terminal";
+
+const t = terminalTheme;
 
 export default function TabsLayout() {
   return (
@@ -53,9 +56,14 @@ return (
               <Ionicons
                 name={iconName as any}
                 size={22}
-                color={isFocused ? "#2563EB" : "#9CA3AF"}
+                color={isFocused ? t.colors.primary : t.colors.muted}
               />
-              {/* <Text>{label}</Text> */}
+              <Text style={[
+                styles.tabLabel,
+                isFocused && styles.tabLabelFocused
+              ]}>
+                {route.name === "index" ? "dashboard" : route.name === "transactions" ? "transactions" : "add"}
+              </Text>
             </TouchableOpacity>
           );
         })}
@@ -78,10 +86,12 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: "space-around",
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.9)",
+    backgroundColor: t.colors.card,
+    borderWidth: 1,
+    borderColor: t.colors.border,
     elevation: 10,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 5 },
   },
@@ -89,20 +99,32 @@ const styles = StyleSheet.create({
   tabItem: {
     flex: 1,
     alignItems: "center",
+    justifyContent: "center",
+  },
+
+  tabLabel: {
+    fontFamily: t.fonts.mono,
+    fontSize: 9,
+    color: t.colors.muted,
+    marginTop: 2,
+  },
+
+  tabLabelFocused: {
+    color: t.colors.primary,
   },
 
   floatingButton: {
     position: "absolute",
     top: -25,
     alignSelf: "center",
-    backgroundColor: "#2563EB",
+    backgroundColor: t.colors.primary,
     width: 60,
     height: 60,
     borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
     elevation: 15,
-    shadowColor: "#2563EB",
+    shadowColor: t.colors.primary,
     shadowOpacity: 0.4,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 5 },
