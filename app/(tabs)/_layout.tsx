@@ -16,6 +16,7 @@ export default function TabsLayout() {
     >
       <Tabs.Screen name="index" options={{ title: "Dashboard" }} />
       <Tabs.Screen name="transactions" options={{ title: "Transactions" }} />
+      <Tabs.Screen name="budget" options={{ title: "Budget" }} />
       <Tabs.Screen name="add" options={{ title: "Add" }} />
     </Tabs>
   );
@@ -45,6 +46,8 @@ return (
               ? "home"
               : route.name === "transactions"
               ? "receipt"
+              : route.name === "budget"
+              ? "wallet"
               : "add";
 
           return (
@@ -62,7 +65,7 @@ return (
                 styles.tabLabel,
                 isFocused && styles.tabLabelFocused
               ]}>
-                {route.name === "index" ? "dashboard" : route.name === "transactions" ? "transactions" : "add"}
+                {route.name === "index" ? "dashboard" : route.name === "transactions" ? "transactions" : route.name === "budget" ? "budget" : "add"}
               </Text>
             </TouchableOpacity>
           );

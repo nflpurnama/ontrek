@@ -32,6 +32,8 @@ export const terminalTheme = {
     h: "─",
     v: "│",
     section: "──",
+    fill: "█",
+    empty: "░",
   },
 };
 

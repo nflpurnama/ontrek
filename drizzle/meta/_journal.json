@@ -29,6 +29,13 @@
       "when": 1772466676244,
       "tag": "0003_small_proemial_gods",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1774564921483,
+      "tag": "0004_cool_rumiko_fujikawa",
+      "breakpoints": true
     }
   ]
 }

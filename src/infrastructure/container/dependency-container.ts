@@ -16,6 +16,10 @@ import { SqliteFinancialTransactionService } from "../services/sqlite/sqlite-fin
 import { GetAllCategoriesUseCase } from "@/src/application/use-case/category/get-all-categories";
 import { SqliteCategoryRepository } from "../repository/sqlite/category-repository";
 import { EnsureDefaultCategoriesUseCase } from "@/src/application/use-case/category/ensure-default-categories";
+import { SqliteBudgetRepository } from "../repository/sqlite/budget-repository";
+import { SetMonthlyBudgetUseCase } from "@/src/application/use-case/budget/set-monthly-budget";
+import { GetCurrentBudgetUseCase } from "@/src/application/use-case/budget/get-current-budget";
+import { CopyBudgetToNextMonthUseCase } from "@/src/application/use-case/budget/copy-budget-to-next-month";
 
 import { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
 
@@ -69,6 +73,17 @@ export async function createDependencies(
     categoryRepository,
   );
 
+  const budgetRepository = new SqliteBudgetRepository(drizzleDb);
+  const setMonthlyBudgetUseCase = new SetMonthlyBudgetUseCase(budgetRepository);
+  const getCurrentBudgetUseCase = new GetCurrentBudgetUseCase(
+    budgetRepository,
+    transactionRepository,
+    categoryRepository,
+  );
+  const copyBudgetToNextMonthUseCase = new CopyBudgetToNextMonthUseCase(
+    budgetRepository,
+  );
+
   return {
     ensureDefaultAccountUseCase,
     ensureDefaultCategoriesUseCase,
@@ -79,5 +94,8 @@ export async function createDependencies(
     createVendorUseCase,
     findVendorsUseCase,
     getAllCategoriesUseCase,
+    setMonthlyBudgetUseCase,
+    getCurrentBudgetUseCase,
+    copyBudgetToNextMonthUseCase,
   };
 }
