@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   TextInput,
   Modal,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import React, { useState, useCallback } from "react";
 import { useFocusEffect } from "expo-router";
@@ -113,6 +115,7 @@ export default function BudgetScreen() {
   >([]);
   const [selectedAllocationIndex, setSelectedAllocationIndex] = useState<number | null>(null);
   const [categoryPickerVisible, setCategoryPickerVisible] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const loadBudget = useCallback(async () => {
     setLoading(true);
@@ -175,6 +178,7 @@ export default function BudgetScreen() {
   );
 
   const openModal = () => {
+    setValidationError(null);
     if (!budgetData?.hasBudget) {
       setTotalBudget(0);
       setAllocations([]);
@@ -184,7 +188,7 @@ export default function BudgetScreen() {
 
   const handleSaveBudget = async () => {
     const parsedAllocations = allocations
-      .filter((a) => a.amount > 0)
+      .filter((a) => a.amount > 0 && a.categoryId)
       .map((a) => ({
         categoryId: a.categoryId,
         allocatedAmount: a.amount,
@@ -198,9 +202,14 @@ export default function BudgetScreen() {
         allocations: parsedAllocations,
       });
       setShowModal(false);
+      setValidationError(null);
       await loadBudget();
     } catch (error) {
-      console.error("Failed to save budget:", error);
+      if (error instanceof Error && error.message.includes("exceed budget")) {
+        setValidationError(error.message);
+      } else {
+        console.error("Failed to save budget:", error);
+      }
     }
   };
 
@@ -259,10 +268,15 @@ export default function BudgetScreen() {
         <Text style={styles.terminalTitle}>ontrek@budget</Text>
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.content}
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoid}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+        >
         <Text style={styles.monthLabel}>{monthLabel}</Text>
 
         {!hasBudget ? (
@@ -378,75 +392,103 @@ export default function BudgetScreen() {
           </>
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
 
       <Modal visible={showModal} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>SET BUDGET</Text>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => {
+            setValidationError(null);
+            setShowModal(false);
+          }}
+        >
+          <KeyboardAvoidingView
+            style={styles.modalContent}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+          >
+            <TouchableOpacity activeOpacity={1} onPress={() => {}}>
+              <ScrollView
+                style={styles.modalScrollView}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                <Text style={styles.modalTitle}>SET BUDGET</Text>
 
-            <Text style={styles.inputLabel}>TOTAL MONTHLY BUDGET</Text>
-            <TextInput
-              style={[styles.input, { color: t.colors.secondary }]}
-              value={totalBudget > 0 ? formatCurrency(totalBudget) : ""}
-              onChangeText={(text) => setTotalBudget(parseCurrency(text))}
-              keyboardType="numeric"
-              placeholder="Enter amount"
-              placeholderTextColor={t.colors.muted}
-            />
+                {validationError && (
+                  <View style={styles.errorContainer}>
+                    <Text style={styles.errorText}>{validationError}</Text>
+                  </View>
+                )}
 
-            <Text style={styles.inputLabel}>CATEGORY ALLOCATIONS</Text>
-            {allocations.map((allocation, index) => (
-              <View key={index} style={styles.allocationRow}>
-                <TouchableOpacity
-                  style={[styles.input, styles.categoryInput]}
-                  onPress={() => {
-                    setSelectedAllocationIndex(index);
-                    setCategoryPickerVisible(true);
-                  }}
-                >
-                  <Text style={allocation.categoryName ? styles.categoryText : styles.categoryPlaceholder}>
-                    {allocation.categoryName || "Select category"}
-                  </Text>
-                </TouchableOpacity>
+                <Text style={styles.inputLabel}>TOTAL MONTHLY BUDGET</Text>
                 <TextInput
-                  style={[styles.input, styles.amountInput, { color: t.colors.secondary }]}
-                  value={allocation.amount > 0 ? formatCurrency(allocation.amount) : ""}
-                  onChangeText={(text) =>
-                    updateAllocation(index, "amount", parseCurrency(text))
-                  }
+                  style={[styles.input, { color: t.colors.secondary }]}
+                  value={totalBudget > 0 ? formatCurrency(totalBudget) : ""}
+                  onChangeText={(text) => setTotalBudget(parseCurrency(text))}
                   keyboardType="numeric"
-                  placeholder="Amount"
+                  placeholder="Enter amount"
                   placeholderTextColor={t.colors.muted}
                 />
+
+                <Text style={styles.inputLabel}>CATEGORY ALLOCATIONS</Text>
+                {allocations.map((allocation, index) => (
+                  <View key={index} style={styles.allocationRow}>
+                    <TouchableOpacity
+                      style={[styles.input, styles.categoryInput]}
+                      onPress={() => {
+                        setSelectedAllocationIndex(index);
+                        setCategoryPickerVisible(true);
+                      }}
+                    >
+                      <Text style={allocation.categoryName ? styles.categoryText : styles.categoryPlaceholder}>
+                        {allocation.categoryName || "Select category"}
+                      </Text>
+                    </TouchableOpacity>
+                    <TextInput
+                      style={[styles.input, styles.amountInput, { color: t.colors.secondary }]}
+                      value={allocation.amount > 0 ? formatCurrency(allocation.amount) : ""}
+                      onChangeText={(text) =>
+                        updateAllocation(index, "amount", parseCurrency(text))
+                      }
+                      keyboardType="numeric"
+                      placeholder="Amount"
+                      placeholderTextColor={t.colors.muted}
+                    />
+                    <TouchableOpacity
+                      style={styles.removeButton}
+                      onPress={() => removeAllocation(index)}
+                    >
+                      <Text style={styles.removeButtonText}>×</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+
+                <TouchableOpacity style={styles.addButton} onPress={addAllocation}>
+                  <Text style={styles.addButtonText}>+ ADD CATEGORY</Text>
+                </TouchableOpacity>
+              </ScrollView>
+
+              <View style={styles.modalButtons}>
                 <TouchableOpacity
-                  style={styles.removeButton}
-                  onPress={() => removeAllocation(index)}
+                  style={styles.cancelButton}
+                  onPress={() => {
+                    setValidationError(null);
+                    setShowModal(false);
+                  }}
                 >
-                  <Text style={styles.removeButtonText}>×</Text>
+                  <Text style={styles.cancelButtonText}>CANCEL</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.saveButton}
+                  onPress={handleSaveBudget}
+                >
+                  <Text style={styles.saveButtonText}>SAVE</Text>
                 </TouchableOpacity>
               </View>
-            ))}
-
-            <TouchableOpacity style={styles.addButton} onPress={addAllocation}>
-              <Text style={styles.addButtonText}>+ ADD CATEGORY</Text>
             </TouchableOpacity>
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => setShowModal(false)}
-              >
-                <Text style={styles.cancelButtonText}>CANCEL</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.saveButton}
-                onPress={handleSaveBudget}
-              >
-                <Text style={styles.saveButtonText}>SAVE</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
+          </KeyboardAvoidingView>
+        </TouchableOpacity>
       </Modal>
 
       <Modal visible={categoryPickerVisible} animationType="slide" transparent>
@@ -492,6 +534,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: t.colors.background,
+  },
+  keyboardAvoid: {
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,
@@ -709,7 +754,10 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: t.spacing.xl,
-    maxHeight: "80%",
+    paddingBottom: 40,
+  },
+  modalScrollView: {
+    maxHeight: 400,
   },
   modalTitle: {
     fontFamily: t.fonts.mono,
@@ -718,6 +766,19 @@ const styles = StyleSheet.create({
     color: t.colors.primary,
     textAlign: "center",
     marginBottom: t.spacing.xl,
+  },
+  errorContainer: {
+    backgroundColor: t.colors.expense + "20",
+    borderWidth: 1,
+    borderColor: t.colors.expense,
+    borderRadius: t.border.radius,
+    padding: t.spacing.md,
+    marginBottom: t.spacing.lg,
+  },
+  errorText: {
+    fontFamily: t.fonts.mono,
+    fontSize: 12,
+    color: t.colors.expense,
   },
   inputLabel: {
     fontFamily: t.fonts.mono,
