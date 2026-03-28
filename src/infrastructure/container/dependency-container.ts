@@ -97,5 +97,7 @@ export async function createDependencies(
     setMonthlyBudgetUseCase,
     getCurrentBudgetUseCase,
     copyBudgetToNextMonthUseCase,
+    vendorRepository,
+    categoryRepository,
   };
 }

@@ -14,6 +14,8 @@ import { useDependencies } from "@/src/application/providers/dependency-provider
 import { Transaction } from "@/src/domain/entities/transaction";
 import { Id } from "@/src/domain/value-objects/id";
 import { terminalTheme } from "@/src/presentation/theme/terminal";
+import { Vendor } from "@/src/domain/entities/vendor";
+import { Category } from "@/src/domain/entities/category";
 
 const t = terminalTheme;
 
@@ -56,9 +58,11 @@ const TerminalRow = ({ label, value, valueColor }: { label: string; value: strin
 export default function TransactionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { viewTransactionsUseCase, deleteTransactionUseCase } = useDependencies();
+  const { viewTransactionsUseCase, deleteTransactionUseCase, vendorRepository, categoryRepository } = useDependencies();
 
   const [transaction, setTransaction] = useState<Transaction | null>(null);
+  const [vendorName, setVendorName] = useState<string | null>(null);
+  const [categoryName, setCategoryName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
 
@@ -68,6 +72,22 @@ export default function TransactionDetailScreen() {
         const results = await viewTransactionsUseCase.execute({});
         const found = results.find((t) => t.id.getValue() === id) ?? null;
         setTransaction(found);
+
+        if (found) {
+          if (found.vendorId) {
+            const vendors = await vendorRepository.getVendors([Id.rehydrate(found.vendorId)]);
+            if (vendors.length > 0) {
+              setVendorName(vendors[0].name);
+            }
+          }
+
+          if (found.categoryId) {
+            const cats = await categoryRepository.getCategory([Id.rehydrate(found.categoryId)]);
+            if (cats.length > 0) {
+              setCategoryName(cats[0].name);
+            }
+          }
+        }
       } catch (err: any) {
         Alert.alert("Error", err.message);
       } finally {
@@ -162,14 +182,14 @@ export default function TransactionDetailScreen() {
         <TerminalCard title="INFO">
           <TerminalRow 
             label="VENDOR" 
-            value={transaction.vendorId ?? "—"}
-            valueColor={transaction.vendorId ? t.colors.primary : undefined}
+            value={vendorName ?? "—"}
+            valueColor={vendorName ? t.colors.primary : undefined}
           />
           <View style={styles.divider} />
           <TerminalRow 
             label="CATEGORY" 
-            value={transaction.categoryId ?? "—"}
-            valueColor={transaction.categoryId ? t.colors.accent : undefined}
+            value={categoryName ?? "—"}
+            valueColor={categoryName ? t.colors.accent : undefined}
           />
           <View style={styles.divider} />
           <TerminalRow 

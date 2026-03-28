@@ -11,6 +11,8 @@ import { EnsureDefaultCategoriesUseCase } from "../use-case/category/ensure-defa
 import { SetMonthlyBudgetUseCase } from "../use-case/budget/set-monthly-budget";
 import { GetCurrentBudgetUseCase } from "../use-case/budget/get-current-budget";
 import { CopyBudgetToNextMonthUseCase } from "../use-case/budget/copy-budget-to-next-month";
+import { VendorRepository } from "@/src/domain/repository/vendor-repository";
+import { CategoryRepository } from "@/src/domain/repository/category-repository";
 
 //TODO: explore if dependency is importing too many things
 export interface Dependencies {
@@ -26,6 +28,8 @@ export interface Dependencies {
   setMonthlyBudgetUseCase: SetMonthlyBudgetUseCase;
   getCurrentBudgetUseCase: GetCurrentBudgetUseCase;
   copyBudgetToNextMonthUseCase: CopyBudgetToNextMonthUseCase;
+  vendorRepository: VendorRepository;
+  categoryRepository: CategoryRepository;
 }
 
 export const DependencyContext = React.createContext<Dependencies | null>(null);
