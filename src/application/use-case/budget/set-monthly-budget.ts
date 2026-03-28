@@ -16,6 +16,19 @@ export class SetMonthlyBudgetUseCase {
   constructor(private readonly budgetRepo: BudgetRepository) {}
 
   async execute(input: SetMonthlyBudgetInput): Promise<Id> {
+    const totalAllocated = input.allocations.reduce(
+      (sum, a) => sum + a.allocatedAmount,
+      0
+    );
+
+    if (totalAllocated > input.totalAmount) {
+      const remaining = input.totalAmount - (totalAllocated - input.allocations[input.allocations.length - 1].allocatedAmount);
+      throw new Error(
+        `Total allocations (${totalAllocated.toLocaleString()}) exceed budget (${input.totalAmount.toLocaleString()}). ` +
+        `Reduce by at least ${(totalAllocated - input.totalAmount).toLocaleString()} or increase your budget.`
+      );
+    }
+
     const existingBudget = await this.budgetRepo.getBudget(input.month, input.year);
 
     const budget = existingBudget ?? Budget.create({
