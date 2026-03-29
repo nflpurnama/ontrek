@@ -1,70 +1,64 @@
 {
   "expo": {
-    "name": "ontrek",
+    "name": "Ontrek",
+    "description": "Local-first budgeting and expense tracking app",
     "slug": "ontrek",
-    "version": "1.0.0",
+    "owner": "nfpurnama",
+    "version": "1.0.1",
+    "platforms": [
+      "android"
+    ],
+    "githubUrl": "https://github.com/nflpurnama/ontrek.git",
     "orientation": "portrait",
-    "icon": "./assets/images/ontrek-icon.png",
-    "cli": {
-      "appVersionSource": "remote"
-    },
+    "userInterfaceStyle": "automatic",
+    "icon": "./assets/images/android-icon-light.png",
+    "scheme": "ontrek",
+    "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/ontrek-splash.png",
+      "image": "./assets/images/android-splash-dark.png",
       "resizeMode": "cover"
     },
-    "scheme": "ontrek",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "android": {
-      "splash": {
-        "image": "./assets/images/ontrek-splash.png",
-        "resizeMode": "contain",
-        "backgroundColor": "#ffffff"
-      },
+      "package": "com.kenali.ontrek",
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/ontrek-icon-dark.png",
+        "foregroundImage": "./assets/images/android-icon-dark.png",
+        "monochromeImage": "./assets/images/android-icon-light.png",
         "backgroundColor": "#ffffff"
-      },
-      "package": "com.kenali.ontrek"
+      }
     },
-    "package": "com.kenali.ontrek",
+    "plugins": [
+      "expo-sqlite",
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#ffffff",
+          "image": "./assets/images/android-splash-light.png",
+          "dark": {
+            "image": "./assets/images/android-splash-dark.png",
+            "backgroundColor": "#000000"
+          },
+          "imageWidth": 200
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
     "extra": {
+      "router": {},
       "eas": {
         "projectId": "a1f59bb1-f518-4196-8af1-8b2c1510355e"
       }
     },
-    "ios": {
-      "bundleIdentifier": "com.kenali.ontrek"
-    }
-  },
-  "ios": {
-    "supportsTablet": true
-  },
-  "plugins": [
-    "expo-sqlite",
-    "expo-router",
-    [
-      "expo-splash-screen",
-      {
-        "backgroundColor": "#ffffff",
-        "image": "./assets/images/ontrek-splash.png",
-        "dark": {
-          "image": "./assets/images/ontrek-splash-dark.png",
-          "backgroundColor": "#000000"
-        },
-        "imageWidth": 200
-      }
-    ]
-  ],
-  "experiments": {
-    "typedRoutes": true,
-    "reactCompiler": true
-  },
-  "extra": {
-    "router": {},
-    "eas": {
-      "projectId": "a1f59bb1-f518-4196-8af1-8b2c1510355e"
-    }
-  },
-  "owner": "nfpurnama"
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/a1f59bb1-f518-4196-8af1-8b2c1510355e"
+    },
+    "ios": {}
+  }
 }
