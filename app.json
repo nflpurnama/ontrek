@@ -4,7 +4,7 @@
     "description": "Local-first budgeting and expense tracking app",
     "slug": "ontrek",
     "owner": "nfpurnama",
-    "version": "1.0.1",
+    "version": "1.0.3",
     "platforms": [
       "android"
     ],
