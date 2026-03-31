@@ -18,6 +18,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="index" options={{ title: "Dashboard" }} />
       <Tabs.Screen name="transactions" options={{ title: "Transactions" }} />
       <Tabs.Screen name="budget" options={{ title: "Budget" }} />
+      <Tabs.Screen name="goals" options={{ title: "Goals" }} />
       <Tabs.Screen name="add" options={{ title: "Add" }} />
     </Tabs>
   );
@@ -27,7 +28,7 @@ function FloatingTabBar({ state, descriptors, navigation }: any) {
 const insets = useSafeAreaInsets();
 
 const visibleRoutes = state.routes.filter((route: any) =>
-  route.name !== "accounts" && route.name !== "vendors"
+  route.name !== "accounts" && route.name !== "vendors" && !route.name.startsWith("goals/")
 );
 
 return (
@@ -49,6 +50,8 @@ return (
               ? "receipt"
               : route.name === "budget"
               ? "wallet"
+              : route.name === "goals"
+              ? "flag"
               : "add";
 
           return (
@@ -66,7 +69,7 @@ return (
                 styles.tabLabel,
                 isFocused && styles.tabLabelFocused
               ]}>
-                {route.name === "index" ? "dashboard" : route.name === "transactions" ? "transactions" : route.name === "budget" ? "budget" : "add"}
+                {route.name === "index" ? "dashboard" : route.name === "transactions" ? "transactions" : route.name === "budget" ? "budget" : route.name === "goals" ? "goals" : "add"}
               </Text>
             </TouchableOpacity>
           );
