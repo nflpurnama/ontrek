@@ -1,5 +1,6 @@
 import { SavingsGoalRepository } from "@/src/domain/repository/savings-goal-repository";
 import { SavingsGoal } from "@/src/domain/entities/savings-goal";
+import { Id } from "@/src/domain/value-objects/id";
 import { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
 import {
   SQLITE_SAVINGS_GOALS_TABLE,
@@ -61,6 +62,7 @@ export class SqliteSavingsGoalRepository implements SavingsGoalRepository {
     await this.db
       .insert(SQLITE_SAVINGS_GOAL_TRANSACTIONS_TABLE)
       .values({
+        id: Id.create().getValue(),
         goalId,
         transactionId,
         type,

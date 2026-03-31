@@ -267,6 +267,13 @@
     "savings_goal_transactions": {
       "name": "savings_goal_transactions",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
         "goal_id": {
           "name": "goal_id",
           "type": "text",

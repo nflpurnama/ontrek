@@ -11,6 +11,7 @@ CREATE TABLE `savings_goals` (
 );
 --> statement-breakpoint
 CREATE TABLE `savings_goal_transactions` (
+	`id` text PRIMARY KEY NOT NULL,
 	`goal_id` text NOT NULL,
 	`transaction_id` text NOT NULL,
 	`type` text NOT NULL,

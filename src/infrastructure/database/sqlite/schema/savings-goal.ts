@@ -15,6 +15,7 @@ export const SQLITE_SAVINGS_GOALS_TABLE = sqliteTable("savings_goals", {
 export const SQLITE_SAVINGS_GOAL_TRANSACTIONS_TABLE = sqliteTable(
   "savings_goal_transactions",
   {
+    id: text("id").primaryKey(),
     goalId: text("goal_id").notNull(),
     transactionId: text("transaction_id").notNull(),
     type: text("type").notNull(),
