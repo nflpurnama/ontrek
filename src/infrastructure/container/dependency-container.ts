@@ -55,6 +55,7 @@ export async function createDependencies(
     categoryRepository,
   );
 
+  const savingsGoalRepository = new SqliteSavingsGoalRepository(drizzleDb);
   const sqliteTransaction = new SqliteTransaction(db);
   const financialTransactionService = new SqliteFinancialTransactionService(
     sqliteTransaction,
@@ -67,6 +68,7 @@ export async function createDependencies(
   );
   const deleteTransactionUseCase = new DeleteTransactionUseCase(
     financialTransactionService,
+    savingsGoalRepository,
   );
 
   const viewTransactionsUseCase = new ViewTransactionsUseCase(
@@ -91,7 +93,6 @@ export async function createDependencies(
     budgetRepository,
   );
 
-  const savingsGoalRepository = new SqliteSavingsGoalRepository(drizzleDb);
   const savingsGoalService = new SqliteSavingsGoalService(
     savingsGoalRepository,
     financialTransactionService

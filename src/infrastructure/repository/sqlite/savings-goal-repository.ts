@@ -71,6 +71,28 @@ export class SqliteSavingsGoalRepository implements SavingsGoalRepository {
       });
   }
 
+  async findLinkByTransactionId(transactionId: string): Promise<{ goalId: string; type: "DEPOSIT" | "WITHDRAW" } | null> {
+    const rows = await this.db
+      .select()
+      .from(SQLITE_SAVINGS_GOAL_TRANSACTIONS_TABLE)
+      .where(eq(SQLITE_SAVINGS_GOAL_TRANSACTIONS_TABLE.transactionId, transactionId));
+
+    if (rows.length === 0) {
+      return null;
+    }
+
+    return {
+      goalId: rows[0].goalId,
+      type: rows[0].type as "DEPOSIT" | "WITHDRAW",
+    };
+  }
+
+  async deleteLink(transactionId: string): Promise<void> {
+    await this.db
+      .delete(SQLITE_SAVINGS_GOAL_TRANSACTIONS_TABLE)
+      .where(eq(SQLITE_SAVINGS_GOAL_TRANSACTIONS_TABLE.transactionId, transactionId));
+  }
+
   private formatGoalToDomain(row: SelectSqliteSavingsGoal): SavingsGoal {
     return SavingsGoal.rehydrate({
       id: row.id,
