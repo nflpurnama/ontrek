@@ -12,5 +12,18 @@ export const SQLITE_SAVINGS_GOALS_TABLE = sqliteTable("savings_goals", {
   updatedAt: text("updated_at").notNull(),
 });
 
+export const SQLITE_SAVINGS_GOAL_TRANSACTIONS_TABLE = sqliteTable(
+  "savings_goal_transactions",
+  {
+    goalId: text("goal_id").notNull(),
+    transactionId: text("transaction_id").notNull(),
+    type: text("type").notNull(),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+  }
+);
+
 export type InsertSqliteSavingsGoal = typeof SQLITE_SAVINGS_GOALS_TABLE.$inferInsert;
 export type SelectSqliteSavingsGoal = typeof SQLITE_SAVINGS_GOALS_TABLE.$inferSelect;
+export type InsertSqliteSavingsGoalTransaction = typeof SQLITE_SAVINGS_GOAL_TRANSACTIONS_TABLE.$inferInsert;
+export type SelectSqliteSavingsGoalTransaction = typeof SQLITE_SAVINGS_GOAL_TRANSACTIONS_TABLE.$inferSelect;

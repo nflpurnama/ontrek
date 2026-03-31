@@ -9,3 +9,11 @@ CREATE TABLE `savings_goals` (
 	`created_at` text NOT NULL,
 	`updated_at` text NOT NULL
 );
+--> statement-breakpoint
+CREATE TABLE `savings_goal_transactions` (
+	`goal_id` text NOT NULL,
+	`transaction_id` text NOT NULL,
+	`type` text NOT NULL,
+	`created_at` text NOT NULL,
+	`updated_at` text NOT NULL
+);
