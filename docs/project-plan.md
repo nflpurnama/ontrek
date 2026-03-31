@@ -1,5 +1,5 @@
 # Ontrek — Project Plan
-_Last updated: March 31, 2026_
+_Last updated: April 1, 2026_
 
 ---
 
@@ -22,34 +22,30 @@ _Last updated: March 31, 2026_
 
 ---
 
-## Current Status (March 31, 2026)
+## Current Status (April 1, 2026)
 
 ### Play Store Submission
 - ✅ Google Play Console account created and verified
 - ✅ App submitted to Play Console
-- ✅ Privacy policy published via GitHub Pages: `https://[username].github.io/[repo]/privacy-policy.html`
+- ✅ Privacy policy published via GitHub Pages
 - ✅ Version 2 (1.0.3) uploaded — awaiting production release
 - 🔲 Awaiting production review/approval
 
-### Closed Testing
-- ~7 testers recruited (short of 12 minimum)
-- Decision: Skip formal closed testing, proceed to production directly
-- Production submission in progress
-
-### Build Infrastructure
-- ✅ Switched from EAS to local Gradle builds (no cloud dependency, no cost)
-- ✅ Created `upload-keystore.jks` for signing
-- ✅ Play App Signing enabled (Google manages app signing key)
-- Keystore location: `android/app/upload-keystore.jks` (backed up locally, not in git)
+### Savings Goals (Sprint 3) — COMPLETED
+- ✅ SavingsGoal entity — name, targetAmount, currentBalance, targetDate
+- ✅ Create goal form with currency/date formatting
+- ✅ Goals list screen with progress visualization
+- ✅ Deposit to goal (logs as expense, increases goal balance)
+- ✅ Withdraw from goal (logs as income, decreases goal balance)
+- ✅ Delete transaction reverses linked savings goal balance
 
 ### Bugs Fixed
 - ✅ DB initialization race condition (NativeDatabase.execAsync NullPointerException)
 - ✅ Transaction detail screen ID display (now shows vendor/category names)
-- ✅ Category allocation validation — validates at use case level, rejects if allocations exceed total budget
-- ✅ Budget screen keyboard issue — removed KeyboardAvoidingView, added tabBarHideOnKeyboard
-
-### Bugs Remaining
-- None — all known bugs fixed
+- ✅ Category allocation validation — validates at use case level
+- ✅ Budget screen keyboard issue
+- ✅ Savings goal deposit/withdraw schema (added id column to linking table)
+- ✅ Error handling for old database schema (graceful fallback)
 
 ---
 
@@ -78,6 +74,8 @@ _Last updated: March 31, 2026_
 - Privacy policy published via GitHub Pages
 - DB initialization race condition fixed
 - Transaction detail screen ID display fixed
+- Savings Goals feature — create, deposit, withdraw, progress tracking
+- Delete transaction reverses savings goal balance (links tracked in linking table)
 
 ---
 
@@ -173,18 +171,17 @@ type BudgetParadigmPlugin = {
 
 ---
 
-## 🔲 Sprint 3 — Savings Goals
+## ✅ Completed — Savings Goals (Sprint 3)
 
 ### Vision
 Named, dated savings goals that users fund deliberately. Goals are virtual envelopes
-sitting outside the main spending budget. Research supports that self-designed goals
-with target amounts significantly increase savings rates.
+sitting outside the main spending budget.
 
-### Behaviour
+### Implemented
 - User creates a goal with a name, target amount, and optional target date
 - Multiple goals can exist simultaneously
 - **Deposit** — user taps deposit on a goal, enters amount, logs as an expense
-  transaction against a special protected "savings" category. Goal balance increases.
+  transaction. Goal balance increases.
 - **Withdraw** — user taps withdraw on a goal, enters amount, logs as an income
   transaction. Goal balance decreases.
 - When goal balance reaches target amount, goal displays as complete
@@ -192,18 +189,23 @@ with target amounts significantly increase savings rates.
 
 ### Goals screen
 - List of all goals — name, target amount, current balance, progress bar, target date
-- Tap a goal to see deposit/withdraw history and actions
+- Deposit/withdraw buttons on each card
 - Completed goals shown with a distinct visual treatment
 
 ### Progress visualization
 - Progress bar per goal — current balance vs target amount
-- Target date shown — no automatic forecasting yet (recurring expenses not implemented)
+- Target date shown
 
-### Domain additions needed
+### Domain additions
 - `SavingsGoal` entity — name, targetAmount, currentBalance, targetDate (optional)
-- `SavingsGoalTransaction` — goalId, amount, type (deposit/withdraw), date
+- `SavingsGoalTransaction` (linking table) — goalId, transactionId, type (deposit/withdraw)
 - `SavingsGoalRepository` interface
 - Use cases: `CreateSavingsGoal`, `DepositToGoal`, `WithdrawFromGoal`, `GetAllGoals`
+- Transaction deletion reverses linked savings goal balance
+
+### Limitations (known)
+- No foreign key constraints in SQLite (planned for future)
+- Deleting a savings goal does not delete linked transactions
 
 ---
 
@@ -262,6 +264,7 @@ Tab-based navigation is working well — revisit only if terminal vision demands
 ### Infrastructure
 - [ ] Multi-account support
 - [ ] Command interface (`/add`, `/view`, etc.) — optional
+- [ ] Add foreign key constraints to SQLite schema (for referential integrity)
 
 ---
 
