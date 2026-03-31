@@ -36,6 +36,13 @@
       "when": 1774564921483,
       "tag": "0004_cool_rumiko_fujikawa",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1774956626111,
+      "tag": "0005_dry_mariko_yashida",
+      "breakpoints": true
     }
   ]
 }

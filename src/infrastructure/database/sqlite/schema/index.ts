@@ -1,5 +1,6 @@
 export * from "./accounts"
 export * from "./budget"
 export * from "./category"
+export * from "./savings-goal"
 export * from "./vendors"
 export * from "./transaction"
