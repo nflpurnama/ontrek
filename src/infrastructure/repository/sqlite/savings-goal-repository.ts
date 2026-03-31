@@ -3,6 +3,7 @@ import { SavingsGoal } from "@/src/domain/entities/savings-goal";
 import { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
 import {
   SQLITE_SAVINGS_GOALS_TABLE,
+  SQLITE_SAVINGS_GOAL_TRANSACTIONS_TABLE,
   SelectSqliteSavingsGoal,
 } from "../../database/sqlite/schema/savings-goal";
 import { eq } from "drizzle-orm";
@@ -35,6 +36,37 @@ export class SqliteSavingsGoalRepository implements SavingsGoalRepository {
       .orderBy(SQLITE_SAVINGS_GOALS_TABLE.createdAt);
 
     return rows.map((row) => this.formatGoalToDomain(row));
+  }
+
+  async update(goal: SavingsGoal): Promise<void> {
+    const row = this.formatGoalFromDomain(goal);
+    const { id, ...updateFields } = row;
+
+    const result = await this.db
+      .update(SQLITE_SAVINGS_GOALS_TABLE)
+      .set(updateFields)
+      .where(eq(SQLITE_SAVINGS_GOALS_TABLE.id, id));
+
+    if (result.changes === 0) {
+      throw new Error("Savings goal not found");
+    }
+  }
+
+  async linkTransaction(
+    goalId: string,
+    transactionId: string,
+    type: "DEPOSIT" | "WITHDRAW"
+  ): Promise<void> {
+    const now = new Date().toISOString();
+    await this.db
+      .insert(SQLITE_SAVINGS_GOAL_TRANSACTIONS_TABLE)
+      .values({
+        goalId,
+        transactionId,
+        type,
+        createdAt: now,
+        updatedAt: now,
+      });
   }
 
   private formatGoalToDomain(row: SelectSqliteSavingsGoal): SavingsGoal {
