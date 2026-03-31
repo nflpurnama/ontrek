@@ -92,9 +92,14 @@ export async function createDependencies(
   );
 
   const savingsGoalRepository = new SqliteSavingsGoalRepository(drizzleDb);
-  const savingsGoalService = new SqliteSavingsGoalService(savingsGoalRepository);
+  const savingsGoalService = new SqliteSavingsGoalService(
+    savingsGoalRepository,
+    financialTransactionService
+  );
   const createSavingsGoalUseCase = new CreateSavingsGoalUseCase(savingsGoalService);
   const getAllSavingsGoalsUseCase = new GetAllSavingsGoalsUseCase(savingsGoalService);
+  const depositToSavingsGoalUseCase = new DepositToSavingsGoalUseCase(savingsGoalService);
+  const withdrawFromSavingsGoalUseCase = new WithdrawFromSavingsGoalUseCase(savingsGoalService);
 
   return {
     ensureDefaultAccountUseCase,
@@ -111,6 +116,8 @@ export async function createDependencies(
     copyBudgetToNextMonthUseCase,
     createSavingsGoalUseCase,
     getAllSavingsGoalsUseCase,
+    depositToSavingsGoalUseCase,
+    withdrawFromSavingsGoalUseCase,
     vendorRepository,
     categoryRepository,
   };

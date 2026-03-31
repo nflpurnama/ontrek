@@ -13,6 +13,8 @@ import { GetCurrentBudgetUseCase } from "../use-case/budget/get-current-budget";
 import { CopyBudgetToNextMonthUseCase } from "../use-case/budget/copy-budget-to-next-month";
 import { CreateSavingsGoalUseCase } from "../use-case/savings-goal/create-savings-goal";
 import { GetAllSavingsGoalsUseCase } from "../use-case/savings-goal/get-all-savings-goals";
+import { DepositToSavingsGoalUseCase } from "../use-case/savings-goal/deposit-to-savings-goal";
+import { WithdrawFromSavingsGoalUseCase } from "../use-case/savings-goal/withdraw-from-savings-goal";
 import { VendorRepository } from "@/src/domain/repository/vendor-repository";
 import { CategoryRepository } from "@/src/domain/repository/category-repository";
 
@@ -31,6 +33,8 @@ export interface Dependencies {
   copyBudgetToNextMonthUseCase: CopyBudgetToNextMonthUseCase;
   createSavingsGoalUseCase: CreateSavingsGoalUseCase;
   getAllSavingsGoalsUseCase: GetAllSavingsGoalsUseCase;
+  depositToSavingsGoalUseCase: DepositToSavingsGoalUseCase;
+  withdrawFromSavingsGoalUseCase: WithdrawFromSavingsGoalUseCase;
   vendorRepository: VendorRepository;
   categoryRepository: CategoryRepository;
 }

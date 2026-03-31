@@ -10,4 +10,14 @@ export interface SavingsGoalService {
   }): Promise<SavingsGoal>;
 
   getAllGoals(): Promise<SavingsGoal[]>;
+
+  depositToGoal(params: {
+    goalId: string;
+    amount: number;
+  }): Promise<{ goal: SavingsGoal; transactionId: string }>;
+
+  withdrawFromGoal(params: {
+    goalId: string;
+    amount: number;
+  }): Promise<{ goal: SavingsGoal; transactionId: string }>;
 }

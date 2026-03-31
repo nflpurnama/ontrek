@@ -18,7 +18,8 @@ export class SqliteFinancialTransactionService implements FinancialTransactionSe
     private readonly vendorRepository: VendorRepository
   ) {}
 
-  async createTransaction(params: CreateTransactionParams): Promise<void> {
+  async createTransaction(params: CreateTransactionParams): Promise<string> {
+    let createdTransactionId: string = "";
     await this.databaseTransaction.runInTransaction(async () => {
       const accounts = await this.accountRepository.getAllAccounts();
       if (!accounts.length) {
@@ -53,7 +54,9 @@ export class SqliteFinancialTransactionService implements FinancialTransactionSe
 
       await this.transactionRepository.saveTransaction(transaction);
       await this.accountRepository.updateAccount(account);
+      createdTransactionId = transaction.id.getValue();
     });
+    return createdTransactionId;
   }
 
   async deleteTransaction(params: DeleteTransactionParams): Promise<void> {

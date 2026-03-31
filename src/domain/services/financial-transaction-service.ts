@@ -20,6 +20,6 @@ export interface DeleteTransactionParams {
 }
 
 export interface FinancialTransactionService {
-  createTransaction(params: CreateTransactionParams): Promise<void>;
+  createTransaction(params: CreateTransactionParams): Promise<string>;
   deleteTransaction(params: DeleteTransactionParams): Promise<void>;
 }
