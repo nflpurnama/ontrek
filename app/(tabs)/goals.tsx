@@ -36,37 +36,62 @@ const TerminalCard = ({ title, children }: { title: string; children: React.Reac
 interface GoalCardProps {
   goal: SavingsGoal;
   onPress: () => void;
+  onDeposit: () => void;
+  onWithdraw: () => void;
 }
 
-const GoalCard = ({ goal, onPress }: GoalCardProps) => {
+const GoalCard = ({ goal, onPress, onDeposit, onWithdraw }: GoalCardProps) => {
   const progressPercent = goal.progressPercentage;
   const isCompleted = goal.isCompleted;
   
   return (
     <TouchableOpacity onPress={onPress} style={styles.goalCard}>
-      <View style={styles.goalHeader}>
-        <Text style={[styles.goalName, isCompleted && styles.completedText]}>
-          {goal.name}
-        </Text>
-        {isCompleted && (
-          <View style={styles.completedBadge}>
-            <Text style={styles.completedBadgeText}>COMPLETE</Text>
-          </View>
-        )}
-      </View>
-      
-      <View style={styles.progressContainer}>
-        <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
+      <View style={styles.goalContent}>
+        <View style={styles.goalHeader}>
+          <Text style={[styles.goalName, isCompleted && styles.completedText]}>
+            {goal.name}
+          </Text>
+          {isCompleted && (
+            <View style={styles.completedBadge}>
+              <Text style={styles.completedBadgeText}>COMPLETE</Text>
+            </View>
+          )}
         </View>
-        <Text style={styles.progressText}>{progressPercent.toFixed(0)}%</Text>
+        
+        <View style={styles.progressContainer}>
+          <View style={styles.progressBar}>
+            <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
+          </View>
+          <Text style={styles.progressText}>{progressPercent.toFixed(0)}%</Text>
+        </View>
+        
+        <View style={styles.goalFooter}>
+          <Text style={styles.goalBalance}>
+            {formatCurrency(goal.currentBalance)} / {formatCurrency(goal.targetAmount)}
+          </Text>
+          <Text style={styles.goalDate}>{formatDate(goal.targetDate)}</Text>
+        </View>
       </View>
       
-      <View style={styles.goalFooter}>
-        <Text style={styles.goalBalance}>
-          {formatCurrency(goal.currentBalance)} / {formatCurrency(goal.targetAmount)}
-        </Text>
-        <Text style={styles.goalDate}>{formatDate(goal.targetDate)}</Text>
+      <View style={styles.actionButtons}>
+        <TouchableOpacity 
+          style={[styles.actionButton, styles.depositButton]} 
+          onPress={(e) => {
+            e.stopPropagation();
+            onDeposit();
+          }}
+        >
+          <Text style={styles.actionButtonText}>+</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.actionButton, styles.withdrawButton]} 
+          onPress={(e) => {
+            e.stopPropagation();
+            onWithdraw();
+          }}
+        >
+          <Text style={styles.actionButtonText}>-</Text>
+        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
@@ -119,6 +144,8 @@ export default function Goals() {
               key={goal.id.getValue()}
               goal={goal}
               onPress={() => {}}
+              onDeposit={() => router.push(`/goals/${goal.id.getValue()}/deposit`)}
+              onWithdraw={() => router.push(`/goals/${goal.id.getValue()}/withdraw`)}
             />
           ))
         ) : (
@@ -212,6 +239,38 @@ const styles = StyleSheet.create({
     marginBottom: t.spacing.md,
     borderWidth: 1,
     borderColor: t.colors.border,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  goalContent: {
+    flex: 1,
+  },
+  actionButtons: {
+    justifyContent: "space-between",
+    marginLeft: t.spacing.md,
+  },
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+  },
+  depositButton: {
+    backgroundColor: t.colors.expense,
+    borderColor: t.colors.expense,
+    marginBottom: 4,
+  },
+  withdrawButton: {
+    backgroundColor: "transparent",
+    borderColor: t.colors.income,
+  },
+  actionButtonText: {
+    fontFamily: t.fonts.mono,
+    fontSize: 20,
+    fontWeight: "700",
+    color: t.colors.background,
   },
   goalHeader: {
     flexDirection: "row",
