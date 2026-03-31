@@ -7,8 +7,6 @@ import {
   TouchableOpacity,
   TextInput,
   Modal,
-  KeyboardAvoidingView,
-  Platform,
 } from "react-native";
 import React, { useState, useCallback } from "react";
 import { useFocusEffect } from "expo-router";
@@ -268,15 +266,10 @@ export default function BudgetScreen() {
         <Text style={styles.terminalTitle}>ontrek@budget</Text>
       </View>
 
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoid}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
       >
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.content}
-          keyboardShouldPersistTaps="handled"
-        >
         <Text style={styles.monthLabel}>{monthLabel}</Text>
 
         {!hasBudget ? (
@@ -392,7 +385,6 @@ export default function BudgetScreen() {
           </>
         )}
       </ScrollView>
-      </KeyboardAvoidingView>
 
       <Modal visible={showModal} animationType="slide" transparent>
         <TouchableOpacity
@@ -403,10 +395,7 @@ export default function BudgetScreen() {
             setShowModal(false);
           }}
         >
-          <KeyboardAvoidingView
-            style={styles.modalContent}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-          >
+          <View style={styles.modalContent}>
             <TouchableOpacity activeOpacity={1} onPress={() => {}}>
               <ScrollView
                 style={styles.modalScrollView}
@@ -487,7 +476,7 @@ export default function BudgetScreen() {
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
-          </KeyboardAvoidingView>
+          </View>
         </TouchableOpacity>
       </Modal>
 
@@ -534,9 +523,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: t.colors.background,
-  },
-  keyboardAvoid: {
-    flex: 1,
   },
   loadingContainer: {
     flex: 1,
