@@ -45,10 +45,11 @@ _Last updated: March 31, 2026_
 ### Bugs Fixed
 - ✅ DB initialization race condition (NativeDatabase.execAsync NullPointerException)
 - ✅ Transaction detail screen ID display (now shows vendor/category names)
+- ✅ Category allocation validation — validates at use case level, rejects if allocations exceed total budget
+- ✅ Budget screen keyboard issue — removed KeyboardAvoidingView, added tabBarHideOnKeyboard
 
 ### Bugs Remaining
-- 🔲 Category allocation validation (can exceed total monthly budget)
-- 🔲 KeyboardAvoidingView on budget screen (keyboard covers input)
+- None — all known bugs fixed
 
 ---
 
@@ -92,21 +93,11 @@ Apple Developer Program ($99/yr) not enrolled yet. iOS release deferred indefini
 
 ## 🔲 Known Bugs (to fix before production)
 
-- [ ] **Keyboard covers budget amount input** — wrap budget screen in
-  `KeyboardAvoidingView` with `behavior={Platform.OS === 'ios' ? 'padding' : 'height'}`
-
-- [ ] **Budget screen content doesn't fully return after keyboard dismisses** —
-  incomplete reset of `KeyboardAvoidingView` offset on keyboard hide
-
-- [x~~] **NativeDatabase.execAsync NullPointerException on some Android devices** —
-  race condition between DB initialisation and first query~~ — FIXED
-
-- [ ] **Category allocation can exceed total monthly budget** — validate at use
-  case level when saving or updating an allocation. Reject if sum of allocations
-  exceeds total budget. Error message should show remaining unallocated amount.
-
-- [x~~] **Transaction detail screen shows raw IDs for vendor and category** —
-  resolve names at use case level~~ — FIXED
+All known bugs have been fixed:
+- [x] DB initialization race condition
+- [x] Transaction detail ID display
+- [x] Category allocation validation
+- [x] Budget screen keyboard handling
 
 ---
 
