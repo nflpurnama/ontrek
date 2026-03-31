@@ -100,6 +100,43 @@ describe("SetMonthlyBudgetUseCase.execute()", () => {
     expect(budgetRepo.updateBudget).toHaveBeenCalled();
   });
 
+  it("throws when allocations exceed total budget", async () => {
+    const budgetRepo = makeBudgetRepo();
+    budgetRepo.getBudget.mockResolvedValue(null);
+
+    const useCase = new SetMonthlyBudgetUseCase(budgetRepo);
+    await expect(
+      useCase.execute({
+        totalAmount: 5000,
+        month: 3,
+        year: 2026,
+        allocations: [
+          { categoryId: "cat-1", allocatedAmount: 3000 },
+          { categoryId: "cat-2", allocatedAmount: 3000 },
+        ],
+      })
+    ).rejects.toThrow(/exceed budget by 1,000/);
+  });
+
+  it("allows allocations equal to total budget", async () => {
+    const budgetRepo = makeBudgetRepo();
+    budgetRepo.getBudget.mockResolvedValue(null);
+    budgetRepo.saveBudget.mockImplementation(async (budget) => budget.id);
+
+    const useCase = new SetMonthlyBudgetUseCase(budgetRepo);
+    await expect(
+      useCase.execute({
+        totalAmount: 5000,
+        month: 3,
+        year: 2026,
+        allocations: [
+          { categoryId: "cat-1", allocatedAmount: 3000 },
+          { categoryId: "cat-2", allocatedAmount: 2000 },
+        ],
+      })
+    ).resolves.toBeDefined();
+  });
+
   it("sets correct allocations on new budget", async () => {
     const budgetRepo = makeBudgetRepo();
     budgetRepo.getBudget.mockResolvedValue(null);

@@ -21,11 +21,11 @@ export class SetMonthlyBudgetUseCase {
       0
     );
 
-    if (totalAllocated > input.totalAmount) {
-      const remaining = input.totalAmount - (totalAllocated - input.allocations[input.allocations.length - 1].allocatedAmount);
+    const remaining = input.totalAmount - totalAllocated;
+    if (remaining < 0) {
       throw new Error(
-        `Total allocations (${totalAllocated.toLocaleString()}) exceed budget (${input.totalAmount.toLocaleString()}). ` +
-        `Reduce by at least ${(totalAllocated - input.totalAmount).toLocaleString()} or increase your budget.`
+        `Total allocations exceed budget by ${(-remaining).toLocaleString()}. ` +
+        `You have 0 remaining to allocate.`
       );
     }
 
