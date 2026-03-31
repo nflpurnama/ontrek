@@ -11,10 +11,11 @@ import { EnsureDefaultCategoriesUseCase } from "../use-case/category/ensure-defa
 import { SetMonthlyBudgetUseCase } from "../use-case/budget/set-monthly-budget";
 import { GetCurrentBudgetUseCase } from "../use-case/budget/get-current-budget";
 import { CopyBudgetToNextMonthUseCase } from "../use-case/budget/copy-budget-to-next-month";
+import { CreateSavingsGoalUseCase } from "../use-case/savings-goal/create-savings-goal";
+import { GetAllSavingsGoalsUseCase } from "../use-case/savings-goal/get-all-savings-goals";
 import { VendorRepository } from "@/src/domain/repository/vendor-repository";
 import { CategoryRepository } from "@/src/domain/repository/category-repository";
 
-//TODO: explore if dependency is importing too many things
 export interface Dependencies {
   ensureDefaultAccountUseCase: EnsureDefaultAccountUseCase,
   ensureDefaultCategoriesUseCase: EnsureDefaultCategoriesUseCase,
@@ -28,6 +29,8 @@ export interface Dependencies {
   setMonthlyBudgetUseCase: SetMonthlyBudgetUseCase;
   getCurrentBudgetUseCase: GetCurrentBudgetUseCase;
   copyBudgetToNextMonthUseCase: CopyBudgetToNextMonthUseCase;
+  createSavingsGoalUseCase: CreateSavingsGoalUseCase;
+  getAllSavingsGoalsUseCase: GetAllSavingsGoalsUseCase;
   vendorRepository: VendorRepository;
   categoryRepository: CategoryRepository;
 }
