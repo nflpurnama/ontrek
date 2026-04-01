@@ -62,13 +62,13 @@ export async function createDependencies(
     accountRepository,
     transactionRepository,
     vendorRepository,
+    savingsGoalRepository
   );
   const createTransactionUseCase = new CreateTransactionUseCase(
     financialTransactionService,
   );
   const deleteTransactionUseCase = new DeleteTransactionUseCase(
-    financialTransactionService,
-    savingsGoalRepository,
+    financialTransactionService
   );
 
   const viewTransactionsUseCase = new ViewTransactionsUseCase(

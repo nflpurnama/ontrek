@@ -9,13 +9,15 @@ import {
 import { DatabaseTransaction } from "@/src/domain/database/database-transaction";
 import { VendorRepository } from "@/src/domain/repository/vendor-repository";
 import { Vendor } from "@/src/domain/entities/vendor";
+import { SavingsGoalRepository } from "@/src/domain/repository/savings-goal-repository";
 
 export class SqliteFinancialTransactionService implements FinancialTransactionService {
   constructor(
     private readonly databaseTransaction: DatabaseTransaction,
     private readonly accountRepository: AccountRepository,
     private readonly transactionRepository: TransactionRepository,
-    private readonly vendorRepository: VendorRepository
+    private readonly vendorRepository: VendorRepository,
+    private readonly savingsGoalRepository: SavingsGoalRepository,
   ) {}
 
   async createTransaction(params: CreateTransactionParams): Promise<string> {
@@ -28,10 +30,14 @@ export class SqliteFinancialTransactionService implements FinancialTransactionSe
       const account = accounts[0];
 
       let vendorId = null;
-      if (params.vendor){
+      if (params.vendor) {
         vendorId = params.vendor.id.getValue();
-      }else if (params.vendorName){
-        vendorId = (await this.vendorRepository.saveVendor(Vendor.create({name: params.vendorName, defaultCategoryId: null}))).getValue();
+      } else if (params.vendorName) {
+        vendorId = (
+          await this.vendorRepository.saveVendor(
+            Vendor.create({ name: params.vendorName, defaultCategoryId: null }),
+          )
+        ).getValue();
       }
 
       let categoryId = params.category?.id.getValue() ?? null;
@@ -43,7 +49,7 @@ export class SqliteFinancialTransactionService implements FinancialTransactionSe
         vendorId: vendorId,
         categoryId: categoryId,
         description: params.description,
-        spendingType: params.spendingType
+        spendingType: params.spendingType,
       });
 
       if (transaction.type === "INCOME") {
@@ -67,7 +73,9 @@ export class SqliteFinancialTransactionService implements FinancialTransactionSe
       }
       const account = accounts[0];
 
-      const transactions = await this.transactionRepository.getTransaction([params.id]);
+      const transactions = await this.transactionRepository.getTransaction([
+        params.id,
+      ]);
       if (!transactions.length) {
         throw new Error("Transaction to delete not found");
       }
@@ -77,6 +85,22 @@ export class SqliteFinancialTransactionService implements FinancialTransactionSe
         account.debit(transaction.amount);
       } else {
         account.credit(transaction.amount);
+      }
+
+      const link = await this.savingsGoalRepository.findLinkByTransactionId(
+        params.id.getValue(),
+      );
+      if (link) {
+        const goal = await this.savingsGoalRepository.findById(link.goalId);
+        if (goal) {
+          if (link.type === "DEPOSIT") {
+            goal.withdraw(transaction.amount);
+          } else {
+            goal.deposit(transaction.amount);
+          }
+          await this.savingsGoalRepository.update(goal);
+        }
+        await this.savingsGoalRepository.deleteLink(params.id.getValue());
       }
 
       await this.accountRepository.updateAccount(account);

@@ -1,9 +1,11 @@
 import { SqliteFinancialTransactionService } from "../../infrastructure/services/sqlite/sqlite-financial-transaction-service";
 import { Account } from "../../domain/entities/account";
 import { Transaction } from "../../domain/entities/transaction";
+import { SavingsGoal } from "../../domain/entities/savings-goal";
 import { AccountRepository } from "../../domain/repository/account-repository";
 import { TransactionRepository } from "../../domain/repository/transaction-repository";
 import { VendorRepository } from "../../domain/repository/vendor-repository";
+import { SavingsGoalRepository } from "../../domain/repository/savings-goal-repository";
 import { DatabaseTransaction } from "../../domain/database/database-transaction";
 import { Id } from "../../domain/value-objects/id";
 import { Vendor } from "../../domain/entities/vendor";
@@ -70,6 +72,20 @@ function makeVendorRepo(): jest.Mocked<VendorRepository> {
   };
 }
 
+function makeSavingsGoalRepo(goal?: SavingsGoal | null): jest.Mocked<SavingsGoalRepository> {
+  return {
+    create: jest.fn(async (g: SavingsGoal) => {}),
+    findById: jest.fn(async (id: string) => goal ?? null),
+    findAll: jest.fn(async () => []),
+    update: jest.fn(async (g: SavingsGoal) => {}),
+    linkTransaction: jest.fn(async (goalId: string, transactionId: string, type: "DEPOSIT" | "WITHDRAW") => {}),
+    findLinkByTransactionId: jest.fn(
+      async (tid: string): Promise<{ goalId: string; type: "DEPOSIT" | "WITHDRAW" } | null> => null
+    ),
+    deleteLink: jest.fn(async (tid: string) => {}),
+  };
+}
+
 // ── createTransaction ─────────────────────────────────────────────────────────
 
 describe("createTransaction — EXPENSE", () => {
@@ -81,6 +97,7 @@ describe("createTransaction — EXPENSE", () => {
       accountRepo,
       makeTransactionRepo(),
       makeVendorRepo(),
+      makeSavingsGoalRepo(),
     );
 
     await service.createTransaction({
@@ -105,6 +122,7 @@ describe("createTransaction — EXPENSE", () => {
       makeAccountRepo(account),
       transactionRepo,
       makeVendorRepo(),
+      makeSavingsGoalRepo(),
     );
 
     await service.createTransaction({
@@ -129,6 +147,7 @@ describe("createTransaction — EXPENSE", () => {
       accountRepo,
       makeTransactionRepo(),
       makeVendorRepo(),
+      makeSavingsGoalRepo(),
     );
 
     await service.createTransaction({
@@ -154,6 +173,7 @@ describe("createTransaction — INCOME", () => {
       makeAccountRepo(account),
       makeTransactionRepo(),
       makeVendorRepo(),
+      makeSavingsGoalRepo(),
     );
 
     await service.createTransaction({
@@ -182,6 +202,7 @@ describe("createTransaction — vendor handling", () => {
       makeAccountRepo(account),
       makeTransactionRepo(),
       vendorRepo,
+      makeSavingsGoalRepo(),
     );
 
     await service.createTransaction({
@@ -207,6 +228,7 @@ describe("createTransaction — vendor handling", () => {
       makeAccountRepo(account),
       makeTransactionRepo(),
       vendorRepo,
+      makeSavingsGoalRepo(),
     );
 
     await service.createTransaction({
@@ -239,6 +261,7 @@ describe("createTransaction — error handling", () => {
       accountRepo,
       makeTransactionRepo(),
       makeVendorRepo(),
+      makeSavingsGoalRepo(),
     );
 
     await expect(service.createTransaction({
@@ -270,6 +293,7 @@ describe("deleteTransaction — balance reversal", () => {
       accountRepo,
       transactionRepo,
       makeVendorRepo(),
+      makeSavingsGoalRepo(),
     );
 
     await service.deleteTransaction({ id: existing.id });
@@ -291,6 +315,7 @@ describe("deleteTransaction — balance reversal", () => {
       accountRepo,
       transactionRepo,
       makeVendorRepo(),
+      makeSavingsGoalRepo(),
     );
 
     await service.deleteTransaction({ id: existing.id });
@@ -309,6 +334,7 @@ describe("deleteTransaction — balance reversal", () => {
       makeAccountRepo(account),
       transactionRepo,
       makeVendorRepo(),
+      makeSavingsGoalRepo(),
     );
 
     await service.deleteTransaction({ id: existing.id });
@@ -327,10 +353,164 @@ describe("deleteTransaction — balance reversal", () => {
       makeAccountRepo(account),
       transactionRepo,
       makeVendorRepo(),
+      makeSavingsGoalRepo(),
     );
 
     await expect(
       service.deleteTransaction({ id: fakeId })
     ).rejects.toThrow("Transaction to delete not found");
+  });
+});
+
+// ── deleteTransaction — savings goal balance reversal ─────────────────────────
+
+describe("deleteTransaction — savings goal balance reversal", () => {
+  it("withdraws from goal when deleting a DEPOSIT transaction", async () => {
+    const account = makeAccount(600);
+    const transaction = makeTransaction("INCOME", 100);
+    const goal = SavingsGoal.rehydrate({
+      id: "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
+      name: "Vacation Fund",
+      targetAmount: 1000,
+      currentBalance: 100,
+      targetDate: null,
+      month: 1,
+      year: 2026,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const savingsGoalRepo = makeSavingsGoalRepo(goal);
+    savingsGoalRepo.findLinkByTransactionId = jest.fn(
+      async (_tid: string): Promise<{ goalId: string; type: "DEPOSIT" | "WITHDRAW" } | null> => ({
+        goalId: "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
+        type: "DEPOSIT" as const,
+      })
+    );
+
+    const transactionRepo = makeTransactionRepo(transaction);
+    transactionRepo.getTransaction = jest.fn(async ({}) => [transaction]);
+
+    const service = new SqliteFinancialTransactionService(
+      makeDatabaseTransaction(),
+      makeAccountRepo(account),
+      transactionRepo,
+      makeVendorRepo(),
+      savingsGoalRepo,
+    );
+
+    await service.deleteTransaction({ id: transaction.id });
+
+    expect(goal.currentBalance).toBe(0);
+    expect(savingsGoalRepo.update).toHaveBeenCalledWith(goal);
+    expect(savingsGoalRepo.deleteLink).toHaveBeenCalledWith(transaction.id.getValue());
+  });
+
+  it("deposits to goal when deleting a WITHDRAW transaction", async () => {
+    const account = makeAccount(400);
+    const transaction = makeTransaction("EXPENSE", 100);
+    const goal = SavingsGoal.rehydrate({
+      id: "bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb",
+      name: "Vacation Fund",
+      targetAmount: 1000,
+      currentBalance: 400,
+      targetDate: null,
+      month: 1,
+      year: 2026,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const savingsGoalRepo = makeSavingsGoalRepo(goal);
+    savingsGoalRepo.findLinkByTransactionId = jest.fn(
+      async (_tid: string): Promise<{ goalId: string; type: "DEPOSIT" | "WITHDRAW" } | null> => ({
+        goalId: "bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb",
+        type: "WITHDRAW" as const,
+      })
+    );
+
+    const transactionRepo = makeTransactionRepo(transaction);
+    transactionRepo.getTransaction = jest.fn(async ({}) => [transaction]);
+
+    const service = new SqliteFinancialTransactionService(
+      makeDatabaseTransaction(),
+      makeAccountRepo(account),
+      transactionRepo,
+      makeVendorRepo(),
+      savingsGoalRepo,
+    );
+
+    await service.deleteTransaction({ id: transaction.id });
+
+    expect(goal.currentBalance).toBe(500);
+    expect(savingsGoalRepo.update).toHaveBeenCalledWith(goal);
+    expect(savingsGoalRepo.deleteLink).toHaveBeenCalledWith(transaction.id.getValue());
+  });
+
+  it("does not modify goal when transaction is not linked to a goal", async () => {
+    const account = makeAccount(400);
+    const transaction = makeTransaction("EXPENSE", 100);
+    const goal = SavingsGoal.rehydrate({
+      id: "ca3b5678-9abc-4def-8012-3456789abcde",
+      name: "Vacation Fund",
+      targetAmount: 1000,
+      currentBalance: 500,
+      targetDate: null,
+      month: 1,
+      year: 2026,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const savingsGoalRepo = makeSavingsGoalRepo(goal);
+    savingsGoalRepo.findLinkByTransactionId = jest.fn(
+      async (_tid: string): Promise<{ goalId: string; type: "DEPOSIT" | "WITHDRAW" } | null> => null
+    );
+
+    const transactionRepo = makeTransactionRepo(transaction);
+    transactionRepo.getTransaction = jest.fn(async ({}) => [transaction]);
+
+    const service = new SqliteFinancialTransactionService(
+      makeDatabaseTransaction(),
+      makeAccountRepo(account),
+      transactionRepo,
+      makeVendorRepo(),
+      savingsGoalRepo,
+    );
+
+    await service.deleteTransaction({ id: transaction.id });
+
+    expect(goal.currentBalance).toBe(500);
+    expect(savingsGoalRepo.update).not.toHaveBeenCalled();
+    expect(savingsGoalRepo.deleteLink).not.toHaveBeenCalled();
+  });
+
+  it("handles case where linked goal no longer exists", async () => {
+    const account = makeAccount(600);
+    const transaction = makeTransaction("INCOME", 100);
+
+    const savingsGoalRepo = makeSavingsGoalRepo(undefined);
+    savingsGoalRepo.findLinkByTransactionId = jest.fn(
+      async (_tid: string): Promise<{ goalId: string; type: "DEPOSIT" | "WITHDRAW" } | null> => ({
+        goalId: "dddddddd-dddd-4ddd-dddd-dddddddddddd",
+        type: "DEPOSIT" as const,
+      })
+    );
+
+    const transactionRepo = makeTransactionRepo(transaction);
+    transactionRepo.getTransaction = jest.fn(async ({}) => [transaction]);
+
+    const service = new SqliteFinancialTransactionService(
+      makeDatabaseTransaction(),
+      makeAccountRepo(account),
+      transactionRepo,
+      makeVendorRepo(),
+      savingsGoalRepo,
+    );
+
+    await service.deleteTransaction({ id: transaction.id });
+
+    expect(savingsGoalRepo.update).not.toHaveBeenCalled();
+    expect(savingsGoalRepo.deleteLink).toHaveBeenCalledWith(transaction.id.getValue());
   });
 });

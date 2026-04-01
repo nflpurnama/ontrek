@@ -22,13 +22,12 @@ _Last updated: April 1, 2026_
 
 ---
 
-## Current Status (April 1, 2026)
+## Current Status (April 2, 2026)
 
-### Play Store Submission
+### Production Release
 - ✅ Google Play Console account created and verified
-- ✅ App submitted to Play Console
+- ✅ App submitted to Play Console (v1.0.3)
 - ✅ Privacy policy published via GitHub Pages
-- ✅ Version 2 (1.0.3) uploaded — awaiting production release
 - 🔲 Awaiting production review/approval
 
 ### Savings Goals (Sprint 3) — COMPLETED
@@ -37,15 +36,10 @@ _Last updated: April 1, 2026_
 - ✅ Goals list screen with progress visualization
 - ✅ Deposit to goal (logs as expense, increases goal balance)
 - ✅ Withdraw from goal (logs as income, decreases goal balance)
-- ✅ Delete transaction reverses linked savings goal balance
+- ⚠️ Delete transaction from transactions list — not linked to goal reversal (known issue)
 
-### Bugs Fixed
-- ✅ DB initialization race condition (NativeDatabase.execAsync NullPointerException)
-- ✅ Transaction detail screen ID display (now shows vendor/category names)
-- ✅ Category allocation validation — validates at use case level
-- ✅ Budget screen keyboard issue
-- ✅ Savings goal deposit/withdraw schema (added id column to linking table)
-- ✅ Error handling for old database schema (graceful fallback)
+### Known Issues
+- Deleting a deposit/withdrawal transaction from the transactions list does not reverse the linked savings goal balance. This is due to a schema mismatch issue that needs investigation.
 
 ---
 
@@ -75,7 +69,7 @@ _Last updated: April 1, 2026_
 - DB initialization race condition fixed
 - Transaction detail screen ID display fixed
 - Savings Goals feature — create, deposit, withdraw, progress tracking
-- Delete transaction reverses savings goal balance (links tracked in linking table)
+- Goal balance updates on deposit/withdraw via UI buttons
 
 ---
 
@@ -244,6 +238,7 @@ Tab-based navigation is working well — revisit only if terminal vision demands
 
 ### UX & Core Features
 - [ ] Edit transaction
+- [x] Fix delete transaction to reverse linked savings goal balance
 - [ ] Pseudo-autocorrect strip above keyboard for vendor input
 - [ ] Backspace navigation between transaction form phases
 - [ ] Vendor management screen
