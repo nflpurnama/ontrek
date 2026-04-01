@@ -43,54 +43,53 @@ interface GoalCardProps {
 const GoalCard = ({ goal, onPress, onDeposit, onWithdraw }: GoalCardProps) => {
   const progressPercent = goal.progressPercentage;
   const isCompleted = goal.isCompleted;
-  
+
   return (
     <TouchableOpacity onPress={onPress} style={styles.goalCard}>
       <View style={styles.goalContent}>
         <View style={styles.goalHeader}>
-          <Text style={[styles.goalName, isCompleted && styles.completedText]}>
+          <Text style={styles.goalName}>
             {goal.name}
           </Text>
-          {isCompleted && (
-            <View style={styles.completedBadge}>
-              <Text style={styles.completedBadgeText}>COMPLETE</Text>
-            </View>
-          )}
         </View>
-        
+
         <View style={styles.progressContainer}>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
-          </View>
-          <Text style={styles.progressText}>{progressPercent.toFixed(0)}%</Text>
+          <Text style={styles.progressBar}>
+            {t.ascii.fill.repeat(Math.max(0, Math.round((progressPercent / 100) * 20)))}
+            {t.ascii.empty.repeat(Math.max(0, 20 - Math.round((progressPercent / 100) * 20)))}
+          </Text>
         </View>
-        
-        <View style={styles.goalFooter}>
+
+        <View style={styles.balanceAbsolute}>
           <Text style={styles.goalBalance}>
             {formatCurrency(goal.currentBalance)} / {formatCurrency(goal.targetAmount)}
           </Text>
+        </View>
+
+        <View style={styles.goalFooter}>
+          <Text style={styles.goalDateLabel}>TARGET DATE</Text>
           <Text style={styles.goalDate}>{formatDate(goal.targetDate)}</Text>
         </View>
       </View>
-      
+
       <View style={styles.actionButtons}>
-        <TouchableOpacity 
-          style={[styles.actionButton, styles.depositButton]} 
+        <TouchableOpacity
+          style={[styles.actionButton, styles.depositButton]}
           onPress={(e) => {
             e.stopPropagation();
             onDeposit();
           }}
         >
-          <Text style={styles.actionButtonText}>+</Text>
+          <Text style={[styles.actionButtonText, { color: t.colors.expense }]}>DEPOSIT</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.actionButton, styles.withdrawButton]} 
+        <TouchableOpacity
+          style={[styles.actionButton, styles.withdrawButton]}
           onPress={(e) => {
             e.stopPropagation();
             onWithdraw();
           }}
         >
-          <Text style={styles.actionButtonText}>-</Text>
+          <Text style={[styles.actionButtonText, { color: t.colors.income }]}>WITHDRAW</Text>
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
@@ -130,13 +129,6 @@ export default function Goals() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.topBar}>
-        <View style={[styles.dot, { backgroundColor: t.colors.expense }]} />
-        <View style={[styles.dot, { backgroundColor: t.colors.income }]} />
-        <View style={[styles.dot, { backgroundColor: t.colors.accent }]} />
-        <Text style={styles.terminalTitle}>ontrek@goals</Text>
-      </View>
-      
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         {goals.length > 0 ? (
           goals.map((goal) => (
@@ -158,7 +150,7 @@ export default function Goals() {
             </Text>
           </TerminalCard>
         )}
-        
+
         <TouchableOpacity style={styles.addButton} onPress={handleAddGoal}>
           <Text style={styles.addButtonText}>+ NEW GOAL</Text>
         </TouchableOpacity>
@@ -177,7 +169,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: t.spacing.lg,
-    paddingTop: t.spacing.sm,
+    paddingTop: 60,
     paddingBottom: 100,
   },
   loadingContainer: {
@@ -185,15 +177,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: t.colors.background,
-  },
-  topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: t.spacing.lg,
-    paddingTop: 50,
-    paddingBottom: t.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: t.colors.border,
   },
   dot: {
     width: 10,
@@ -209,6 +192,8 @@ const styles = StyleSheet.create({
   },
   card: {
     marginBottom: t.spacing.lg,
+    backgroundColor: t.colors.card,
+    borderRadius: t.border.radius,
   },
   cardHeader: {
     backgroundColor: t.colors.card,
@@ -235,42 +220,44 @@ const styles = StyleSheet.create({
   goalCard: {
     backgroundColor: t.colors.card,
     borderRadius: t.border.radius,
-    padding: t.spacing.lg,
     marginBottom: t.spacing.md,
     borderWidth: 1,
     borderColor: t.colors.border,
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "stretch",
   },
   goalContent: {
-    flex: 1,
+    flex: 2,
+    padding: t.spacing.md,
   },
   actionButtons: {
-    justifyContent: "space-between",
+    flex: 1,
+    flexDirection: "column",
     marginLeft: t.spacing.md,
   },
   actionButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1,
   },
   depositButton: {
-    backgroundColor: t.colors.expense,
-    borderColor: t.colors.expense,
-    marginBottom: 4,
+    flex: 1,
+    backgroundColor: "transparent",
+    borderLeftWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: t.colors.border,
+    borderTopRightRadius: 2,
   },
   withdrawButton: {
+    flex: 1,
     backgroundColor: "transparent",
-    borderColor: t.colors.income,
+    borderLeftWidth: 1,
+    borderTopWidth: 1,
+    borderColor: t.colors.border,
+    borderBottomRightRadius: 2,
   },
   actionButtonText: {
     fontFamily: t.fonts.mono,
-    fontSize: 20,
-    fontWeight: "700",
-    color: t.colors.background,
+    fontSize: 12,
   },
   goalHeader: {
     flexDirection: "row",
@@ -301,17 +288,15 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   progressContainer: {
-    flexDirection: "row",
     alignItems: "center",
-    marginBottom: t.spacing.md,
+    marginBottom: t.spacing.sm,
   },
   progressBar: {
+    fontFamily: t.fonts.mono,
+    fontSize: 16,
+    color: t.colors.accent,
+    letterSpacing: 1,
     flex: 1,
-    height: 8,
-    backgroundColor: t.colors.border,
-    borderRadius: 4,
-    overflow: "hidden",
-    marginRight: t.spacing.md,
   },
   progressFill: {
     height: "100%",
@@ -330,16 +315,36 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginTop: t.spacing.sm,
+  },
+  balanceAbsolute: {
+    position: "absolute",
+    top: "45%",
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: 1,
   },
   goalBalance: {
     fontFamily: t.fonts.mono,
-    fontSize: 13,
+    fontSize: 10,
     color: t.colors.secondary,
+    fontWeight: "600",
+    backgroundColor: t.colors.card,
+    paddingHorizontal: t.spacing.sm,
+    paddingVertical: 2,
+  },
+  goalDateLabel: {
+    fontFamily: t.fonts.mono,
+    fontSize: 9,
+    color: t.colors.muted,
+    letterSpacing: 1,
   },
   goalDate: {
     fontFamily: t.fonts.mono,
-    fontSize: 11,
-    color: t.colors.muted,
+    fontSize: 13,
+    color: t.colors.primary,
+    fontWeight: "600",
   },
   emptyText: {
     fontFamily: t.fonts.mono,
@@ -364,7 +369,6 @@ const styles = StyleSheet.create({
   addButtonText: {
     fontFamily: t.fonts.mono,
     fontSize: 14,
-    fontWeight: "700",
     color: t.colors.background,
   },
 });
