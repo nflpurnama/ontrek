@@ -93,6 +93,12 @@ export class SqliteSavingsGoalRepository implements SavingsGoalRepository {
       .where(eq(SQLITE_SAVINGS_GOAL_TRANSACTIONS_TABLE.transactionId, transactionId));
   }
 
+  async delete(id: string): Promise<void> {
+    await this.db
+      .delete(SQLITE_SAVINGS_GOALS_TABLE)
+      .where(eq(SQLITE_SAVINGS_GOALS_TABLE.id, id));
+  }
+
   private formatGoalToDomain(row: SelectSqliteSavingsGoal): SavingsGoal {
     return SavingsGoal.rehydrate({
       id: row.id,

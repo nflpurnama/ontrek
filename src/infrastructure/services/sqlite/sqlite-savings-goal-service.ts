@@ -2,6 +2,7 @@ import { SavingsGoalService } from "@/src/domain/services/savings-goal-service";
 import { SavingsGoal } from "@/src/domain/entities/savings-goal";
 import { SavingsGoalRepository } from "@/src/domain/repository/savings-goal-repository";
 import { FinancialTransactionService } from "@/src/domain/services/financial-transaction-service";
+import { Id } from "@/src/domain/value-objects/id";
 
 export class SqliteSavingsGoalService implements SavingsGoalService {
   constructor(
@@ -117,5 +118,13 @@ export class SqliteSavingsGoalService implements SavingsGoalService {
       console.log("Withdraw error:", e?.message || e);
       throw e;
     }
+  }
+
+  async deleteGoal(params: { id: Id }): Promise<void> {
+    const goal = await this.savingsGoalRepository.findById(params.id.getValue());
+    if (!goal) {
+      throw new Error("Savings goal not found");
+    }
+    await this.savingsGoalRepository.delete(goal.id.getValue());
   }
 }

@@ -5,6 +5,7 @@ export interface SavingsGoalRepository {
   findById(id: string): Promise<SavingsGoal | null>;
   findAll(): Promise<SavingsGoal[]>;
   update(goal: SavingsGoal): Promise<void>;
+  delete(id: string): Promise<void>;
   linkTransaction(goalId: string, transactionId: string, type: "DEPOSIT" | "WITHDRAW"): Promise<void>;
   findLinkByTransactionId(transactionId: string): Promise<{ goalId: string; type: "DEPOSIT" | "WITHDRAW" } | null>;
   deleteLink(transactionId: string): Promise<void>;

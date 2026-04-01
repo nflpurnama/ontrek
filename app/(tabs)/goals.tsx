@@ -143,7 +143,7 @@ export default function Goals() {
             <GoalCard
               key={goal.id.getValue()}
               goal={goal}
-              onPress={() => {}}
+              onPress={() => router.push(`/goals/${goal.id.getValue()}`)}
               onDeposit={() => router.push(`/goals/${goal.id.getValue()}/deposit`)}
               onWithdraw={() => router.push(`/goals/${goal.id.getValue()}/withdraw`)}
             />

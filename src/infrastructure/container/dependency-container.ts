@@ -24,6 +24,7 @@ import { CopyBudgetToNextMonthUseCase } from "@/src/application/use-case/budget/
 import { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
 import { CreateSavingsGoalUseCase } from "@/src/application/use-case/savings-goal/create-savings-goal";
 import { GetAllSavingsGoalsUseCase } from "@/src/application/use-case/savings-goal/get-all-savings-goals";
+import { GetSavingsGoalByIdUseCase } from "@/src/application/use-case/savings-goal/get-savings-goal-by-id";
 import { DepositToSavingsGoalUseCase } from "@/src/application/use-case/savings-goal/deposit-to-savings-goal";
 import { WithdrawFromSavingsGoalUseCase } from "@/src/application/use-case/savings-goal/withdraw-from-savings-goal";
 import { DeleteSavingsGoalUseCase } from "@/src/application/use-case/savings-goal/delete-savings-goal";
@@ -99,8 +100,10 @@ export async function createDependencies(
   );
   const createSavingsGoalUseCase = new CreateSavingsGoalUseCase(savingsGoalService);
   const getAllSavingsGoalsUseCase = new GetAllSavingsGoalsUseCase(savingsGoalService);
+  const getSavingsGoalByIdUseCase = new GetSavingsGoalByIdUseCase(savingsGoalRepository);
   const depositToSavingsGoalUseCase = new DepositToSavingsGoalUseCase(savingsGoalService);
   const withdrawFromSavingsGoalUseCase = new WithdrawFromSavingsGoalUseCase(savingsGoalService);
+  const deleteSavingsGoalUseCase = new DeleteSavingsGoalUseCase(savingsGoalService);
 
   return {
     ensureDefaultAccountUseCase,
@@ -117,8 +120,10 @@ export async function createDependencies(
     copyBudgetToNextMonthUseCase,
     createSavingsGoalUseCase,
     getAllSavingsGoalsUseCase,
+    getSavingsGoalByIdUseCase,
     depositToSavingsGoalUseCase,
     withdrawFromSavingsGoalUseCase,
+    deleteSavingsGoalUseCase,
     vendorRepository,
     categoryRepository,
   };

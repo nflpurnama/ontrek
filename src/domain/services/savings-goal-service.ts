@@ -1,4 +1,5 @@
 import { SavingsGoal } from "../entities/savings-goal";
+import { Id } from "../value-objects/id";
 
 export interface SavingsGoalService {
   createGoal(params: {
@@ -20,4 +21,6 @@ export interface SavingsGoalService {
     goalId: string;
     amount: number;
   }): Promise<{ goal: SavingsGoal; transactionId: string }>;
+
+  deleteGoal(params: { id: Id }): Promise<void>;
 }
