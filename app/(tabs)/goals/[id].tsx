@@ -1,5 +1,5 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState, useCallback } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -62,20 +62,22 @@ export default function GoalDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const found = await getSavingsGoalByIdUseCase.execute({
-          id: Id.rehydrate(id),
-        });
-        setGoal(found);
-      } catch (err: any) {
-        Alert.alert("Error", err.message);
-      } finally {
-        setLoading(false);
-      }
+  const loadGoal = useCallback(async () => {
+    setLoading(true);
+    try {
+      const found = await getSavingsGoalByIdUseCase.execute({
+        id: Id.rehydrate(id),
+      });
+      setGoal(found);
+    } catch (err: any) {
+      Alert.alert("Error", err.message);
+    } finally {
+      setLoading(false);
     }
-    load();
+  }, [id, getSavingsGoalByIdUseCase]);
+
+  useEffect(() => {
+    loadGoal();
   }, [id]);
 
   const handleDelete = () => {
@@ -143,32 +145,32 @@ export default function GoalDetailScreen() {
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         <TerminalCard title="DETAILS">
-          <TerminalRow 
-            label="NAME" 
+          <TerminalRow
+            label="NAME"
             value={goal.name}
             valueColor={isCompleted ? t.colors.income : t.colors.primary}
           />
           <View style={styles.divider} />
-          <TerminalRow 
-            label="TARGET" 
+          <TerminalRow
+            label="TARGET"
             value={`Rp ${formatCurrency(goal.targetAmount)}`}
             valueColor={t.colors.secondary}
           />
           <View style={styles.divider} />
-          <TerminalRow 
-            label="CURRENT" 
+          <TerminalRow
+            label="CURRENT"
             value={`Rp ${formatCurrency(goal.currentBalance)}`}
             valueColor={t.colors.income}
           />
           <View style={styles.divider} />
-          <TerminalRow 
-            label="PROGRESS" 
+          <TerminalRow
+            label="PROGRESS"
             value={`${progressPercent.toFixed(0)}%`}
             valueColor={t.colors.accent}
           />
           <View style={styles.divider} />
-          <TerminalRow 
-            label="DEADLINE" 
+          <TerminalRow
+            label="DEADLINE"
             value={formatDate(goal.targetDate)}
           />
         </TerminalCard>
@@ -181,7 +183,7 @@ export default function GoalDetailScreen() {
 
         {isCompleted && (
           <View style={styles.completedBanner}>
-            <Text style={styles.completedText}>🎉 GOAL COMPLETED</Text>
+            <Text style={styles.completedText}>GOAL COMPLETED</Text>
           </View>
         )}
 

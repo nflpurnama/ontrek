@@ -11,7 +11,7 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarHideOnKeyboard: true
+        tabBarHideOnKeyboard: true,
       }}
       tabBar={(props) => <FloatingTabBar {...props} />}
     >
@@ -28,7 +28,7 @@ function FloatingTabBar({ state, descriptors, navigation }: any) {
 const insets = useSafeAreaInsets();
 
 const visibleRoutes = state.routes.filter((route: any) =>
-  route.name !== "accounts" && route.name !== "vendors" && !route.name.startsWith("goals/")
+  route.name !== "accounts" && route.name !== "vendors" && !route.name.startsWith("(goals)/")
 );
 
 return (

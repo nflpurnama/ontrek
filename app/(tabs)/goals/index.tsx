@@ -1,5 +1,5 @@
 import { Text, View, ActivityIndicator, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { SavingsGoal } from "@/src/domain/entities/savings-goal";
@@ -111,8 +111,11 @@ export default function Goals() {
 
   useFocusEffect(
     useCallback(() => {
-      loadGoals();
-    }, [loadGoals])
+      if (goals.length === 0) {
+        loadGoals();
+      }
+      return () => {};
+    }, [goals.length, loadGoals])
   );
 
   const handleAddGoal = () => {
