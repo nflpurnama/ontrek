@@ -12,11 +12,11 @@ import m0005 from './0005_dry_mariko_yashida.sql';
     journal,
     migrations: {
       m0000,
-m0001,
-m0002,
-m0003,
-m0004,
-m0005
+      m0001,
+      m0002,
+      m0003,
+      m0004,
+      m0005
     }
   }
   
