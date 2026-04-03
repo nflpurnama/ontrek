@@ -2,6 +2,25 @@
 
 Ontrek is a React Native (Expo) financial tracking app using Clean Architecture.
 
+## Commit Protocol
+
+**NEVER commit without explicit user approval.** This applies regardless of:
+- Having write permissions to the repository
+- Being in "build mode"
+- Any other operational context
+
+Before any git commit:
+1. Run `git status` to show changes
+2. Run `git diff` to show staged changes  
+3. Run `git log` to show recent commit style
+4. Present a clear summary of what will be committed
+5. Ask for explicit approval before proceeding
+
+If the user approves:
+- Stage relevant files
+- Create commit with message
+- Verify with `git status` after
+
 ## Build & Test Commands
 
 ```bash
