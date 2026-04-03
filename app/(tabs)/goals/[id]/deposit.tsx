@@ -1,6 +1,6 @@
 import { Text, View, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
-import React, { useState, useCallback, useEffect } from "react";
-import { useFocusEffect, useRouter, useLocalSearchParams } from "expo-router";
+import { useState, useCallback } from "react";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { terminalTheme } from "@/src/presentation/theme/terminal";
 import { formatCurrency, parseCurrency } from "@/src/presentation/utility/formatter/currency";

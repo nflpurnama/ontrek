@@ -111,11 +111,9 @@ export default function Goals() {
 
   useFocusEffect(
     useCallback(() => {
-      if (goals.length === 0) {
-        loadGoals();
-      }
+      loadGoals();
       return () => {};
-    }, [goals.length, loadGoals])
+    }, [loadGoals])
   );
 
   const handleAddGoal = () => {

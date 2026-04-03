@@ -1,5 +1,5 @@
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState, useCallback } from "react";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useState, useCallback } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -76,9 +76,12 @@ export default function GoalDetailScreen() {
     }
   }, [id, getSavingsGoalByIdUseCase]);
 
-  useEffect(() => {
-    loadGoal();
-  }, [id]);
+  useFocusEffect(
+    useCallback(() => {
+      loadGoal();
+      return () => {};
+    }, [loadGoal])
+  );
 
   const handleDelete = () => {
     Alert.alert(
