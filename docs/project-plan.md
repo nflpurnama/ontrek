@@ -1,5 +1,5 @@
 # Ontrek — Project Plan
-_Last updated: April 1, 2026_
+_Last updated: April 4, 2026_
 
 ---
 
@@ -22,7 +22,7 @@ _Last updated: April 1, 2026_
 
 ---
 
-## Current Status (April 2, 2026)
+## Current Status (April 4, 2026)
 
 ### Production Release
 - ✅ Google Play Console account created and verified
@@ -36,10 +36,13 @@ _Last updated: April 1, 2026_
 - ✅ Goals list screen with progress visualization
 - ✅ Deposit to goal (logs as expense, increases goal balance)
 - ✅ Withdraw from goal (logs as income, decreases goal balance)
-- ⚠️ Delete transaction from transactions list — not linked to goal reversal (known issue)
+- ✅ Delete transaction from transactions list — linked to goal reversal
 
 ### Known Issues
-- Deleting a deposit/withdrawal transaction from the transactions list does not reverse the linked savings goal balance. This is due to a schema mismatch issue that needs investigation.
+None — all known bugs have been fixed.
+
+### Known Observations (non-blocking)
+- Navbar label text wraps on some phones — likely due to varying screen widths. Investigate responsive nav bar styling.
 
 ---
 
@@ -70,6 +73,7 @@ _Last updated: April 1, 2026_
 - Transaction detail screen ID display fixed
 - Savings Goals feature — create, deposit, withdraw, progress tracking
 - Goal balance updates on deposit/withdraw via UI buttons
+- Goals screen refresh fix — useFocusEffect now properly reloads on focus
 
 ---
 
