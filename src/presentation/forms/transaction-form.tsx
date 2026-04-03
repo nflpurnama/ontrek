@@ -20,6 +20,7 @@ import {
   VendorPill,
   CategoryPill,
   NotePill,
+  DatePill,
 } from "../components/inputs/transaction-pill";
 import { terminalTheme } from "../theme/terminal";
 
@@ -27,11 +28,12 @@ const t = terminalTheme;
 
 type ContextType = "EDIT" | "CREATE";
 
-type FormPhase = "type" | "amount" | "vendor" | "category" | "note";
+type FormPhase = "type" | "amount" | "date" | "vendor" | "category" | "note";
 
 const PHASE_ORDER: FormPhase[] = [
   "type",
   "amount",
+  "date",
   "vendor",
   "category",
   "note",
@@ -45,6 +47,7 @@ export type TransactionFormData = {
   vendor: Vendor | null;
   vendorName: string;
   description: string;
+  transactionDate: Date;
 };
 
 export type TransactionFormContext = {
@@ -54,6 +57,7 @@ export type TransactionFormContext = {
   handleSubmit: (formData: TransactionFormData) => void;
   handleVendorSearch: (vendorName: string) => void;
   handleDelete?: (formData: TransactionFormData) => void;
+  initialData?: TransactionFormData;
 };
 
 export const TransactionForm = ({
@@ -63,18 +67,22 @@ export const TransactionForm = ({
   handleVendorSearch,
   handleSubmit,
   handleDelete,
+  initialData,
 }: TransactionFormContext) => {
   const [phase, setPhase] = useState<FormPhase>("type");
   const [inputValue, setInputValue] = useState<string>("");
 
   const [transactionType, setTransactionType] =
-    useState<TransactionType | null>(null);
-  const [amount, setAmount] = useState<number>(0);
-  const [spendingType] = useState<SpendingType>("ESSENTIAL");
-  const [category, setCategory] = useState<Category | null>(null);
-  const [vendor, setVendor] = useState<Vendor | null>(null);
-  const [vendorName, setVendorName] = useState<string>("");
-  const [description, setDescription] = useState<string>("");
+    useState<TransactionType | null>(initialData?.transactionType ?? null);
+  const [amount, setAmount] = useState<number>(initialData?.amount ?? 0);
+  const [spendingType] = useState<SpendingType>(initialData?.spendingType ?? "ESSENTIAL");
+  const [category, setCategory] = useState<Category | null>(initialData?.category ?? null);
+  const [vendor, setVendor] = useState<Vendor | null>(initialData?.vendor ?? null);
+  const [vendorName, setVendorName] = useState<string>(initialData?.vendorName ?? "");
+  const [description, setDescription] = useState<string>(initialData?.description ?? "");
+  const [transactionDate, setTransactionDate] = useState<Date>(
+    initialData?.transactionDate ?? new Date()
+  );
 
   const inputRef = useRef<TextInput>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -95,16 +103,33 @@ export const TransactionForm = ({
     const parsed = parseCurrency(value);
     if (parsed > 0) {
       setAmount(parsed);
-      setPhase("vendor");
+      setPhase("date");
       setInputValue("");
     }
   }, []);
 
   const handleAmountNext = useCallback(() => {
     if (amount > 0) {
-      setPhase("vendor");
+      setPhase("date");
     }
   }, [amount]);
+
+  const handleDateSubmit = useCallback((value: string) => {
+    if (!value.trim()) {
+      setTransactionDate(new Date());
+    } else {
+      const match = value.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (match) {
+        const [, month, day, year] = match;
+        const parsed = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
+        if (!isNaN(parsed.getTime())) {
+          setTransactionDate(parsed);
+        }
+      }
+    }
+    setPhase("vendor");
+    setInputValue("");
+  }, []);
 
   const handleVendorSubmit = useCallback((value: string) => {
     if (!value.trim()) {
@@ -151,8 +176,9 @@ export const TransactionForm = ({
       transactionType,
       vendor,
       vendorName,
+      transactionDate,
     });
-  }, [transactionType, amount, category, vendor, vendorName, spendingType]);
+  }, [transactionType, amount, category, vendor, vendorName, spendingType, transactionDate]);
 
   const buildFormData = (): TransactionFormData => {
     if (!transactionType) throw new Error("Transaction Type cannot be empty");
@@ -165,6 +191,7 @@ export const TransactionForm = ({
       transactionType,
       vendor,
       vendorName,
+      transactionDate,
     };
   };
 
@@ -176,6 +203,9 @@ export const TransactionForm = ({
       case "amount":
         handleAmountSubmit(inputValue);
         break;
+      case "date":
+        handleDateSubmit(inputValue);
+        break;
       case "vendor":
         handleVendorSubmit(inputValue);
         break;
@@ -186,7 +216,7 @@ export const TransactionForm = ({
         handleNoteSubmit(inputValue);
         break;
     }
-  }, [phase, inputValue, handleTypeSubmit, handleAmountSubmit, handleVendorSubmit, handleCategorySubmit, handleNoteSubmit]);
+  }, [phase, inputValue, handleTypeSubmit, handleAmountSubmit, handleDateSubmit, handleVendorSubmit, handleCategorySubmit, handleNoteSubmit]);
 
   const handleVendorChange = useCallback(
     (value: string) => {
@@ -248,6 +278,16 @@ export const TransactionForm = ({
             {formatCurrency(amount)}
           </Text>
         </TouchableOpacity>
+      );
+    }
+
+    if (transactionDate) {
+      pills.push(
+        <DatePill
+          key="date"
+          date={transactionDate}
+          onPress={() => navigateToPhase("date")}
+        />
       );
     }
 
@@ -349,6 +389,22 @@ export const TransactionForm = ({
           </View>
         );
 
+      case "date":
+        return (
+          <TextInput
+            ref={inputRef}
+            style={styles.input}
+            placeholder="date (MM/DD/YYYY)"
+            placeholderTextColor={t.colors.muted}
+            value={inputValue}
+            onChangeText={setInputValue}
+            onSubmitEditing={handleSubmitPhase}
+            returnKeyType="next"
+            keyboardType="numeric"
+            autoCapitalize="none"
+          />
+        );
+
       case "vendor":
         return (
           <>
@@ -445,6 +501,16 @@ export const TransactionForm = ({
             {formatCurrency(amount)}
           </Text>
         </TouchableOpacity>
+      );
+    }
+
+    if (transactionDate) {
+      pills.push(
+        <DatePill
+          key="date"
+          date={transactionDate}
+          onPress={() => navigateToPhase("date")}
+        />
       );
     }
 

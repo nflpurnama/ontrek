@@ -26,7 +26,7 @@ export default function AddTransactionScreen() {
   const [categoryList, setCategoryList] = useState<Category[]>([]);
   const router = useRouter();
 
-  const handleSubmit = async ({ amount, category, description, spendingType, transactionType, vendor, vendorName }: TransactionFormData) => {
+  const handleSubmit = async ({ amount, category, description, spendingType, transactionType, vendor, vendorName, transactionDate }: TransactionFormData) => {
     if (!amount) {
       Alert.alert("Error", "Amount is required");
       return;
@@ -37,7 +37,7 @@ export default function AddTransactionScreen() {
         vendorName: vendorName,
         vendor,
         category,
-        transactionDate: new Date(),
+        transactionDate,
         type: transactionType,
         amount,
         description,

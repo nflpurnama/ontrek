@@ -66,6 +66,10 @@ export default function TransactionDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
 
+  const handleEdit = () => {
+    router.push(`/transactions/edit/${id}`);
+  };
+
   useEffect(() => {
     async function load() {
       try {
@@ -200,6 +204,15 @@ export default function TransactionDetailScreen() {
         </TerminalCard>
 
         <TouchableOpacity
+          style={styles.editButton}
+          onPress={handleEdit}
+        >
+          <Text style={styles.editText}>
+            [ edit transaction ]
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
           style={[styles.deleteButton, deleting && styles.deleteButtonDisabled]}
           onPress={handleDelete}
           disabled={deleting}
@@ -330,5 +343,19 @@ const styles = StyleSheet.create({
     fontFamily: t.fonts.mono,
     fontSize: 14,
     color: t.colors.expense,
+  },
+  editButton: {
+    backgroundColor: t.colors.card,
+    borderWidth: 1,
+    borderColor: t.colors.accent,
+    padding: t.spacing.lg,
+    borderRadius: t.border.radius,
+    alignItems: "center",
+    marginTop: t.spacing.md,
+  },
+  editText: {
+    fontFamily: t.fonts.mono,
+    fontSize: 14,
+    color: t.colors.accent,
   },
 });

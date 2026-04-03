@@ -138,6 +138,29 @@ export const NotePill = ({ note, onPress }: NotePillProps) => {
   );
 };
 
+type DatePillProps = {
+  date: Date;
+  onPress: () => void;
+};
+
+export const DatePill = ({ date, onPress }: DatePillProps) => {
+  const formatted = date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+  }).toUpperCase();
+
+  return (
+    <TouchableOpacity
+      style={styles.pill}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <Text style={styles.phase}>DATE</Text>
+      <Text style={styles.label}>{formatted}</Text>
+    </TouchableOpacity>
+  );
+};
+
 const styles = StyleSheet.create({
   pill: {
     backgroundColor: t.colors.card,

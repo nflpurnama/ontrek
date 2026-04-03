@@ -2,6 +2,7 @@ import React from "react";
 import { GetDashboardUseCase } from "../use-case/account/get-dashboard.usecase";
 import { CreateTransactionUseCase } from "../use-case/transaction/create-transaction";
 import { DeleteTransactionUseCase } from "../use-case/transaction/delete-transaction";
+import { UpdateTransactionUseCase } from "../use-case/transaction/update-transaction";
 import { ViewTransactionsUseCase } from "../use-case/transaction/view-transaction";
 import { CreateVendorUseCase } from "../use-case/vendor/create-vendor";
 import { FindVendorsUseCase } from "../use-case/vendor/find-vendors";
@@ -25,6 +26,7 @@ export interface Dependencies {
   ensureDefaultCategoriesUseCase: EnsureDefaultCategoriesUseCase,
   getDashboardUseCase: GetDashboardUseCase;
   createTransactionUseCase: CreateTransactionUseCase;
+  updateTransactionUseCase: UpdateTransactionUseCase;
   deleteTransactionUseCase: DeleteTransactionUseCase;
   viewTransactionsUseCase: ViewTransactionsUseCase;
   createVendorUseCase: CreateVendorUseCase;

@@ -15,11 +15,24 @@ export interface CreateTransactionParams {
   spendingType: SpendingType;
 }
 
+export interface UpdateTransactionParams {
+  id: Id;
+  transactionDate?: Date;
+  type?: TransactionType;
+  amount?: number;
+  vendorName: string | null;
+  vendor: Vendor | null;
+  category: Category | null;
+  description: string | null;
+  spendingType: SpendingType;
+}
+
 export interface DeleteTransactionParams {
     id: Id
 }
 
 export interface FinancialTransactionService {
   createTransaction(params: CreateTransactionParams): Promise<string>;
+  updateTransaction(params: UpdateTransactionParams): Promise<void>;
   deleteTransaction(params: DeleteTransactionParams): Promise<void>;
 }

@@ -3,6 +3,7 @@ import { EnsureDefaultAccountUseCase } from "@/src/application/use-case/account/
 import { GetDashboardUseCase } from "@/src/application/use-case/account/get-dashboard.usecase";
 import { CreateTransactionUseCase } from "@/src/application/use-case/transaction/create-transaction";
 import { DeleteTransactionUseCase } from "@/src/application/use-case/transaction/delete-transaction";
+import { UpdateTransactionUseCase } from "@/src/application/use-case/transaction/update-transaction";
 import { ViewTransactionsUseCase } from "@/src/application/use-case/transaction/view-transaction";
 import { CreateVendorUseCase } from "@/src/application/use-case/vendor/create-vendor";
 import { FindVendorsUseCase } from "@/src/application/use-case/vendor/find-vendors";
@@ -68,6 +69,9 @@ export async function createDependencies(
   const createTransactionUseCase = new CreateTransactionUseCase(
     financialTransactionService,
   );
+  const updateTransactionUseCase = new UpdateTransactionUseCase(
+    financialTransactionService,
+  );
   const deleteTransactionUseCase = new DeleteTransactionUseCase(
     financialTransactionService
   );
@@ -110,6 +114,7 @@ export async function createDependencies(
     ensureDefaultCategoriesUseCase,
     getDashboardUseCase,
     createTransactionUseCase,
+    updateTransactionUseCase,
     deleteTransactionUseCase,
     viewTransactionsUseCase,
     createVendorUseCase,
