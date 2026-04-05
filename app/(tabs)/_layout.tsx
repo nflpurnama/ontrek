@@ -28,7 +28,7 @@ function FloatingTabBar({ state, descriptors, navigation }: any) {
 const insets = useSafeAreaInsets();
 
 const visibleRoutes = state.routes.filter((route: any) =>
-  route.name !== "accounts" && route.name !== "vendors" && !route.name.startsWith("(goals)/")
+  route.name !== "accounts" && route.name !== "vendors" && !route.name.startsWith("(goals)/") && !route.name.startsWith("(budget)/")
 );
 
 return (

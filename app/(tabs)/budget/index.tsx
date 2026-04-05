@@ -5,15 +5,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  TextInput,
-  Modal,
 } from "react-native";
 import React, { useState, useCallback } from "react";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { CurrentBudgetData } from "@/src/application/use-case/budget/get-current-budget";
 import { terminalTheme } from "@/src/presentation/theme/terminal";
-import { formatCurrency, parseCurrency } from "@/src/presentation/utility/formatter/currency";
+import { formatCurrency } from "@/src/presentation/utility/formatter/currency";
 
 const t = terminalTheme;
 
@@ -96,60 +94,24 @@ const ProgressBar = ({
 export default function BudgetScreen() {
   const {
     getCurrentBudgetUseCase,
-    setMonthlyBudgetUseCase,
-    copyBudgetToNextMonthUseCase,
-    getAllCategoriesUseCase,
+    copyBudgetToNextMonthUseCase
   } = useDependencies();
+  const router = useRouter();
 
   const [budgetData, setBudgetData] = useState<CurrentBudgetData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [totalBudget, setTotalBudget] = useState(0);
-  const [allocations, setAllocations] = useState<
-    { categoryId: string; categoryName: string; amount: number }[]
-  >([]);
-  const [categories, setCategories] = useState<
-    { id: string; name: string }[]
-  >([]);
-  const [selectedAllocationIndex, setSelectedAllocationIndex] = useState<number | null>(null);
-  const [categoryPickerVisible, setCategoryPickerVisible] = useState(false);
-  const [validationError, setValidationError] = useState<string | null>(null);
 
   const loadBudget = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getCurrentBudgetUseCase.execute();
+      let data = await getCurrentBudgetUseCase.execute();
 
       if (!data.budget) {
         await copyBudgetToNextMonthUseCase.execute();
-        const newData = await getCurrentBudgetUseCase.execute();
-        setBudgetData(newData);
-
-        if (newData.budget) {
-          const cats = await getAllCategoriesUseCase.execute();
-          const categoryMap = new Map(cats.map((c) => [c.id.getValue(), c.name]));
-          setTotalBudget(newData.budget.totalAmount);
-          setAllocations(
-            newData.budget.allocations.map((a) => ({
-              categoryId: a.categoryId,
-              categoryName: categoryMap.get(a.categoryId) ?? "",
-              amount: a.allocatedAmount,
-            }))
-          );
-        }
-      } else {
-        setBudgetData(data);
-        const cats = await getAllCategoriesUseCase.execute();
-        const categoryMap = new Map(cats.map((c) => [c.id.getValue(), c.name]));
-        setTotalBudget(data.budget.totalAmount);
-        setAllocations(
-          data.budget.allocations.map((a) => ({
-            categoryId: a.categoryId,
-            categoryName: categoryMap.get(a.categoryId) ?? "",
-            amount: a.allocatedAmount,
-          }))
-        );
+        data = await getCurrentBudgetUseCase.execute();
       }
+
+      setBudgetData(data);
     } catch (error) {
       console.error("Failed to load budget:", error);
     } finally {
@@ -157,93 +119,14 @@ export default function BudgetScreen() {
     }
   }, [getCurrentBudgetUseCase, copyBudgetToNextMonthUseCase]);
 
-  const loadCategories = useCallback(async () => {
-    try {
-      const cats = await getAllCategoriesUseCase.execute();
-      setCategories(
-        cats.map((c) => ({ id: c.id.getValue(), name: c.name }))
-      );
-    } catch (error) {
-      console.error("Failed to load categories:", error);
-    }
-  }, [getAllCategoriesUseCase]);
-
   useFocusEffect(
     useCallback(() => {
       loadBudget();
-      loadCategories();
-    }, [loadBudget, loadCategories])
+    }, [loadBudget])
   );
 
-  const openModal = () => {
-    setValidationError(null);
-    if (!budgetData?.hasBudget) {
-      setTotalBudget(0);
-      setAllocations([]);
-    }
-    setShowModal(true);
-  };
-
-  const handleSaveBudget = async () => {
-    const parsedAllocations = allocations
-      .filter((a) => a.amount > 0 && a.categoryId)
-      .map((a) => ({
-        categoryId: a.categoryId,
-        allocatedAmount: a.amount,
-      }));
-
-    try {
-      await setMonthlyBudgetUseCase.execute({
-        totalAmount: totalBudget,
-        month: budgetData?.month ?? new Date().getMonth() + 1,
-        year: budgetData?.year ?? new Date().getFullYear(),
-        allocations: parsedAllocations,
-      });
-      setShowModal(false);
-      setValidationError(null);
-      await loadBudget();
-    } catch (error) {
-      if (error instanceof Error && error.message.includes("exceed budget")) {
-        setValidationError(error.message);
-      } else {
-        console.error("Failed to save budget:", error);
-      }
-    }
-  };
-
-  const addAllocation = () => {
-    setAllocations([
-      ...allocations,
-      { categoryId: "", categoryName: "", amount: 0 },
-    ]);
-  };
-
-  const updateAllocation = (
-    index: number,
-    field: "categoryId" | "categoryName" | "amount",
-    value: string | number
-  ) => {
-    const newAllocations = [...allocations];
-    newAllocations[index] = { ...newAllocations[index], [field]: value };
-    setAllocations(newAllocations);
-  };
-
-  const selectCategory = (category: { id: string; name: string }) => {
-    if (selectedAllocationIndex !== null) {
-      const newAllocations = [...allocations];
-      newAllocations[selectedAllocationIndex] = {
-        ...newAllocations[selectedAllocationIndex],
-        categoryId: category.id,
-        categoryName: category.name,
-      };
-      setAllocations(newAllocations);
-    }
-    setCategoryPickerVisible(false);
-    setSelectedAllocationIndex(null);
-  };
-
-  const removeAllocation = (index: number) => {
-    setAllocations(allocations.filter((_, i) => i !== index));
+  const handleEditBudget = () => {
+    router.push("/budget/edit");
   };
 
   if (loading) {
@@ -277,7 +160,7 @@ export default function BudgetScreen() {
             <Text style={styles.emptyText}>
               Set a monthly budget to track your spending
             </Text>
-            <TouchableOpacity style={styles.setButton} onPress={openModal}>
+            <TouchableOpacity style={styles.setButton} onPress={handleEditBudget}>
               <Text style={styles.setButtonText}>SET BUDGET</Text>
             </TouchableOpacity>
           </TerminalCard>
@@ -378,143 +261,13 @@ export default function BudgetScreen() {
 
             <TouchableOpacity
               style={styles.editButton}
-              onPress={openModal}
+              onPress={handleEditBudget}
             >
               <Text style={styles.editButtonText}>EDIT BUDGET</Text>
             </TouchableOpacity>
           </>
         )}
       </ScrollView>
-
-      <Modal visible={showModal} animationType="slide" transparent>
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => {
-            setValidationError(null);
-            setShowModal(false);
-          }}
-        >
-          <View style={styles.modalContent}>
-            <TouchableOpacity activeOpacity={1} onPress={() => {}}>
-              <ScrollView
-                style={styles.modalScrollView}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-              >
-                <Text style={styles.modalTitle}>SET BUDGET</Text>
-
-                {validationError && (
-                  <View style={styles.errorContainer}>
-                    <Text style={styles.errorText}>{validationError}</Text>
-                  </View>
-                )}
-
-                <Text style={styles.inputLabel}>TOTAL MONTHLY BUDGET</Text>
-                <TextInput
-                  style={[styles.input, { color: t.colors.secondary }]}
-                  value={totalBudget > 0 ? formatCurrency(totalBudget) : ""}
-                  onChangeText={(text) => setTotalBudget(parseCurrency(text))}
-                  keyboardType="numeric"
-                  placeholder="Enter amount"
-                  placeholderTextColor={t.colors.muted}
-                />
-
-                <Text style={styles.inputLabel}>CATEGORY ALLOCATIONS</Text>
-                {allocations.map((allocation, index) => (
-                  <View key={index} style={styles.allocationRow}>
-                    <TouchableOpacity
-                      style={[styles.input, styles.categoryInput]}
-                      onPress={() => {
-                        setSelectedAllocationIndex(index);
-                        setCategoryPickerVisible(true);
-                      }}
-                    >
-                      <Text style={allocation.categoryName ? styles.categoryText : styles.categoryPlaceholder}>
-                        {allocation.categoryName || "Select category"}
-                      </Text>
-                    </TouchableOpacity>
-                    <TextInput
-                      style={[styles.input, styles.amountInput, { color: t.colors.secondary }]}
-                      value={allocation.amount > 0 ? formatCurrency(allocation.amount) : ""}
-                      onChangeText={(text) =>
-                        updateAllocation(index, "amount", parseCurrency(text))
-                      }
-                      keyboardType="numeric"
-                      placeholder="Amount"
-                      placeholderTextColor={t.colors.muted}
-                    />
-                    <TouchableOpacity
-                      style={styles.removeButton}
-                      onPress={() => removeAllocation(index)}
-                    >
-                      <Text style={styles.removeButtonText}>×</Text>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-
-                <TouchableOpacity style={styles.addButton} onPress={addAllocation}>
-                  <Text style={styles.addButtonText}>+ ADD CATEGORY</Text>
-                </TouchableOpacity>
-              </ScrollView>
-
-              <View style={styles.modalButtons}>
-                <TouchableOpacity
-                  style={styles.cancelButton}
-                  onPress={() => {
-                    setValidationError(null);
-                    setShowModal(false);
-                  }}
-                >
-                  <Text style={styles.cancelButtonText}>CANCEL</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.saveButton}
-                  onPress={handleSaveBudget}
-                >
-                  <Text style={styles.saveButtonText}>SAVE</Text>
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      <Modal visible={categoryPickerVisible} animationType="slide" transparent>
-        <TouchableOpacity
-          style={styles.pickerOverlay}
-          activeOpacity={1}
-          onPress={() => {
-            setCategoryPickerVisible(false);
-            setSelectedAllocationIndex(null);
-          }}
-        >
-          <View style={styles.pickerContainer}>
-            <View style={styles.pickerHeader}>
-              <Text style={styles.pickerTitle}>SELECT CATEGORY</Text>
-              <TouchableOpacity
-                onPress={() => {
-                  setCategoryPickerVisible(false);
-                  setSelectedAllocationIndex(null);
-                }}
-              >
-                <Text style={styles.pickerClose}>×</Text>
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.pickerList}>
-              {[...categories].sort((a, b) => a.name.localeCompare(b.name)).map((cat) => (
-                <TouchableOpacity
-                  key={cat.id}
-                  style={styles.pickerOption}
-                  onPress={() => selectCategory(cat)}
-                >
-                  <Text style={styles.pickerOptionText}>{cat.name}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        </TouchableOpacity>
-      </Modal>
     </View>
   );
 }

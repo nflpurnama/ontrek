@@ -74,6 +74,7 @@ None — all known bugs have been fixed.
 - Savings Goals feature — create, deposit, withdraw, progress tracking
 - Goal balance updates on deposit/withdraw via UI buttons
 - Goals screen refresh fix — useFocusEffect now properly reloads on focus
+- Budget screen — convert modal to stack navigation for proper keyboard handling
 
 ---
 
@@ -93,7 +94,7 @@ All known bugs have been fixed:
 - [x] DB initialization race condition
 - [x] Transaction detail ID display
 - [x] Category allocation validation
-- [x] Budget screen keyboard handling
+- [ ] Budget screen keyboard handling — convert to stack navigation
 
 ---
 
@@ -241,6 +242,7 @@ Tab-based navigation is working well — revisit only if terminal vision demands
 ## 🔲 Backlog (priority order)
 
 ### UX & Core Features
+- [ ] Transaction form — display pill value on navigation (amount, category, vendor visible in header)
 - [ ] Edit transaction
 - [x] Fix delete transaction to reverse linked savings goal balance
 - [ ] Pseudo-autocorrect strip above keyboard for vendor input
