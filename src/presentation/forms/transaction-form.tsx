@@ -21,6 +21,7 @@ import {
   CategoryPill,
   NotePill,
   DatePill,
+  AmountPill,
 } from "../components/inputs/transaction-pill";
 import { terminalTheme } from "../theme/terminal";
 
@@ -31,9 +32,9 @@ type ContextType = "EDIT" | "CREATE";
 type FormPhase = "type" | "amount" | "date" | "vendor" | "category" | "note";
 
 const PHASE_ORDER: FormPhase[] = [
+  "date",
   "type",
   "amount",
-  "date",
   "vendor",
   "category",
   "note",
@@ -61,16 +62,20 @@ export type TransactionFormContext = {
 };
 
 export const TransactionForm = ({
-  contextType,
   vendorSuggestions,
   categoryOptions,
   handleVendorSearch,
   handleSubmit,
-  handleDelete,
   initialData,
 }: TransactionFormContext) => {
-  const [phase, setPhase] = useState<FormPhase>("type");
-  const [inputValue, setInputValue] = useState<string>("");
+  const [phase, setPhase] = useState<FormPhase>("date");
+  const getInitialDateValue = () => {
+    const d = String(new Date().getDate()).padStart(2, '0');
+    const m = String(new Date().getMonth() + 1).padStart(2, '0');
+    const y = new Date().getFullYear();
+    return `${d}/${m}/${y}`;
+  };
+  const [inputValue, setInputValue] = useState<string>(getInitialDateValue());
 
   const [transactionType, setTransactionType] =
     useState<TransactionType | null>(initialData?.transactionType ?? null);
@@ -91,28 +96,54 @@ export const TransactionForm = ({
     setTimeout(() => inputRef.current?.focus(), 50);
   }, [phase]);
 
+  const navigateToPhase = useCallback((targetPhase: FormPhase) => {
+    setPhase(targetPhase);
+    switch (targetPhase) {
+      case "type":
+        setInputValue(transactionType === "EXPENSE" ? "e" : transactionType === "INCOME" ? "i" : "");
+        break;
+      case "amount":
+        setInputValue(amount > 0 ? formatCurrency(amount) : "");
+        break;
+      case "date": {
+        const d = String(transactionDate.getDate()).padStart(2, '0');
+        const m = String(transactionDate.getMonth() + 1).padStart(2, '0');
+        const y = transactionDate.getFullYear();
+        setInputValue(`${d}/${m}/${y}`);
+        break;
+      }
+      case "vendor":
+        setInputValue(vendorName);
+        break;
+      case "category":
+        setInputValue(category?.name ?? "");
+        break;
+      case "note":
+        setInputValue(description);
+        break;
+    }
+  }, [transactionType, amount, transactionDate, vendorName, category, description]);
+
   const handleTypeSubmit = useCallback((value: string) => {
     if (!transactionType) {
       return;
     }
-    setPhase("amount");
-    setInputValue("");
-  }, [transactionType]);
+    navigateToPhase("amount");
+  }, [transactionType, navigateToPhase]);
 
   const handleAmountSubmit = useCallback((value: string) => {
     const parsed = parseCurrency(value);
     if (parsed > 0) {
       setAmount(parsed);
-      setPhase("date");
-      setInputValue("");
+      navigateToPhase("vendor");
     }
-  }, []);
+  }, [navigateToPhase]);
 
   const handleAmountNext = useCallback(() => {
     if (amount > 0) {
-      setPhase("date");
+      navigateToPhase("vendor");
     }
-  }, [amount]);
+  }, [amount, navigateToPhase]);
 
   const handleDateSubmit = useCallback((value: string) => {
     if (!value.trim()) {
@@ -120,16 +151,15 @@ export const TransactionForm = ({
     } else {
       const match = value.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
       if (match) {
-        const [, month, day, year] = match;
+        const [, day, month, year] = match;
         const parsed = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
         if (!isNaN(parsed.getTime())) {
           setTransactionDate(parsed);
         }
       }
     }
-    setPhase("vendor");
-    setInputValue("");
-  }, []);
+    navigateToPhase("type");
+  }, [navigateToPhase]);
 
   const handleVendorSubmit = useCallback((value: string) => {
     if (!value.trim()) {
@@ -138,9 +168,8 @@ export const TransactionForm = ({
     } else {
       setVendorName(value.trim());
     }
-    setPhase("category");
-    setInputValue("");
-  }, []);
+    navigateToPhase("category");
+  }, [navigateToPhase]);
 
   const handleCategorySubmit = useCallback((value: string) => {
     if (!value.trim()) {
@@ -151,9 +180,8 @@ export const TransactionForm = ({
       );
       setCategory(matchedCategory ?? null);
     }
-    setPhase("note");
-    setInputValue("");
-  }, [categoryOptions]);
+    navigateToPhase("note");
+  }, [categoryOptions, navigateToPhase]);
 
   const handleNoteSubmit = useCallback((value: string) => {
     if (!transactionType) {
@@ -179,21 +207,6 @@ export const TransactionForm = ({
       transactionDate,
     });
   }, [transactionType, amount, category, vendor, vendorName, spendingType, transactionDate]);
-
-  const buildFormData = (): TransactionFormData => {
-    if (!transactionType) throw new Error("Transaction Type cannot be empty");
-    if (!amount) throw new Error("Amount cannot be empty");
-    return {
-      amount,
-      category,
-      description,
-      spendingType,
-      transactionType,
-      vendor,
-      vendorName,
-      transactionDate,
-    };
-  };
 
   const handleSubmitPhase = useCallback(() => {
     switch (phase) {
@@ -247,83 +260,6 @@ export const TransactionForm = ({
     setCategory(selectedCategory);
     setPhase("note");
   }, []);
-
-  const navigateToPhase = useCallback((targetPhase: FormPhase) => {
-    setPhase(targetPhase);
-  }, []);
-
-  const renderPills = () => {
-    const pills: React.ReactNode[] = [];
-
-    if (transactionType) {
-      pills.push(
-        <TypePill
-          key="type"
-          transactionType={transactionType}
-          onPress={() => navigateToPhase("type")}
-        />
-      );
-    }
-
-    if (amount > 0) {
-      pills.push(
-        <TouchableOpacity
-          key="amount"
-          style={styles.pill}
-          onPress={() => navigateToPhase("amount")}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.pillPhase}>AMOUNT</Text>
-          <Text style={styles.pillLabel}>
-            {formatCurrency(amount)}
-          </Text>
-        </TouchableOpacity>
-      );
-    }
-
-    if (transactionDate) {
-      pills.push(
-        <DatePill
-          key="date"
-          date={transactionDate}
-          onPress={() => navigateToPhase("date")}
-        />
-      );
-    }
-
-    if (vendor || vendorName) {
-      pills.push(
-        <VendorPill
-          key="vendor"
-          vendor={vendor}
-          vendorName={vendorName}
-          onPress={() => navigateToPhase("vendor")}
-        />
-      );
-    }
-
-    if (category) {
-      pills.push(
-        <CategoryPill
-          key="category"
-          category={category}
-          onPress={() => navigateToPhase("category")}
-        />
-      );
-    }
-
-    if (description) {
-      pills.push(
-        <NotePill
-          key="note"
-          note={description}
-          onPress={() => navigateToPhase("note")}
-        />
-      );
-    }
-
-    return pills;
-  };
 
   const renderInput = () => {
     switch (phase) {
@@ -394,7 +330,7 @@ export const TransactionForm = ({
           <TextInput
             ref={inputRef}
             style={styles.input}
-            placeholder="date (MM/DD/YYYY)"
+            placeholder="date (dd/mm/yyyy)"
             placeholderTextColor={t.colors.muted}
             value={inputValue}
             onChangeText={setInputValue}
@@ -408,12 +344,6 @@ export const TransactionForm = ({
       case "vendor":
         return (
           <>
-            <SuggestionList
-              items={vendorSuggestions}
-              onSelect={handleVendorSelect}
-              renderItem={(v) => v.name}
-              emptyMessage="No vendors found"
-            />
             <TextInput
               ref={inputRef}
               style={styles.input}
@@ -429,18 +359,18 @@ export const TransactionForm = ({
               returnKeyType="next"
               autoCapitalize="words"
             />
+            <SuggestionList
+              items={vendorSuggestions}
+              onSelect={handleVendorSelect}
+              renderItem={(v) => v.name}
+              emptyMessage="No vendors found"
+            />
           </>
         );
 
       case "category":
         return (
           <>
-            <SuggestionList
-              items={categoryOptions}
-              onSelect={handleCategorySelect}
-              renderItem={(c) => c.name}
-              emptyMessage="No categories found"
-            />
             <TextInput
               ref={inputRef}
               style={styles.input}
@@ -451,6 +381,13 @@ export const TransactionForm = ({
               onSubmitEditing={handleSubmitPhase}
               returnKeyType="next"
               autoCapitalize="none"
+            />
+            <SuggestionList
+              items={categoryOptions}
+              onSelect={handleCategorySelect}
+              renderItem={(c) => c.name}
+              emptyMessage="No categories found"
+              layout="vertical"
             />
           </>
         );
@@ -478,76 +415,54 @@ export const TransactionForm = ({
   const renderPillsRow = () => {
     const pills: React.ReactNode[] = [];
 
-    if (transactionType) {
-      pills.push(
-        <TypePill
-          key="type"
-          transactionType={transactionType}
-          onPress={() => navigateToPhase("type")}
-        />
-      );
-    }
+    pills.push(
+      <DatePill
+        key="date"
+        date={transactionDate}
+        onPress={() => navigateToPhase("date")}
+      />
+    );
 
-    if (amount > 0) {
-      pills.push(
-        <TouchableOpacity
-          key="amount"
-          style={styles.pillCompact}
-          onPress={() => navigateToPhase("amount")}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.pillPhase}>AMT</Text>
-          <Text style={styles.pillLabelCompact}>
-            {formatCurrency(amount)}
-          </Text>
-        </TouchableOpacity>
-      );
-    }
+    pills.push(
+      <TypePill
+        key="type"
+        transactionType={transactionType}
+        onPress={() => navigateToPhase("type")}
+      />
+    );
 
-    if (transactionDate) {
-      pills.push(
-        <DatePill
-          key="date"
-          date={transactionDate}
-          onPress={() => navigateToPhase("date")}
-        />
-      );
-    }
+    pills.push(
+      <AmountPill
+        key="amount"
+        amount={amount}
+        onPress={() => navigateToPhase("amount")}
+      />
+    );
 
-    if (vendor || vendorName) {
-      pills.push(
-        <VendorPill
-          key="vendor"
-          vendor={vendor}
-          vendorName={vendorName}
-          onPress={() => navigateToPhase("vendor")}
-        />
-      );
-    }
+    pills.push(
+      <VendorPill
+        key="vendor"
+        vendor={vendor}
+        vendorName={vendorName}
+        onPress={() => navigateToPhase("vendor")}
+      />
+    );
 
-    if (category) {
-      pills.push(
-        <CategoryPill
-          key="category"
-          category={category}
-          onPress={() => navigateToPhase("category")}
-        />
-      );
-    }
+    pills.push(
+      <CategoryPill
+        key="category"
+        category={category}
+        onPress={() => navigateToPhase("category")}
+      />
+    );
 
-    if (description) {
-      pills.push(
-        <NotePill
-          key="note"
-          note={description}
-          onPress={() => navigateToPhase("note")}
-        />
-      );
-    }
-
-    if (pills.length === 0) {
-      return null;
-    }
+    pills.push(
+      <NotePill
+        key="note"
+        note={description}
+        onPress={() => navigateToPhase("note")}
+      />
+    );
 
     return <View style={styles.pillsRow}>{pills}</View>;
   };
@@ -618,6 +533,11 @@ const styles = StyleSheet.create({
   },
   pillLabelCompact: {
     color: t.colors.secondary,
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  pillLabelCompactMuted: {
+    color: t.colors.muted,
     fontSize: 12,
     fontWeight: "600",
   },

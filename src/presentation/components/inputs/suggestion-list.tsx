@@ -17,6 +17,7 @@ type SuggestionListProps<T extends Vendor | Category> = {
   onSelect: (item: T) => void;
   renderItem: (item: T) => string;
   emptyMessage?: string;
+  layout?: "horizontal" | "vertical";
 };
 
 export function SuggestionList<T extends Vendor | Category>({
@@ -24,11 +25,31 @@ export function SuggestionList<T extends Vendor | Category>({
   onSelect,
   renderItem,
   emptyMessage = "No matches",
+  layout = "horizontal",
 }: SuggestionListProps<T>) {
   if (items.length === 0) {
     return (
       <View style={styles.container}>
         <Text style={styles.empty}>{emptyMessage}</Text>
+      </View>
+    );
+  }
+
+  if (layout === "vertical") {
+    return (
+      <View style={styles.container}>
+        <View style={styles.verticalContent}>
+          {items.map((item, index) => (
+            <TouchableOpacity
+              key={getItemKey(item, index)}
+              style={styles.verticalPill}
+              onPress={() => onSelect(item)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.pillText}>{renderItem(item)}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
     );
   }
@@ -72,6 +93,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 4,
     marginBottom: 8,
+    marginTop: 8,
   },
   scrollContent: {
     paddingHorizontal: 4,
@@ -95,5 +117,19 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: "center",
     paddingVertical: 8,
+  },
+  verticalContent: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    paddingHorizontal: 4,
+    gap: 8,
+  },
+  verticalPill: {
+    backgroundColor: t.colors.background,
+    borderWidth: 1,
+    borderColor: t.colors.border,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
   },
 });

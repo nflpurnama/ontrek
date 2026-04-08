@@ -3,6 +3,7 @@ import { Text, TouchableOpacity, StyleSheet } from "react-native";
 import { TransactionType } from "@/src/domain/constants/transaction-type";
 import { Category } from "@/src/domain/entities/category";
 import { Vendor } from "@/src/domain/entities/vendor";
+import { formatCurrency } from "../../utility/formatter/currency";
 import { terminalTheme } from "../../theme/terminal";
 
 const t = terminalTheme;
@@ -33,24 +34,28 @@ export const TransactionPill = ({
 };
 
 type AmountPillProps = {
+  amount: number;
   onPress: () => void;
 };
 
-export const AmountPill = ({ onPress }: AmountPillProps) => {
+export const AmountPill = ({ amount, onPress }: AmountPillProps) => {
+  const isEmpty = amount === 0;
+  const label = isEmpty ? "?" : formatCurrency(amount);
+
   return (
     <TouchableOpacity
       style={styles.pill}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Text style={styles.phase}>AMOUNT</Text>
-      <Text style={styles.label}>0</Text>
+      <Text style={styles.phase}>AMT</Text>
+      <Text style={[styles.label, isEmpty && styles.labelMuted]}>{label}</Text>
     </TouchableOpacity>
   );
 };
 
 type TypePillProps = {
-  transactionType: TransactionType;
+  transactionType: TransactionType | null;
   onPress: () => void;
 };
 
@@ -58,7 +63,8 @@ export const TypePill = ({
   transactionType,
   onPress,
 }: TypePillProps) => {
-  const label = transactionType === "EXPENSE" ? "Expense" : "Income";
+  const isEmpty = !transactionType;
+  const label = transactionType === "EXPENSE" ? "Expense" : transactionType === "INCOME" ? "Income" : "?";
 
   return (
     <TouchableOpacity
@@ -67,7 +73,7 @@ export const TypePill = ({
       activeOpacity={0.7}
     >
       <Text style={styles.phase}>TYPE</Text>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, isEmpty && styles.labelMuted]}>{label}</Text>
     </TouchableOpacity>
   );
 };
@@ -83,6 +89,7 @@ export const VendorPill = ({
   vendorName,
   onPress,
 }: VendorPillProps) => {
+  const isEmpty = !vendor && !vendorName;
   const label = vendor?.name ?? vendorName;
 
   return (
@@ -92,7 +99,7 @@ export const VendorPill = ({
       activeOpacity={0.7}
     >
       <Text style={styles.phase}>VENDOR</Text>
-      <Text style={styles.label}>{label || "—"}</Text>
+      <Text style={[styles.label, isEmpty && styles.labelMuted]}>{label || "—"}</Text>
     </TouchableOpacity>
   );
 };
@@ -106,6 +113,8 @@ export const CategoryPill = ({
   category,
   onPress,
 }: CategoryPillProps) => {
+  const isEmpty = !category;
+
   return (
     <TouchableOpacity
       style={styles.pill}
@@ -113,7 +122,7 @@ export const CategoryPill = ({
       activeOpacity={0.7}
     >
       <Text style={styles.phase}>CATEGORY</Text>
-      <Text style={styles.label}>{category?.name ?? "—"}</Text>
+      <Text style={[styles.label, isEmpty && styles.labelMuted]}>{category?.name ?? "—"}</Text>
     </TouchableOpacity>
   );
 };
@@ -124,6 +133,7 @@ type NotePillProps = {
 };
 
 export const NotePill = ({ note, onPress }: NotePillProps) => {
+  const isEmpty = !note;
   const truncated = note.length > 20 ? note.slice(0, 20) + "…" : note;
 
   return (
@@ -133,7 +143,7 @@ export const NotePill = ({ note, onPress }: NotePillProps) => {
       activeOpacity={0.7}
     >
       <Text style={styles.phase}>NOTE</Text>
-      <Text style={styles.label}>{truncated || "—"}</Text>
+      <Text style={[styles.label, isEmpty && styles.labelMuted]}>{truncated || "—"}</Text>
     </TouchableOpacity>
   );
 };
@@ -185,5 +195,8 @@ const styles = StyleSheet.create({
     color: t.colors.secondary,
     fontSize: 13,
     fontWeight: "600",
+  },
+  labelMuted: {
+    color: t.colors.muted,
   },
 });

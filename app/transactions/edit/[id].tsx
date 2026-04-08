@@ -118,7 +118,8 @@ export default function EditTransactionScreen() {
   useEffect(() => {
     const getCategories = async () => {
       const categoryList = await getAllCategoriesUseCase.execute();
-      setCategoryList(categoryList);
+      const sorted = [...categoryList].sort((a, b) => a.name.localeCompare(b.name));
+      setCategoryList(sorted);
     };
 
     getCategories();
