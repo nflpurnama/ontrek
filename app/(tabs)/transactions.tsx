@@ -281,7 +281,6 @@ const styles = StyleSheet.create({
   amount: {
     fontFamily: t.fonts.mono,
     fontSize: 13,
-    fontWeight: "600",
   },
   expense: {
     color: t.colors.expense,

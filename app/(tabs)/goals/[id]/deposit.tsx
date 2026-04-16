@@ -101,7 +101,6 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: t.fonts.mono,
     fontSize: 16,
-    fontWeight: "700",
     color: t.colors.primary,
   },
   scrollView: {
@@ -142,7 +141,6 @@ const styles = StyleSheet.create({
   actionButtonText: {
     fontFamily: t.fonts.mono,
     fontSize: 14,
-    fontWeight: "700",
     color: t.colors.background,
   },
 });

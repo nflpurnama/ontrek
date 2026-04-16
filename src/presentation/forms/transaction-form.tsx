@@ -522,24 +522,20 @@ const styles = StyleSheet.create({
   pillPhase: {
     color: t.colors.muted,
     fontSize: 9,
-    fontWeight: "700",
     letterSpacing: 1,
     marginRight: 4,
   },
   pillLabel: {
     color: t.colors.secondary,
     fontSize: 13,
-    fontWeight: "600",
   },
   pillLabelCompact: {
     color: t.colors.secondary,
     fontSize: 12,
-    fontWeight: "600",
   },
   pillLabelCompactMuted: {
     color: t.colors.muted,
     fontSize: 12,
-    fontWeight: "600",
   },
   inputSection: {
     marginTop: "auto",
@@ -565,7 +561,6 @@ const styles = StyleSheet.create({
   },
   currencyPrefix: {
     fontSize: 24,
-    fontWeight: "600",
     fontFamily: t.fonts.mono,
     color: t.colors.secondary,
     marginRight: 8,
@@ -573,7 +568,6 @@ const styles = StyleSheet.create({
   amountInput: {
     flex: 1,
     fontSize: 24,
-    fontWeight: "600",
     fontFamily: t.fonts.mono,
     color: t.colors.primary,
     paddingVertical: 16,

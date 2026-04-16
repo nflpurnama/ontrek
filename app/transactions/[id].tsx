@@ -322,7 +322,6 @@ const styles = StyleSheet.create({
   value: {
     fontFamily: t.fonts.mono,
     fontSize: 14,
-    fontWeight: "600",
     color: t.colors.secondary,
     textAlign: "right",
     maxWidth: "60%",

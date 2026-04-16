@@ -224,13 +224,11 @@ const styles = StyleSheet.create({
   value: {
     fontFamily: t.fonts.mono,
     fontSize: 14,
-    fontWeight: "700",
     color: t.colors.primary,
   },
   balanceValue: {
     fontFamily: t.fonts.mono,
     fontSize: 28,
-    fontWeight: "700",
     color: t.colors.primary,
     textAlign: "center",
   },
@@ -268,7 +266,6 @@ const styles = StyleSheet.create({
   comparisonValue: {
     fontFamily: t.fonts.mono,
     fontSize: 16,
-    fontWeight: "600",
     color: t.colors.primary,
   },
   arrow: {
@@ -293,6 +290,5 @@ const styles = StyleSheet.create({
   deltaValue: {
     fontFamily: t.fonts.mono,
     fontSize: 14,
-    fontWeight: "600",
   },
 });

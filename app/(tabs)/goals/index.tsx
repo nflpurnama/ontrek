@@ -269,7 +269,6 @@ const styles = StyleSheet.create({
   goalName: {
     fontFamily: t.fonts.mono,
     fontSize: 16,
-    fontWeight: "600",
     color: t.colors.primary,
     flex: 1,
   },
@@ -286,7 +285,6 @@ const styles = StyleSheet.create({
     fontFamily: t.fonts.mono,
     fontSize: 9,
     color: t.colors.background,
-    fontWeight: "700",
   },
   progressContainer: {
     alignItems: "center",
@@ -307,7 +305,6 @@ const styles = StyleSheet.create({
   progressText: {
     fontFamily: t.fonts.mono,
     fontSize: 12,
-    fontWeight: "600",
     color: t.colors.primary,
     width: 40,
     textAlign: "right",
@@ -330,7 +327,6 @@ const styles = StyleSheet.create({
     fontFamily: t.fonts.mono,
     fontSize: 10,
     color: t.colors.secondary,
-    fontWeight: "600",
     backgroundColor: t.colors.card,
     paddingHorizontal: t.spacing.sm,
     paddingVertical: 2,
@@ -345,7 +341,6 @@ const styles = StyleSheet.create({
     fontFamily: t.fonts.mono,
     fontSize: 13,
     color: t.colors.primary,
-    fontWeight: "600",
   },
   emptyText: {
     fontFamily: t.fonts.mono,

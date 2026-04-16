@@ -189,13 +189,11 @@ const styles = StyleSheet.create({
   categoryName: {
     fontFamily: t.fonts.mono,
     fontSize: 11,
-    fontWeight: "600",
     textAlign: "center",
   },
   amount: {
     fontFamily: t.fonts.mono,
     fontSize: 16,
-    fontWeight: "700",
     color: t.colors.primary,
     marginTop: 2,
   },
@@ -213,7 +211,6 @@ const styles = StyleSheet.create({
   totalAmount: {
     fontFamily: t.fonts.mono,
     fontSize: 14,
-    fontWeight: "700",
     color: t.colors.primary,
   },
 });

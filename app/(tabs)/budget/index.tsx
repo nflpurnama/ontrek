@@ -314,7 +314,6 @@ const styles = StyleSheet.create({
   monthLabel: {
     fontFamily: t.fonts.mono,
     fontSize: 24,
-    fontWeight: "700",
     color: t.colors.primary,
     textAlign: "center",
     marginBottom: t.spacing.lg,
@@ -360,7 +359,6 @@ const styles = StyleSheet.create({
   setButtonText: {
     fontFamily: t.fonts.mono,
     fontSize: 14,
-    fontWeight: "700",
     color: t.colors.background,
   },
   totalRow: {
@@ -381,7 +379,6 @@ const styles = StyleSheet.create({
   totalValue: {
     fontFamily: t.fonts.mono,
     fontSize: 18,
-    fontWeight: "700",
     color: t.colors.primary,
   },
   progressContainer: {
@@ -419,7 +416,6 @@ const styles = StyleSheet.create({
   remainingValue: {
     fontFamily: t.fonts.mono,
     fontSize: 16,
-    fontWeight: "700",
     color: t.colors.income,
   },
   categoryRow: {
@@ -465,7 +461,6 @@ const styles = StyleSheet.create({
   unallocatedValue: {
     fontFamily: t.fonts.mono,
     fontSize: 16,
-    fontWeight: "600",
     color: t.colors.secondary,
   },
   editButton: {
@@ -480,7 +475,6 @@ const styles = StyleSheet.create({
   editButtonText: {
     fontFamily: t.fonts.mono,
     fontSize: 14,
-    fontWeight: "600",
     color: t.colors.primary,
   },
   modalOverlay: {
@@ -501,7 +495,6 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontFamily: t.fonts.mono,
     fontSize: 18,
-    fontWeight: "700",
     color: t.colors.primary,
     textAlign: "center",
     marginBottom: t.spacing.xl,
@@ -606,7 +599,6 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontFamily: t.fonts.mono,
     fontSize: 14,
-    fontWeight: "700",
     color: t.colors.background,
   },
   allocationContainer: {
@@ -682,7 +674,6 @@ const styles = StyleSheet.create({
   pickerTitle: {
     fontFamily: t.fonts.mono,
     fontSize: 16,
-    fontWeight: "700",
     color: t.colors.primary,
   },
   pickerClose: {
