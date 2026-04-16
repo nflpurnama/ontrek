@@ -6,17 +6,9 @@ import { useDependencies } from "@/src/application/providers/dependency-provider
 import { DashboardData } from "@/src/application/types/dashboard";
 import { PieChart } from "@/src/presentation/components/dashboard/pie-chart";
 import { terminalTheme } from "@/src/presentation/theme/terminal";
+import { formatCurrency, formatCurrencyShort } from "@/src/presentation/utility/formatter/currency";
 
 const t = terminalTheme;
-
-const formatCurrency = (amount: number): string => {
-  if (amount >= 1000000) {
-    return `${(amount / 1000000).toFixed(1)}M`;
-  } else if (amount >= 1000) {
-    return `${(amount / 1000).toFixed(0)}k`;
-  }
-  return amount.toLocaleString();
-};
 
 const TerminalCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <View style={styles.card}>
@@ -75,30 +67,30 @@ export default function Index() {
         <View style={[styles.dot, { backgroundColor: t.colors.accent }]} />
         <Text style={styles.terminalTitle}>ontrek@dashboard</Text>
       </View>
-      
+
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         <TerminalCard title="BALANCE">
           <Text style={styles.balanceValue}>
-            Rp {currentBalance.toLocaleString()}
+            Rp {formatCurrency(currentBalance)}
           </Text>
         </TerminalCard>
 
         <TerminalCard title="THIS MONTH">
-          <TerminalRow 
-            label="INCOME" 
-            value={`+${formatCurrency(currentMonth.totalIncome)}`} 
-            valueColor={t.colors.income} 
+          <TerminalRow
+            label="INCOME"
+            value={`+${formatCurrencyShort(currentMonth.totalIncome)}`}
+            valueColor={t.colors.income}
           />
-          <TerminalRow 
-            label="EXPENSE" 
-            value={`-${formatCurrency(currentMonth.totalExpenses)}`} 
-            valueColor={t.colors.expense} 
+          <TerminalRow
+            label="EXPENSE"
+            value={`-${formatCurrencyShort(currentMonth.totalExpenses)}`}
+            valueColor={t.colors.expense}
           />
           <View style={styles.divider} />
-          <TerminalRow 
-            label="NET" 
-            value={`${currentMonth.net >= 0 ? "+" : ""}${formatCurrency(currentMonth.net)}`} 
-            valueColor={currentMonth.net >= 0 ? t.colors.income : t.colors.expense} 
+          <TerminalRow
+            label="NET"
+            value={`${currentMonth.net >= 0 ? "+" : ""}${formatCurrencyShort(currentMonth.net)}`}
+            valueColor={currentMonth.net >= 0 ? t.colors.income : t.colors.expense}
           />
         </TerminalCard>
 
@@ -118,16 +110,16 @@ export default function Index() {
         <TerminalCard title="VS LAST MONTH">
           <View style={styles.comparisonContainer}>
             <View style={styles.comparisonItem}>
-              <Text style={styles.comparisonLabel}>THIS</Text>
+              <Text style={styles.comparisonLabel}>LAST</Text>
               <Text style={styles.comparisonValue}>
-                {formatCurrency(currentMonth.net)}
+                {formatCurrency(previousMonth.net)}
               </Text>
             </View>
             <Text style={styles.arrow}>→</Text>
             <View style={styles.comparisonItem}>
-              <Text style={styles.comparisonLabel}>LAST</Text>
+              <Text style={styles.comparisonLabel}>THIS</Text>
               <Text style={styles.comparisonValue}>
-                {formatCurrency(previousMonth.net)}
+                {formatCurrency(currentMonth.net)}
               </Text>
             </View>
           </View>
@@ -137,7 +129,7 @@ export default function Index() {
               styles.deltaValue,
               { color: netChange >= 0 ? t.colors.income : t.colors.expense }
             ]}>
-              {netChange >= 0 ? "+" : "-"}{formatCurrency(netChangeAbs)} ({netChangePercent}%)
+              {netChange >= 0 ? "+" : "-"}{formatCurrencyShort(netChangeAbs)} ({netChangePercent}%)
             </Text>
           </View>
         </TerminalCard>

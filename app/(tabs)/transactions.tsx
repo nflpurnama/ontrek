@@ -14,17 +14,9 @@ import { Vendor } from "@/src/domain/entities/vendor";
 import { Category } from "@/src/domain/entities/category";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { terminalTheme } from "@/src/presentation/theme/terminal";
+import { formatCurrency } from "@/src/presentation/utility/formatter/currency";
 
 const t = terminalTheme;
-
-const formatCurrency = (amount: number): string => {
-  if (amount >= 1000000) {
-    return `${(amount / 1000000).toFixed(1)}M`;
-  } else if (amount >= 1000) {
-    return `${(amount / 1000).toFixed(0)}k`;
-  }
-  return amount.toLocaleString();
-};
 
 const formatDate = (date: Date): string => {
   return date.toLocaleDateString("en-GB", {
