@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { StyleSheet, Alert, View, Text } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { Vendor } from "@/src/domain/entities/vendor";
 import { Category } from "@/src/domain/entities/category";
 import {TransactionForm, TransactionFormData} from "@/src/presentation/forms/transaction-form";
 import { useFocusEffect, useRouter } from "expo-router";
 import { terminalTheme } from "@/src/presentation/theme/terminal";
+import { TopBar } from "@/src/presentation/components/top-bar";
 
 const t = terminalTheme;
 
@@ -65,13 +65,8 @@ export default function AddTransactionScreen() {
   }, [getAllCategoriesUseCase]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.topBar}>
-        <View style={[styles.dot, { backgroundColor: t.colors.expense }]} />
-        <View style={[styles.dot, { backgroundColor: t.colors.income }]} />
-        <View style={[styles.dot, { backgroundColor: t.colors.accent }]} />
-        <Text style={styles.terminalTitle}>ontrek@add-transaction</Text>
-      </View>
+    <View style={styles.container}>
+      <TopBar title="ontrek" subtitle="@add-transaction" />
       <TransactionForm
         key={key}
         categoryOptions={categoryList}
@@ -80,7 +75,7 @@ export default function AddTransactionScreen() {
         vendorSuggestions={vendorSuggestions}
         contextType={"CREATE"}
       ></TransactionForm>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -88,26 +83,5 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: t.colors.background,
-  },
-  topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: t.spacing.lg,
-    paddingTop: 50,
-    paddingBottom: t.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: t.colors.border,
-  },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 8,
-  },
-  terminalTitle: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.secondary,
-    marginLeft: t.spacing.md,
   },
 });

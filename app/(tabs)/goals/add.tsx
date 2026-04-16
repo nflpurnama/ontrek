@@ -3,6 +3,7 @@ import React, { useState, useCallback } from "react";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { terminalTheme } from "@/src/presentation/theme/terminal";
+import { TopBar } from "@/src/presentation/components/top-bar";
 import { formatCurrency, parseCurrency } from "@/src/presentation/utility/formatter/currency";
 
 const t = terminalTheme;
@@ -50,7 +51,7 @@ export default function AddGoal() {
       }
       const [, month, day, year] = match;
       parsedDate = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
-      
+
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       if (parsedDate < today) {
@@ -85,16 +86,11 @@ export default function AddGoal() {
   );
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backText}>← BACK</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>NEW GOAL</Text>
-      </View>
+      <TopBar title="ontrek" subtitle="@add-goal" />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         <View style={styles.inputGroup}>
@@ -137,8 +133,8 @@ export default function AddGoal() {
           />
         </View>
 
-        <TouchableOpacity 
-          style={[styles.saveButton, saving && styles.saveButtonDisabled]} 
+        <TouchableOpacity
+          style={[styles.saveButton, saving && styles.saveButtonDisabled]}
           onPress={handleSave}
           disabled={saving}
         >
@@ -155,28 +151,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: t.colors.background,
-  },
-  topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: t.spacing.lg,
-    paddingTop: 50,
-    paddingBottom: t.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: t.colors.border,
-  },
-  backButton: {
-    marginRight: t.spacing.md,
-  },
-  backText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.primary,
-  },
-  title: {
-    fontFamily: t.fonts.mono,
-    fontSize: 16,
-    color: t.colors.primary,
   },
   scrollView: {
     flex: 1,

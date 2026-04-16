@@ -4,17 +4,10 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { SavingsGoal } from "@/src/domain/entities/savings-goal";
 import { terminalTheme } from "@/src/presentation/theme/terminal";
+import { TopBar } from "@/src/presentation/components/top-bar";
+import { formatCurrencyShort } from "@/src/presentation/utility/formatter/currency";
 
 const t = terminalTheme;
-
-const formatCurrency = (amount: number): string => {
-  if (amount >= 1000000) {
-    return `${(amount / 1000000).toFixed(1)}M`;
-  } else if (amount >= 1000) {
-    return `${(amount / 1000).toFixed(0)}k`;
-  }
-  return amount.toLocaleString();
-};
 
 const formatDate = (date: Date | null): string => {
   if (!date) return "No deadline";
@@ -62,7 +55,7 @@ const GoalCard = ({ goal, onPress, onDeposit, onWithdraw }: GoalCardProps) => {
 
         <View style={styles.balanceAbsolute}>
           <Text style={styles.goalBalance}>
-            {formatCurrency(goal.currentBalance)} / {formatCurrency(goal.targetAmount)}
+            {formatCurrencyShort(goal.currentBalance)} / {formatCurrencyShort(goal.targetAmount)}
           </Text>
         </View>
 
@@ -130,6 +123,8 @@ export default function Goals() {
 
   return (
     <View style={styles.container}>
+      <TopBar title="ontrek" subtitle="@goals" />
+
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         {goals.length > 0 ? (
           goals.map((goal) => (
@@ -178,18 +173,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: t.colors.background,
-  },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 8,
-  },
-  terminalTitle: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.secondary,
-    marginLeft: t.spacing.md,
   },
   card: {
     marginBottom: t.spacing.lg,

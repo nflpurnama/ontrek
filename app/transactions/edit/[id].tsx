@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { StyleSheet, Alert, View, Text, ActivityIndicator } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { Vendor } from "@/src/domain/entities/vendor";
 import { Category } from "@/src/domain/entities/category";
@@ -9,6 +8,7 @@ import { useFocusEffect, useRouter, useLocalSearchParams } from "expo-router";
 import { terminalTheme } from "@/src/presentation/theme/terminal";
 import { Transaction } from "@/src/domain/entities/transaction";
 import { Id } from "@/src/domain/value-objects/id";
+import { TopBar } from "@/src/presentation/components/top-bar";
 
 const t = terminalTheme;
 
@@ -127,22 +127,18 @@ export default function EditTransactionScreen() {
 
   if (loading || !initialData) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
+        <TopBar title="ontrek" subtitle="@edit-transaction" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={t.colors.primary} />
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.topBar}>
-        <View style={[styles.dot, { backgroundColor: t.colors.expense }]} />
-        <View style={[styles.dot, { backgroundColor: t.colors.income }]} />
-        <View style={[styles.dot, { backgroundColor: t.colors.accent }]} />
-        <Text style={styles.terminalTitle}>ontrek@edit-transaction</Text>
-      </View>
+    <View style={styles.container}>
+      <TopBar title="ontrek" subtitle="@edit-transaction" />
       <TransactionForm
         key={key}
         categoryOptions={categoryList}
@@ -152,7 +148,7 @@ export default function EditTransactionScreen() {
         contextType={"EDIT"}
         initialData={initialData}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -166,26 +162,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: t.colors.background,
-  },
-  topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: t.spacing.lg,
-    paddingTop: 50,
-    paddingBottom: t.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: t.colors.border,
-  },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 8,
-  },
-  terminalTitle: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.secondary,
-    marginLeft: t.spacing.md,
   },
 });

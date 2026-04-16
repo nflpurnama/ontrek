@@ -7,6 +7,7 @@ import { DashboardData } from "@/src/application/types/dashboard";
 import { PieChart } from "@/src/presentation/components/dashboard/pie-chart";
 import { terminalTheme } from "@/src/presentation/theme/terminal";
 import { formatCurrency, formatCurrencyShort } from "@/src/presentation/utility/formatter/currency";
+import { TopBar } from "@/src/presentation/components/top-bar";
 
 const t = terminalTheme;
 
@@ -61,12 +62,7 @@ export default function Index() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.topBar}>
-        <View style={[styles.dot, { backgroundColor: t.colors.expense }]} />
-        <View style={[styles.dot, { backgroundColor: t.colors.income }]} />
-        <View style={[styles.dot, { backgroundColor: t.colors.accent }]} />
-        <Text style={styles.terminalTitle}>ontrek@dashboard</Text>
-      </View>
+      <TopBar title="ontrek" subtitle="@dashboard" />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         <TerminalCard title="BALANCE">
@@ -156,27 +152,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: t.colors.background,
-  },
-  topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: t.spacing.lg,
-    paddingTop: 50,
-    paddingBottom: t.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: t.colors.border,
-  },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 8,
-  },
-  terminalTitle: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.secondary,
-    marginLeft: t.spacing.md,
   },
   card: {
     marginBottom: t.spacing.lg,

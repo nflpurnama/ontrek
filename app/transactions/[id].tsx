@@ -9,24 +9,14 @@ import {
   View,
   ScrollView,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { Transaction } from "@/src/domain/entities/transaction";
 import { Id } from "@/src/domain/value-objects/id";
 import { terminalTheme } from "@/src/presentation/theme/terminal";
-import { Vendor } from "@/src/domain/entities/vendor";
-import { Category } from "@/src/domain/entities/category";
+import { TopBar } from "@/src/presentation/components/top-bar";
+import { formatCurrencyShort } from "@/src/presentation/utility/formatter/currency";
 
 const t = terminalTheme;
-
-const formatCurrency = (amount: number): string => {
-  if (amount >= 1000000) {
-    return `${(amount / 1000000).toFixed(1)}M`;
-  } else if (amount >= 1000) {
-    return `${(amount / 1000).toFixed(0)}k`;
-  }
-  return amount.toLocaleString();
-};
 
 const formatDate = (date: Date): string => {
   return date.toLocaleDateString("en-GB", {
@@ -138,11 +128,7 @@ export default function TransactionDetailScreen() {
   if (!transaction) {
     return (
       <View style={styles.container}>
-        <View style={styles.topBar}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Text style={styles.backText}>← back</Text>
-          </TouchableOpacity>
-        </View>
+        <TopBar title="TRANSACTION" />
         <View style={styles.center}>
           <Text style={styles.errorText}>[ transaction not found ]</Text>
         </View>
@@ -154,50 +140,43 @@ export default function TransactionDetailScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backText}>← back</Text>
-        </TouchableOpacity>
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>TRANSACTION</Text>
-        </View>
-      </View>
+      <TopBar title="ontrek" subtitle="@transaction" />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         <TerminalCard title="DETAILS">
-          <TerminalRow 
-            label="AMOUNT" 
-            value={`${isExpense ? "-" : "+"}Rp ${formatCurrency(transaction.amount)}`}
+          <TerminalRow
+            label="AMOUNT"
+            value={`${isExpense ? "-" : "+"}Rp ${formatCurrencyShort(transaction.amount)}`}
             valueColor={isExpense ? t.colors.expense : t.colors.income}
           />
           <View style={styles.divider} />
-          <TerminalRow 
-            label="DATE" 
+          <TerminalRow
+            label="DATE"
             value={formatDate(transaction.transactionDate)}
           />
           <View style={styles.divider} />
-          <TerminalRow 
-            label="TYPE" 
+          <TerminalRow
+            label="TYPE"
             value={transaction.type}
             valueColor={isExpense ? t.colors.expense : t.colors.income}
           />
         </TerminalCard>
 
         <TerminalCard title="INFO">
-          <TerminalRow 
-            label="VENDOR" 
+          <TerminalRow
+            label="VENDOR"
             value={vendorName ?? "—"}
             valueColor={vendorName ? t.colors.primary : undefined}
           />
           <View style={styles.divider} />
-          <TerminalRow 
-            label="CATEGORY" 
+          <TerminalRow
+            label="CATEGORY"
             value={categoryName ?? "—"}
             valueColor={categoryName ? t.colors.accent : undefined}
           />
           <View style={styles.divider} />
-          <TerminalRow 
-            label="NOTE" 
+          <TerminalRow
+            label="NOTE"
             value={transaction.description ?? "—"}
             valueColor={transaction.description ? t.colors.secondary : undefined}
           />
@@ -243,31 +222,6 @@ const styles = StyleSheet.create({
   content: {
     padding: t.spacing.lg,
     paddingBottom: 100,
-  },
-  topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: t.spacing.lg,
-    paddingTop: 50,
-    paddingBottom: t.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: t.colors.border,
-  },
-  backButton: {
-    paddingRight: t.spacing.md,
-  },
-  backText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.primary,
-  },
-  titleContainer: {
-    flex: 1,
-  },
-  title: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.secondary,
   },
   center: {
     flex: 1,

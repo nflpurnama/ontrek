@@ -3,6 +3,7 @@ import React, { useState, useCallback } from "react";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { terminalTheme } from "@/src/presentation/theme/terminal";
+import { TopBar } from "@/src/presentation/components/top-bar";
 import { formatCurrency, parseCurrency } from "@/src/presentation/utility/formatter/currency";
 
 const t = terminalTheme;
@@ -35,16 +36,19 @@ export default function WithdrawFromGoal() {
   }, [id, amount, withdrawFromSavingsGoalUseCase, router]);
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backText}>← BACK</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>WITHDRAW</Text>
-      </View>
+      <TopBar
+        title="ontrek"
+        subtitle="@goal/withdraw"
+        rightAction={{
+          label: loading ? "..." : "TAKE",
+          onPress: handleWithdraw,
+          disabled: loading || amount <= 0,
+        }}
+      />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         <View style={styles.inputGroup}>
@@ -62,8 +66,8 @@ export default function WithdrawFromGoal() {
           />
         </View>
 
-        <TouchableOpacity 
-          style={[styles.actionButton, loading && styles.buttonDisabled]} 
+        <TouchableOpacity
+          style={[styles.actionButton, loading && styles.buttonDisabled]}
           onPress={handleWithdraw}
           disabled={loading}
         >
@@ -80,28 +84,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: t.colors.background,
-  },
-  topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: t.spacing.lg,
-    paddingTop: 50,
-    paddingBottom: t.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: t.colors.border,
-  },
-  backButton: {
-    marginRight: t.spacing.md,
-  },
-  backText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.primary,
-  },
-  title: {
-    fontFamily: t.fonts.mono,
-    fontSize: 16,
-    color: t.colors.primary,
   },
   scrollView: {
     flex: 1,

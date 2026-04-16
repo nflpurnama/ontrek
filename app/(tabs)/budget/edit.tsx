@@ -14,6 +14,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { CurrentBudgetData } from "@/src/application/use-case/budget/get-current-budget";
 import { terminalTheme } from "@/src/presentation/theme/terminal";
+import { TopBar } from "@/src/presentation/components/top-bar";
 import {
   formatCurrency,
   parseCurrency,
@@ -162,7 +163,6 @@ export default function EditBudgetScreen() {
   };
 
   const canSave = totalBudget > 0 && !saving;
-  const title = budgetData?.hasBudget ? "EDIT BUDGET" : "SET BUDGET";
 
   if (loading) {
     return (
@@ -177,13 +177,7 @@ export default function EditBudgetScreen() {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.cancelText}>CANCEL</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{title}</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <TopBar title="ontrek" subtitle="@edit-budget"/>
 
       <ScrollView
         style={styles.scrollView}
@@ -337,28 +331,6 @@ const styles = StyleSheet.create({
     fontFamily: t.fonts.mono,
     fontSize: 14,
     color: t.colors.muted,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: t.spacing.lg,
-    paddingTop: 50,
-    paddingBottom: t.spacing.md,
-    backgroundColor: t.colors.card,
-  },
-  cancelText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.muted,
-  },
-  headerTitle: {
-    fontFamily: t.fonts.mono,
-    fontSize: 16,
-    color: t.colors.primary,
-  },
-  headerSpacer: {
-    width: 60,
   },
   scrollView: {
     flex: 1,

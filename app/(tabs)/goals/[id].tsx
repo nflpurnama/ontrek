@@ -13,17 +13,10 @@ import { useDependencies } from "@/src/application/providers/dependency-provider
 import { SavingsGoal } from "@/src/domain/entities/savings-goal";
 import { Id } from "@/src/domain/value-objects/id";
 import { terminalTheme } from "@/src/presentation/theme/terminal";
+import { TopBar } from "@/src/presentation/components/top-bar";
+import { formatCurrencyShort } from "@/src/presentation/utility/formatter/currency";
 
 const t = terminalTheme;
-
-const formatCurrency = (amount: number): string => {
-  if (amount >= 1000000) {
-    return `${(amount / 1000000).toFixed(1)}M`;
-  } else if (amount >= 1000) {
-    return `${(amount / 1000).toFixed(0)}k`;
-  }
-  return amount.toLocaleString();
-};
 
 const formatDate = (date: Date | null): string => {
   if (!date) return "No deadline";
@@ -120,11 +113,7 @@ export default function GoalDetailScreen() {
   if (!goal) {
     return (
       <View style={styles.container}>
-        <View style={styles.topBar}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Text style={styles.backText}>← back</Text>
-          </TouchableOpacity>
-        </View>
+        <TopBar title="ontrek" subtitle="@goal/not-found" />
         <View style={styles.center}>
           <Text style={styles.errorText}>[ goal not found ]</Text>
         </View>
@@ -137,14 +126,7 @@ export default function GoalDetailScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backText}>← back</Text>
-        </TouchableOpacity>
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>GOAL</Text>
-        </View>
-      </View>
+      <TopBar title="ontrek" subtitle={`@goal/${goal.name}`} />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         <TerminalCard title="DETAILS">
@@ -156,13 +138,13 @@ export default function GoalDetailScreen() {
           <View style={styles.divider} />
           <TerminalRow
             label="TARGET"
-            value={`Rp ${formatCurrency(goal.targetAmount)}`}
+            value={`Rp ${formatCurrencyShort(goal.targetAmount)}`}
             valueColor={t.colors.secondary}
           />
           <View style={styles.divider} />
           <TerminalRow
             label="CURRENT"
-            value={`Rp ${formatCurrency(goal.currentBalance)}`}
+            value={`Rp ${formatCurrencyShort(goal.currentBalance)}`}
             valueColor={t.colors.income}
           />
           <View style={styles.divider} />
@@ -236,31 +218,6 @@ const styles = StyleSheet.create({
   content: {
     padding: t.spacing.lg,
     paddingBottom: 100,
-  },
-  topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: t.spacing.lg,
-    paddingTop: 50,
-    paddingBottom: t.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: t.colors.border,
-  },
-  backButton: {
-    paddingRight: t.spacing.md,
-  },
-  backText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.primary,
-  },
-  titleContainer: {
-    flex: 1,
-  },
-  title: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.secondary,
   },
   center: {
     flex: 1,
