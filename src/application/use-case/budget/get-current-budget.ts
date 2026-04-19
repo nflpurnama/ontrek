@@ -22,6 +22,8 @@ export interface CurrentBudgetData {
   unallocatedSpent: number;
   categoryAllocations: CategoryBudgetStatus[];
   hasBudget: boolean;
+  daysRemaining: number;
+  dailyAllowance: number;
 }
 
 export class GetCurrentBudgetUseCase {
@@ -49,6 +51,12 @@ export class GetCurrentBudgetUseCase {
     const totalSpent = expenses.reduce((sum, t) => sum + t.amount, 0);
 
     if (!budget) {
+      const { daysRemaining } = this.calculateDailyAllowance(
+        targetMonth,
+        targetYear,
+        0,
+        totalSpent
+      );
       return {
         budget: null,
         month: targetMonth,
@@ -59,6 +67,8 @@ export class GetCurrentBudgetUseCase {
         unallocatedSpent: totalSpent,
         categoryAllocations: [],
         hasBudget: false,
+        daysRemaining,
+        dailyAllowance: 0,
       };
     }
 
@@ -90,6 +100,13 @@ export class GetCurrentBudgetUseCase {
     const unallocatedBudget = budget.unallocatedAmount;
     const unallocatedSpent = spentByCategory.get(null) ?? 0;
 
+    const { daysRemaining, dailyAllowance } = this.calculateDailyAllowance(
+      targetMonth,
+      targetYear,
+      budget.totalAmount,
+      totalSpent
+    );
+
     return {
       budget,
       month: targetMonth,
@@ -100,7 +117,41 @@ export class GetCurrentBudgetUseCase {
       unallocatedSpent,
       categoryAllocations,
       hasBudget: true,
+      daysRemaining,
+      dailyAllowance,
     };
+  }
+
+  private calculateDailyAllowance(
+    month: number,
+    year: number,
+    budgetTotal: number,
+    totalSpent: number
+  ): { daysRemaining: number; dailyAllowance: number } {
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1; // 1-12
+    const currentDay = now.getDate(); // 1-31
+
+    // If we're looking at a future month, no days have passed
+    if (month > currentMonth || year > now.getFullYear()) {
+      const daysInMonth = new Date(year, month, 0).getDate();
+      const remainingBudget = budgetTotal - totalSpent;
+      const dailyAllowance = daysInMonth > 0 ? Math.floor(remainingBudget / daysInMonth) : 0;
+      return { daysRemaining: daysInMonth, dailyAllowance };
+    }
+
+    // If we're looking at a past month, no days remaining
+    if (month < currentMonth || year < now.getFullYear()) {
+      return { daysRemaining: 0, dailyAllowance: 0 };
+    }
+
+    // Current month
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const daysRemaining = daysInMonth - currentDay;
+    const remainingBudget = budgetTotal - totalSpent;
+    const dailyAllowance = daysRemaining > 0 ? Math.floor(remainingBudget / daysRemaining) : 0;
+
+    return { daysRemaining: Math.max(0, daysRemaining), dailyAllowance };
   }
 
   private async loadCategories(): Promise<Map<string, { name: string }>> {

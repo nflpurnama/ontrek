@@ -138,7 +138,7 @@ export default function BudgetScreen() {
     );
   }
 
-  const { month, year, hasBudget, budget } = budgetData ?? {};
+  const { month, year, hasBudget, budget, daysRemaining, dailyAllowance } = budgetData ?? {};
   const monthLabel = month && year ? `${MONTH_NAMES[month - 1]} ${year}` : "";
 
   return (
@@ -210,6 +210,19 @@ export default function BudgetScreen() {
                   {formatCurrency(
                     (budget?.totalAmount ?? 0) - (budgetData?.totalSpent ?? 0)
                   )}
+                </Text>
+              </View>
+              <View style={styles.remainingRow}>
+                <Text style={styles.remainingLabel}>DAILY ALLOWANCE:</Text>
+                <Text
+                  style={[
+                    styles.remainingValue,
+                    {
+                      color: (dailyAllowance ?? 0) >= 0 ? t.colors.accent : t.colors.expense,
+                    },
+                  ]}
+                >
+                  Rp {formatCurrency(dailyAllowance ?? 0)} / {daysRemaining ?? 0}d
                 </Text>
               </View>
             </TerminalCard>
