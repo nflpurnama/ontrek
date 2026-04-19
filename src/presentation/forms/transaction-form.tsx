@@ -192,21 +192,27 @@ export const TransactionForm = ({
       setPhase("amount");
       return;
     }
-    const trimmedDescription = value.trim();
-    setDescription(trimmedDescription);
-    setInputValue("");
+    setDescription(value.trim());
     Keyboard.dismiss();
+  }, [transactionType, amount]);
+
+  const isValid = transactionType && amount > 0;
+
+  const handleSavePress = useCallback(() => {
+    if (!isValid) {
+      return;
+    }
     handleSubmit({
       amount,
       category,
-      description: trimmedDescription,
+      description,
       spendingType,
       transactionType,
       vendor,
       vendorName,
       transactionDate,
     });
-  }, [transactionType, amount, category, vendor, vendorName, spendingType, transactionDate]);
+  }, [isValid, amount, category, description, spendingType, transactionType, vendor, vendorName, transactionDate, handleSubmit]);
 
   const handleSubmitPhase = useCallback(() => {
     switch (phase) {
@@ -478,6 +484,16 @@ export const TransactionForm = ({
           {renderPillsRow()}
           {renderInput()}
         </View>
+
+        <TouchableOpacity
+            style={[styles.saveButton, !isValid && styles.saveButtonDisabled]} 
+            onPress={handleSavePress}
+            disabled={!isValid}
+          >
+            <Text style={[styles.saveButtonText, !isValid && styles.saveButtonTextDisabled]}>
+              SAVE TRANSACTION
+            </Text>
+          </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
@@ -571,5 +587,23 @@ const styles = StyleSheet.create({
     fontFamily: t.fonts.mono,
     color: t.colors.primary,
     paddingVertical: 16,
+  },
+  saveButton: {
+    backgroundColor: t.colors.primary,
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 16,
+  },
+  saveButtonDisabled: {
+    backgroundColor: t.colors.muted,
+  },
+  saveButtonText: {
+    fontFamily: t.fonts.mono,
+    fontSize: 14,
+    color: t.colors.background,
+  },
+  saveButtonTextDisabled: {
+    color: t.colors.background,
   },
 });
