@@ -1,131 +1,342 @@
-# Ontrek — Project Plan
-_Last updated: March 27, 2026_
+# Ontrek — Project Guide
+
+_April 20, 2026_
 
 ---
 
-## ✅ Completed
+## What is Ontrek?
 
-- Remove `deleteDatabaseSync` from `app/_layout.tsx`
-- Fix `SqliteFinancialTransactionService` constructor to depend on `DatabaseTransaction` interface
-- 37 domain unit tests passing (Transaction, Account, SqliteFinancialTransactionService)
-- Full smoke test — all 11 flows verified
-- Transaction detail screen with delete functionality (`app/transactions/[id].tsx`)
-- App icon (`assets/images/ontrek-icon.png`)
-- Splash screen (`assets/images/ontrek-splash.png`)
-- `app.json` corrected — plugin array structure fixed, splash configured per platform
-- Transaction form redesign (terminal vision) — complete
-- Terminal form styling — Kanagawa-inspired theme, JetBrains Mono font, terminal-style nav bar
-- Analytical features — dashboard with balance, income/expenses, net, category breakdown
-  with pie chart, month-over-month comparison, transaction list grouped by date
-- Vendor/category names resolved at use case level — no more IDs in UI
-- Pie chart with colored category names matching slice colors
-- Bug fixes — stale closure issues in transaction form, category repository null checks
+A privacy-first, offline-only expense tracker with terminal-inspired aesthetics. Used after transactions happen — the money is already spent. No blocking, no enforcement. Just logging and awareness.
+
+**Version:** 1.3.2  
+**Package:** `com.kenali.ontrek`  
+**Platform:** Android (Play Store), iOS deferred
 
 ---
 
-## 🔲 In Progress — Release Prep
+## Tech Stack
 
-- [ ] Confirm splash screen renders correctly on native build
-- [ ] Test on physical device for both iOS and Android
-- [ ] Apply for Apple Developer Program — developer.apple.com/programs/enroll ($99/yr, takes 24–72hr)
-- [ ] Apply for Google Play Console — play.google.com/console ($25 one-time)
-- [ ] Install EAS CLI: `npm install -g eas-cli`
-- [ ] Configure EAS: `eas login` then `eas build:configure`
-- [ ] First builds: `eas build --platform ios` and `eas build --platform android`
-- [ ] Submit iOS to TestFlight: `eas submit --platform ios`
-- [ ] Submit Android to Play internal testing track: `eas submit --platform android`
-- [ ] Install on own device via TestFlight and Play internal track
-- [ ] Start Google Play 14-day closed testing period (12 testers required → public launch ~early April)
+| Category | Technology |
+|----------|-------------|
+| Framework | React Native 0.81, Expo 54 |
+| Router | Expo Router (file-based) |
+| Database | SQLite via `expo-sqlite` + Drizzle ORM |
+| Language | TypeScript |
+| Testing | Jest |
+| Build | Local Gradle (no EAS) |
 
 ---
 
-## 🔲 Sprint 2 — Budgeting (NEXT)
+## Architecture
 
-### Goal
-Allow the user to set a monthly budget at two levels: a total absolute value for
-the month, and optional per-category allocations that slice into that total.
-Budgets live in a dedicated budget tab — dashboard is unchanged.
+**Pattern:** Clean Architecture with Dependency Injection
 
-### Behaviour
-- User sets a total monthly budget (absolute number)
-- User can optionally allocate portions of that total to specific categories
-- Unallocated remainder is implicitly available for uncategorised spending
-- At month end, budget copies over to next month by default — no prompt, no friction
-- User can adjust the copied budget at any time during the month
-
-### Budget tab views
-1. Total budget — amount set vs amount spent so far this month
-2. Category allocations — each allocated category shows budget vs actual spent
-3. Unallocated remainder — total minus sum of category allocations
-
-### Domain additions needed
-- `Budget` entity — totalAmount, month, year
-- `BudgetAllocation` entity — budgetId, categoryId, allocatedAmount
-- `BudgetRepository` interface — get by month/year, save, update
-- New use cases: `SetMonthlyBudget`, `GetCurrentBudget`, `CopyBudgetToNextMonth`
-- Schema additions: `budgets` table, `budget_allocations` table
-
-### Notes
-- Copy-over logic runs when user opens the budget tab for a new month with no budget set
-- Monthly only for now — weekly and yearly periods deferred to backlog
-
----
-
-## 🔲 Sprint 3 — Command Interface (Optional)
-
-Tab-based navigation is working well — revisit this only if the terminal vision
-demands it. No urgency.
-
-### Proposed commands
-- `/add` — start transaction entry flow
-- `/view` — transaction history, optional date range e.g. `/view 2026-03-01 2026-03-31`
-- `/vendors` — vendor list
-- `/categories` — category list
-- `/balance` — current balance snapshot
-
-### Open questions
-- Do tabs disappear entirely or coexist as a fallback?
+```
+src/
+├── domain/                    # Business logic (framework-agnostic)
+│   ├── entities/              # Transaction, Budget, SavingsGoal, Vendor, Category, Account
+│   ├── repositories/          # Interfaces (ISqliteTransactionRepository, etc.)
+│   ├── services/             # FinancialTransactionService interface
+│   ├── constants/            # TransactionType, SpendingType
+│   └── value-objects/        # Id, EntityMetadata
+│
+├── application/              # Use cases
+│   ├── use-case/            # CreateTransaction, SetMonthlyBudget, etc.
+│   ├── types/               # DashboardData
+│   └── providers/          # dependency-provider.tsx (React Context)
+│
+├── infrastructure/           # Implementations
+│   ├── database/            # SQLite schema (Drizzle)
+│   ├── repository/          # SqliteTransactionRepository, etc.
+│   └── services/            # SqliteFinancialTransactionService
+│
+└── presentation/            # UI
+    ├── components/          # TopBar, PieChart, TransactionForm, inputs
+    ├── forms/               # TransactionForm
+    ├── theme/               # terminal.ts (Kanagawa colors)
+    └── utility/             # formatters (currency)
+```
 
 ---
 
-## 🔲 Backlog (priority order)
+## Key Entities
 
-- [ ] Edit transaction
-- [ ] Pseudo-autocorrect strip above keyboard for vendor/category selection
-- [ ] Weekly and yearly period views on dashboard
-- [ ] Balance over time (sparkline / trend)
-- [ ] Spending by vendor
-- [ ] Backspace navigation between transaction form phases
-- [ ] Vendor management screen
-- [ ] Category management screen (revisit default categories)
-- [ ] Category suggestions based on vendor history
-- [ ] Transaction filtering and search
-- [ ] Multi-account support
-- [ ] Weekly and yearly budget periods
+### Transaction
+```ts
+class Transaction {
+  id: Id
+  vendorId: string | null
+  categoryId: string | null
+  transactionDate: Date
+  type: "EXPENSE" | "INCOME"
+  spendingType: "ESSENTIAL" | "WANT" | "LUXURY"
+  amount: number
+  description: string | null
+  
+  // Methods
+  signedAmount: number  // negative for EXPENSE
+  updateAmount(), updateVendor(), updateCategory()
+}
+```
+
+### Budget
+```ts
+class Budget {
+  id: Id
+  totalAmount: number
+  month: number (1-12)
+  year: number
+  allocations: BudgetAllocation[]
+  
+  totalAllocated: number
+  unallocatedAmount: number
+}
+
+class BudgetAllocation {
+  categoryId: string
+  allocatedAmount: number
+}
+```
+
+### SavingsGoal
+```ts
+class SavingsGoal {
+  id: Id
+  name: string
+  targetAmount: number
+  currentBalance: number
+  targetDate: Date | null
+  month: number
+  year: number
+  
+  isCompleted: boolean
+  progressPercentage: number
+  
+  deposit(amount), withdraw(amount)
+}
+```
 
 ---
 
-## Architecture Notes
+## Navigation (Expo Router)
 
-**Stack:** React Native, Expo, Expo Router, Drizzle ORM, SQLite, TypeScript
+```
+app/
+├── _layout.tsx                    # Root: database init, DependencyProvider
+├── (tabs)/                        # Tab navigator (5 tabs, floating)
+│   ├── _layout.tsx               # FloatingTabBar component
+│   ├── index.tsx                # Dashboard
+│   ├── transactions.tsx           # Transaction list
+│   ├── budget/
+│   │   ├── index.tsx            # Budget view
+│   │   ├── edit.tsx            # Edit budget
+│   │   └── _layout.tsx
+│   ├── goals/
+│   │   ├── index.tsx            # Goals list
+│   │   ├── add.tsx              # Create goal
+│   │   ├── [id].tsx             # Goal detail
+│   │   │   ├── deposit.tsx
+│   │   │   └── withdraw.tsx
+│   │   └── _layout.tsx
+│   └── add.tsx                   # Add transaction form
+├── transactions/
+│   ├── [id].tsx                 # Transaction detail, delete
+│   └── edit/
+│       └── [id].tsx            # Edit transaction
+```
 
-**Layer structure:**
-- `domain/` — entities, value objects, repository interfaces, service interfaces. No framework dependencies.
-- `application/` — use cases, dependency provider
-- `infrastructure/` — SQLite repositories, SqliteFinancialTransactionService, DI container
-- `presentation/` — screens, forms, components. Kanagawa terminal theme throughout.
+---
 
-**Key conventions:**
-- Use cases receive and return domain entities, never raw DB rows
-- Category state typed as `Category | null` — never a raw string name
-- Type narrowing happens once via `validate()`, not at every boundary
-- `TextInput` value prop uses `?? undefined`, never `null`
-- Domain layer unit tested with Jest — no component tests in MVP scope
-- `SqliteFinancialTransactionService` depends on `DatabaseTransaction` interface, enabling mock injection in tests
-- Read-only display data resolved to names at use case level — IDs only passed when editing
+## Theme (Kanagawa-Inspired)
 
-**Testing:**
-- Runner: Jest
-- Scope: domain layer only — entities and service
-- Location: `src/__tests__/domain/` and `src/__tests__/services/`
-- Mock pattern: hand-rolled `jest.fn()` mocks typed with explicit param signatures to satisfy `jest.Mocked<T>`
+```ts
+const terminalTheme = {
+  colors: {
+    background: "#1a1b26",   // dark blue-gray
+    card: "#24283b",         // lighter blue-gray
+    border: "#414868",       // muted purple-gray
+    primary: "#7aa2f7",     // blue (links, focus)
+    secondary: "#a9b1d6",   // light gray (text)
+    accent: "#bb9af7",       // purple (highlights)
+    income: "#9ece6a",       // green
+    expense: "#f7768e",       // red/pink
+    muted: "#565f89",        // dark gray
+  },
+  fonts: { mono: "JetBrains Mono" },  // single weight (regular only)
+  ascii: { tl: "┌─", tr: "─┐", bl: "└─", br: "─┘", h: "─", v: "│" }  // card borders
+}
+```
+
+**Important:** JetBrains Mono has only one weight. Don't set `fontWeight` on any style using this font.
+
+---
+
+## Database Schema (SQLite/Drizzle)
+
+Tables:
+- `accounts` — single account for now
+- `transactions` — all transactions with type (EXPENSE/INCOME)
+- `vendors` — autocomplete for vendor names
+- `categories` — default categories (Food, Transport, etc.)
+- `budget` — monthly budgets
+- `budget_allocations` — per-category allocations
+- `savings_goals` — savings targets with progress
+
+---
+
+## Key Use Cases
+
+| Use Case | From UI Component | Returns |
+|----------|------------------|---------|
+| GetDashboard | Dashboard | currentBalance, thisMonth stats, previousMonth stats |
+| CreateTransaction | Add form | new transaction ID |
+| ViewTransactions | Transactions list | transactions grouped by date |
+| SetMonthlyBudget | Budget edit | budget saved |
+| GetCurrentBudget | Budget view | budget with spent per category |
+| CreateSavingsGoal | Goals add | new goal |
+| DepositToSavingsGoal | Goal deposit | updated balance |
+| WithdrawFromSavingsGoal | Goal withdraw | updated balance |
+
+---
+
+## State Management
+
+**Pattern:** React Context + Dependency Injection
+
+```ts
+// dependency-provider.tsx
+interface Dependencies {
+  getDashboardUseCase: GetDashboardUseCase;
+  createTransactionUseCase: CreateTransactionUseCase;
+  // ... all use cases exposed here
+}
+
+// Usage in any component:
+const { getDashboardUseCase, createTransactionUseCase } = useDependencies();
+```
+
+**Initialization:** `app/_layout.tsx` creates dependencies on mount, passes to `DependencyProvider`.
+
+---
+
+## Running the App
+
+```bash
+# Development
+npm start              # Expo dev server
+npm run android       # Run on Android
+
+# Linting
+npm run lint          # ESLint
+
+# Testing
+npm test              # Jest (domain tests only)
+
+# Building
+npx expo prebuild --platform android --clean
+cd android && ./gradlew bundleRelease
+# Output: android/app/build/outputs/bundle/release/app-release.aab
+```
+
+---
+
+## Features (v1.3.2)
+
+### ✅ Completed
+- Terminal-styled UI (Kanagawa theme: dark blue-gray background #1a1b26)
+- JetBrains Mono font throughout
+- Dashboard with balance display
+- Pie chart for category breakdown
+- Month-over-month comparison
+- Transaction form with vendor/category autocomplete (pill-based)
+- Monthly budget with per-category allocations
+- Auto-copy budget to next month
+- Savings Goals: create, deposit, withdraw, progress tracking
+- Transaction detail with delete
+- Shared TopBar component across all screens
+- Currency formatter with negative value support
+- Flat floating tab bar with center "+" button
+
+### 🔲 Known Bugs / To Do
+- [ ] Transaction form needs explicit save button
+- [ ] Settings page (monthly income, currency, export, about)
+- [ ] Daily Allowance: show `(budget left / days remaining)` on dashboard
+
+---
+
+## Next: Settings Page
+
+**Purpose:** Allow user to configure app basics
+
+**Settings to implement:**
+1. **Monthly income** — primary input for the app (affects budget percentages)
+2. **Default currency** — IDR for now
+3. **Data export** — backup to JSON file
+4. **About** — version info, privacy policy link
+
+**Implementation:**
+- New table: `settings` (key-value) or single-row
+- New use cases: `GetSettings`, `UpdateSettings`
+- New tab: `Settings`
+- Routes: `app/(tabs)/settings/index.tsx` (list), `app/(tabs)/settings/edit.tsx` (edit specific setting)
+
+---
+
+## Code Conventions
+
+- **Files:** kebab-case (`transaction-form.tsx`, `pie-chart.tsx`)
+- **Classes/Interfaces:** PascalCase
+- **Variables/Functions:** camelCase
+- **Constants:** SCREAMING_SNAKE_CASE for true constants
+- **TextInput:** use `value={someValue ?? undefined}`, never `?? null`
+- **Fonts:** JetBrains Mono only — do NOT set `fontWeight` (single weight font)
+- **Colors:** always use `terminalTheme.colors.*`, never hardcoded hex
+- **Domain:** entities enforce invariants, throw Error on invalid input
+- **Use cases:** inject repositories via constructor
+- **Testing:** Jest, domain layer only (`src/__tests__/domain/`)
+
+---
+
+## Package.json Scripts
+
+```json
+{
+  "name": "ontrek",
+  "version": "1.3.2",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "lint": "expo lint",
+    "test": "jest"
+  }
+}
+```
+
+---
+
+## Key Files Reference
+
+| Purpose | File Path |
+|---------|-----------|
+| Root layout | `app/_layout.tsx` |
+| Tab navigation | `app/(tabs)/_layout.tsx` |
+| Dashboard | `app/(tabs)/index.tsx` |
+| Add transaction | `app/(tabs)/add.tsx` |
+| Transaction form | `src/presentation/forms/transaction-form.tsx` |
+| TopBar component | `src/presentation/components/top-bar.tsx` |
+| Theme | `src/presentation/theme/terminal.tsx` |
+| Currency formatter | `src/presentation/utility/formatter/currency.ts` |
+| Dependency container | `src/infrastructure/container/dependency-container.ts` |
+| Settings entity | Does not exist yet (create for settings page) |
+
+---
+
+## Git Conventions
+
+**Commit flow:**
+1. Run `git status` to see changes
+2. Run `git diff` to review
+3. Run `git log --oneline -3` for recent commit style
+4. Stage with `git add <files>`
+5. Commit with `git commit -m "<message>"`
+6. Never commit without explicit user approval
