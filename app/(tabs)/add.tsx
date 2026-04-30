@@ -1,16 +1,15 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { StyleSheet, Alert, View, Text } from "react-native";
+import { StyleSheet, Alert, View } from "react-native";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { Vendor } from "@/src/domain/entities/vendor";
 import { Category } from "@/src/domain/entities/category";
 import {TransactionForm, TransactionFormData} from "@/src/presentation/forms/transaction-form";
 import { useFocusEffect, useRouter } from "expo-router";
-import { terminalTheme } from "@/src/presentation/theme/terminal";
+import { useTheme } from "@/src/presentation/theme/theme-provider";
 import { TopBar } from "@/src/presentation/components/top-bar";
 
-const t = terminalTheme;
-
 export default function AddTransactionScreen() {
+  const { theme } = useTheme();
   const {
     createTransactionUseCase,
     findVendorsUseCase,
@@ -65,7 +64,7 @@ export default function AddTransactionScreen() {
   }, [getAllCategoriesUseCase]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <TopBar title="ontrek" subtitle="@add-transaction" />
       <TransactionForm
         key={key}
@@ -82,6 +81,5 @@ export default function AddTransactionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: t.colors.background,
   },
 });

@@ -12,11 +12,9 @@ import {
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { Transaction } from "@/src/domain/entities/transaction";
 import { Id } from "@/src/domain/value-objects/id";
-import { terminalTheme } from "@/src/presentation/theme/terminal";
+import { useTheme } from "@/src/presentation/theme/theme-provider";
 import { TopBar } from "@/src/presentation/components/top-bar";
 import { formatCurrencyShort } from "@/src/presentation/utility/formatter/currency";
-
-const t = terminalTheme;
 
 const formatDate = (date: Date): string => {
   return date.toLocaleDateString("en-GB", {
@@ -26,26 +24,35 @@ const formatDate = (date: Date): string => {
   }).toUpperCase();
 };
 
-const TerminalCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <View style={styles.card}>
-    <View style={styles.cardHeader}>
-      <Text style={styles.cardTitle}>{t.ascii.tl}{title}{t.ascii.tr}</Text>
+const TerminalCard = ({ title, children }: { title: string; children: React.ReactNode }) => {
+  const { theme } = useTheme();
+  return (
+    <View style={[styles.card, { marginBottom: theme.spacing.lg, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.border.radius }]}>
+      <View style={[styles.cardHeader, { backgroundColor: theme.colors.card, paddingHorizontal: theme.spacing.md, paddingTop: theme.spacing.sm, borderTopLeftRadius: theme.border.radius, borderTopRightRadius: theme.border.radius }]}>
+        <Text style={[styles.cardTitle, { fontFamily: theme.fonts.mono, fontSize: 12, color: theme.colors.secondary }]}>{theme.ascii?.tl ?? ""}{title}{theme.ascii?.tr ?? ""}</Text>
+      </View>
+      <View style={[styles.cardContent, { backgroundColor: theme.colors.card, padding: theme.spacing.lg }]}>
+        {children}
+      </View>
+      {theme.ascii && (
+        <Text style={[styles.cardFooter, { fontFamily: theme.fonts.mono, fontSize: 10, color: theme.colors.border, textAlign: "center" }]}>{theme.ascii.bl}{theme.ascii.h.repeat(20)}{theme.ascii.br}</Text>
+      )}
     </View>
-    <View style={styles.cardContent}>
-      {children}
-    </View>
-    <Text style={styles.cardFooter}>{t.ascii.bl}{t.ascii.h.repeat(20)}{t.ascii.br}</Text>
-  </View>
-);
+  );
+};
 
-const TerminalRow = ({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) => (
-  <View style={styles.row}>
-    <Text style={styles.label}>{label}</Text>
-    <Text style={[styles.value, valueColor ? { color: valueColor } : null]}>{value}</Text>
-  </View>
-);
+const TerminalRow = ({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) => {
+  const { theme } = useTheme();
+  return (
+    <View style={[styles.row, { paddingVertical: theme.spacing.sm }]}>
+      <Text style={[styles.label, { fontFamily: theme.fonts.mono, fontSize: 13, color: theme.colors.muted }]}>{label}</Text>
+      <Text style={[styles.value, { fontFamily: theme.fonts.mono, fontSize: 14, color: theme.colors.secondary, textAlign: "right", maxWidth: "60%" }, valueColor ? { color: valueColor } : null]}>{value}</Text>
+    </View>
+  );
+};
 
 export default function TransactionDetailScreen() {
+  const { theme } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { viewTransactionsUseCase, deleteTransactionUseCase, vendorRepository, categoryRepository } = useDependencies();
@@ -57,7 +64,7 @@ export default function TransactionDetailScreen() {
   const [deleting, setDeleting] = useState(false);
 
   const handleEdit = () => {
-    router.push(`/transactions/edit/${id}`);
+    router.push(`/transactions/edit/${id}` as any);
   };
 
   useEffect(() => {
@@ -119,18 +126,18 @@ export default function TransactionDetailScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={t.colors.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
 
   if (!transaction) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <TopBar title="TRANSACTION" />
         <View style={styles.center}>
-          <Text style={styles.errorText}>[ transaction not found ]</Text>
+          <Text style={[styles.errorText, { fontFamily: theme.fonts.mono, fontSize: 14, color: theme.colors.muted }]}>[ transaction not found ]</Text>
         </View>
       </View>
     );
@@ -139,26 +146,26 @@ export default function TransactionDetailScreen() {
   const isExpense = transaction.type === "EXPENSE";
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <TopBar title="ontrek" subtitle="@transaction" />
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={[styles.content, { padding: theme.spacing.lg, paddingBottom: 100 }]}>
         <TerminalCard title="DETAILS">
           <TerminalRow
             label="AMOUNT"
             value={`${isExpense ? "-" : "+"}Rp ${formatCurrencyShort(transaction.amount)}`}
-            valueColor={isExpense ? t.colors.expense : t.colors.income}
+            valueColor={isExpense ? theme.colors.expense : theme.colors.income}
           />
-          <View style={styles.divider} />
+          <View style={[styles.divider, { height: 1, backgroundColor: theme.colors.border }]} />
           <TerminalRow
             label="DATE"
             value={formatDate(transaction.transactionDate)}
           />
-          <View style={styles.divider} />
+          <View style={[styles.divider, { height: 1, backgroundColor: theme.colors.border }]} />
           <TerminalRow
             label="TYPE"
             value={transaction.type}
-            valueColor={isExpense ? t.colors.expense : t.colors.income}
+            valueColor={isExpense ? theme.colors.expense : theme.colors.income}
           />
         </TerminalCard>
 
@@ -166,37 +173,37 @@ export default function TransactionDetailScreen() {
           <TerminalRow
             label="VENDOR"
             value={vendorName ?? "—"}
-            valueColor={vendorName ? t.colors.primary : undefined}
+            valueColor={vendorName ? theme.colors.primary : undefined}
           />
-          <View style={styles.divider} />
+          <View style={[styles.divider, { height: 1, backgroundColor: theme.colors.border }]} />
           <TerminalRow
             label="CATEGORY"
             value={categoryName ?? "—"}
-            valueColor={categoryName ? t.colors.accent : undefined}
+            valueColor={categoryName ? theme.colors.accent : undefined}
           />
-          <View style={styles.divider} />
+          <View style={[styles.divider, { height: 1, backgroundColor: theme.colors.border }]} />
           <TerminalRow
             label="NOTE"
             value={transaction.description ?? "—"}
-            valueColor={transaction.description ? t.colors.secondary : undefined}
+            valueColor={transaction.description ? theme.colors.secondary : undefined}
           />
         </TerminalCard>
 
         <TouchableOpacity
-          style={styles.editButton}
+          style={[styles.editButton, { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.accent, padding: theme.spacing.lg, borderRadius: theme.border.radius, alignItems: "center", marginTop: theme.spacing.md }]}
           onPress={handleEdit}
         >
-          <Text style={styles.editText}>
+          <Text style={[styles.editText, { fontFamily: theme.fonts.mono, fontSize: 14, color: theme.colors.accent }]}>
             [ edit transaction ]
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.deleteButton, deleting && styles.deleteButtonDisabled]}
+          style={[styles.deleteButton, { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.expense, padding: theme.spacing.lg, borderRadius: theme.border.radius, alignItems: "center", marginTop: theme.spacing.md }, deleting && { opacity: 0.5 }]}
           onPress={handleDelete}
           disabled={deleting}
         >
-          <Text style={styles.deleteText}>
+          <Text style={[styles.deleteText, { fontFamily: theme.fonts.mono, fontSize: 14, color: theme.colors.expense }]}>
             {deleting ? "deleting..." : "[ delete transaction ]"}
           </Text>
         </TouchableOpacity>
@@ -208,107 +215,38 @@ export default function TransactionDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: t.colors.background,
   },
   scrollView: {
     flex: 1,
   },
-  content: {
-    padding: t.spacing.lg,
-    paddingBottom: 100,
-  },
+  content: {},
   center: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-  errorText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.muted,
-  },
-  card: {
-    marginBottom: t.spacing.lg,
-  },
-  cardHeader: {
-    backgroundColor: t.colors.card,
-    paddingHorizontal: t.spacing.md,
-    paddingTop: t.spacing.sm,
-    borderTopLeftRadius: t.border.radius,
-    borderTopRightRadius: t.border.radius,
-  },
-  cardTitle: {
-    fontFamily: t.fonts.mono,
-    fontSize: 12,
-    color: t.colors.secondary,
-  },
-  cardContent: {
-    backgroundColor: t.colors.card,
-    padding: t.spacing.lg,
-  },
-  cardFooter: {
-    fontFamily: t.fonts.mono,
-    fontSize: 10,
-    color: t.colors.border,
-    textAlign: "center",
-  },
+  errorText: {},
+  card: {},
+  cardHeader: {},
+  cardTitle: {},
+  cardContent: {},
+  cardFooter: {},
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: t.spacing.sm,
   },
-  divider: {
-    height: 1,
-    backgroundColor: t.colors.border,
-  },
-  label: {
-    fontFamily: t.fonts.mono,
-    fontSize: 13,
-    color: t.colors.muted,
-  },
-  value: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.secondary,
-    textAlign: "right",
-    maxWidth: "60%",
-  },
-  deleteButton: {
-    backgroundColor: t.colors.card,
-    borderWidth: 1,
-    borderColor: t.colors.expense,
-    padding: t.spacing.lg,
-    borderRadius: t.border.radius,
-    alignItems: "center",
-    marginTop: t.spacing.md,
-  },
-  deleteButtonDisabled: {
-    opacity: 0.5,
-  },
-  deleteText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.expense,
-  },
-  editButton: {
-    backgroundColor: t.colors.card,
-    borderWidth: 1,
-    borderColor: t.colors.accent,
-    padding: t.spacing.lg,
-    borderRadius: t.border.radius,
-    alignItems: "center",
-    marginTop: t.spacing.md,
-  },
-  editText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.accent,
-  },
+  divider: {},
+  label: {},
+  value: {},
+  deleteButton: {},
+  deleteButtonDisabled: {},
+  deleteText: {},
+  editButton: {},
+  editText: {},
 });

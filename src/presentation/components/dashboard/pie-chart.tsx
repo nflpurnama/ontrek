@@ -2,19 +2,17 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import Svg, { Path, G } from "react-native-svg";
 import { CategoryBreakdown } from "@/src/application/types/dashboard";
-import { terminalTheme } from "@/src/presentation/theme/terminal";
-
-const t = terminalTheme;
+import { useTheme } from "@/src/presentation/theme/theme-provider";
 
 const COLORS = [
-  "#3B82F6", // blue
-  "#10B981", // green
-  "#F59E0B", // amber
-  "#8B5CF6", // purple
-  "#EF4444", // red
-  "#06B6D4", // cyan
-  "#EC4899", // pink
-  "#F97316", // orange
+  "#3B82F6",
+  "#10B981",
+  "#F59E0B",
+  "#8B5CF6",
+  "#EF4444",
+  "#06B6D4",
+  "#EC4899",
+  "#F97316",
 ];
 
 type PieChartProps = {
@@ -24,6 +22,8 @@ type PieChartProps = {
 };
 
 export const PieChart = ({ data, size, onSelect }: PieChartProps) => {
+  const { theme } = useTheme();
+  const t = theme;
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const center = size / 2;
@@ -80,7 +80,7 @@ export const PieChart = ({ data, size, onSelect }: PieChartProps) => {
       return (
         <Path
           d={describeArc(center, center, outerRadius, innerRadius, 0, 359.99)}
-          fill="#E5E7EB"
+          fill={t.colors.border}
         />
       );
     }
@@ -90,7 +90,7 @@ export const PieChart = ({ data, size, onSelect }: PieChartProps) => {
       return (
         <Path
           d={describeArc(center, center, outerRadius, innerRadius, 0, 359.99)}
-          fill="#E5E7EB"
+          fill={t.colors.border}
         />
       );
     }
@@ -146,23 +146,23 @@ export const PieChart = ({ data, size, onSelect }: PieChartProps) => {
       <Svg width={size} height={size}>
         <G>{renderSlices()}</G>
       </Svg>
-      <View style={[styles.center, { width: innerRadius * 2, height: innerRadius * 2 }]}>
+      <View style={[styles.center, { width: innerRadius * 2, height: innerRadius * 2, backgroundColor: t.colors.background, borderColor: t.colors.border }]}>
         {selectedItem ? (
           <>
-            <Text style={[styles.categoryName, { color: selectedIndex !== null ? getColor(selectedIndex) : "#111827" }]} numberOfLines={1}>
+            <Text style={[styles.categoryName, { fontFamily: t.fonts.mono, fontSize: 11, textAlign: "center", color: selectedIndex !== null ? getColor(selectedIndex) : t.colors.secondary }]} numberOfLines={1}>
               {selectedItem.categoryName}
             </Text>
-            <Text style={styles.amount}>
+            <Text style={[styles.amount, { fontFamily: t.fonts.mono, fontSize: 16, color: t.colors.primary, marginTop: 2 }]}>
               {formatAmount(selectedItem.total)}
             </Text>
-            <Text style={styles.percentage}>
+            <Text style={[styles.percentage, { fontFamily: t.fonts.mono, fontSize: 10, color: t.colors.secondary, marginTop: 2 }]}>
               {selectedItem.percentage.toFixed(1)}%
             </Text>
           </>
         ) : (
           <>
-            <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalAmount}>
+            <Text style={[styles.totalLabel, { fontFamily: t.fonts.mono, fontSize: 10, color: t.colors.secondary }]}>Total</Text>
+            <Text style={[styles.totalAmount, { fontFamily: t.fonts.mono, fontSize: 14, color: t.colors.primary }]}>
               {formatAmount(total)}
             </Text>
           </>
@@ -181,36 +181,14 @@ const styles = StyleSheet.create({
     position: "absolute",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: t.colors.background,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: t.colors.border,
   },
   categoryName: {
-    fontFamily: t.fonts.mono,
-    fontSize: 11,
     textAlign: "center",
   },
-  amount: {
-    fontFamily: t.fonts.mono,
-    fontSize: 16,
-    color: t.colors.primary,
-    marginTop: 2,
-  },
-  percentage: {
-    fontFamily: t.fonts.mono,
-    fontSize: 10,
-    color: t.colors.secondary,
-    marginTop: 2,
-  },
-  totalLabel: {
-    fontFamily: t.fonts.mono,
-    fontSize: 10,
-    color: t.colors.secondary,
-  },
-  totalAmount: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.primary,
-  },
+  amount: {},
+  percentage: {},
+  totalLabel: {},
+  totalAmount: {},
 });

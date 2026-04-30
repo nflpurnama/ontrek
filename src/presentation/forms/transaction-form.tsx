@@ -23,9 +23,7 @@ import {
   DatePill,
   AmountPill,
 } from "../components/inputs/transaction-pill";
-import { terminalTheme } from "../theme/terminal";
-
-const t = terminalTheme;
+import { useTheme } from "../theme/theme-provider";
 
 type ContextType = "EDIT" | "CREATE";
 
@@ -68,6 +66,7 @@ export const TransactionForm = ({
   handleSubmit,
   initialData,
 }: TransactionFormContext) => {
+  const { theme } = useTheme();
   const [phase, setPhase] = useState<FormPhase>("date");
   const getInitialDateValue = () => {
     const d = String(new Date().getDate()).padStart(2, '0');
@@ -281,9 +280,9 @@ export const TransactionForm = ({
         return (
           <TextInput
             ref={inputRef}
-            style={styles.input}
+            style={[styles.input, { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.border.radius, padding: theme.spacing.lg, fontSize: 18, fontFamily: theme.fonts.mono, color: theme.colors.primary }]}
             placeholder="expense or income? (e / i)"
-            placeholderTextColor={t.colors.muted}
+            placeholderTextColor={theme.colors.muted}
             value={typeDisplay}
             onChangeText={(text) => {
               const t = text.toLowerCase();
@@ -307,17 +306,17 @@ export const TransactionForm = ({
 
       case "amount":
         return (
-          <View style={styles.amountRow}>
-            <Text style={styles.currencyPrefix}>Rp</Text>
+          <View style={[styles.amountRow, { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.border.radius, paddingHorizontal: theme.spacing.lg }]}>
+            <Text style={[styles.currencyPrefix, { fontSize: 24, fontFamily: theme.fonts.mono, color: theme.colors.secondary, marginRight: theme.spacing.sm }]}>Rp</Text>
             <TextInput
               ref={inputRef}
-              style={styles.amountInput}
+              style={[styles.amountInput, { flex: 1, fontSize: 24, fontFamily: theme.fonts.mono, color: theme.colors.primary, paddingVertical: theme.spacing.lg }]}
               placeholder={
                 transactionType === "INCOME"
                   ? "how much did you earn?"
                   : "how much did you spend?"
               }
-              placeholderTextColor={t.colors.muted}
+              placeholderTextColor={theme.colors.muted}
               value={amount > 0 ? formatCurrency(amount) : ""}
               onChangeText={(text) => {
                 const raw = parseCurrency(text);
@@ -335,9 +334,9 @@ export const TransactionForm = ({
         return (
           <TextInput
             ref={inputRef}
-            style={styles.input}
+            style={[styles.input, { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.border.radius, padding: theme.spacing.lg, fontSize: 18, fontFamily: theme.fonts.mono, color: theme.colors.primary }]}
             placeholder="date (dd/mm/yyyy)"
-            placeholderTextColor={t.colors.muted}
+            placeholderTextColor={theme.colors.muted}
             value={inputValue}
             onChangeText={setInputValue}
             onSubmitEditing={handleSubmitPhase}
@@ -352,13 +351,13 @@ export const TransactionForm = ({
           <>
             <TextInput
               ref={inputRef}
-              style={styles.input}
+              style={[styles.input, { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.border.radius, padding: theme.spacing.lg, fontSize: 18, fontFamily: theme.fonts.mono, color: theme.colors.primary }]}
               placeholder={
                 transactionType === "INCOME"
                   ? "where did you earn?"
                   : "where did you spend?"
               }
-              placeholderTextColor={t.colors.muted}
+              placeholderTextColor={theme.colors.muted}
               value={inputValue}
               onChangeText={handleVendorChange}
               onSubmitEditing={handleSubmitPhase}
@@ -379,9 +378,9 @@ export const TransactionForm = ({
           <>
             <TextInput
               ref={inputRef}
-              style={styles.input}
+              style={[styles.input, { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.border.radius, padding: theme.spacing.lg, fontSize: 18, fontFamily: theme.fonts.mono, color: theme.colors.primary }]}
               placeholder="category (tap or type to select)"
-              placeholderTextColor={t.colors.muted}
+              placeholderTextColor={theme.colors.muted}
               value={inputValue}
               onChangeText={setInputValue}
               onSubmitEditing={handleSubmitPhase}
@@ -402,9 +401,9 @@ export const TransactionForm = ({
         return (
           <TextInput
             ref={inputRef}
-            style={styles.input}
+            style={[styles.input, { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.border.radius, padding: theme.spacing.lg, fontSize: 18, fontFamily: theme.fonts.mono, color: theme.colors.primary }]}
             placeholder="add a note (optional)"
-            placeholderTextColor={t.colors.muted}
+            placeholderTextColor={theme.colors.muted}
             value={inputValue}
             onChangeText={setInputValue}
             onSubmitEditing={handleSubmitPhase}
@@ -486,11 +485,11 @@ export const TransactionForm = ({
         </View>
 
         <TouchableOpacity
-            style={[styles.saveButton, !isValid && styles.saveButtonDisabled]} 
+            style={[styles.saveButton, { backgroundColor: isValid ? theme.colors.primary : theme.colors.muted, paddingVertical: theme.spacing.lg, borderRadius: theme.border.radius, alignItems: "center", marginTop: theme.spacing.md }]} 
             onPress={handleSavePress}
             disabled={!isValid}
           >
-            <Text style={[styles.saveButtonText, !isValid && styles.saveButtonTextDisabled]}>
+            <Text style={[styles.saveButtonText, { fontFamily: theme.fonts.mono, fontSize: 14, color: theme.colors.background }]}>
               SAVE TRANSACTION
             </Text>
           </TouchableOpacity>
@@ -508,102 +507,20 @@ const styles = StyleSheet.create({
     padding: 16,
     justifyContent: "flex-end",
   },
-  pill: {
-    backgroundColor: t.colors.card,
-    borderWidth: 1,
-    borderColor: t.colors.border,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  pillCompact: {
-    backgroundColor: t.colors.card,
-    borderWidth: 1,
-    borderColor: t.colors.border,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginRight: 8,
-    marginBottom: 8,
-    flexDirection: "row",
-    alignItems: "center",
-  },
   pillsRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     marginBottom: 8,
   },
-  pillPhase: {
-    color: t.colors.muted,
-    fontSize: 9,
-    letterSpacing: 1,
-    marginRight: 4,
-  },
-  pillLabel: {
-    color: t.colors.secondary,
-    fontSize: 13,
-  },
-  pillLabelCompact: {
-    color: t.colors.secondary,
-    fontSize: 12,
-  },
-  pillLabelCompactMuted: {
-    color: t.colors.muted,
-    fontSize: 12,
-  },
   inputSection: {
     marginTop: "auto",
   },
-  input: {
-    backgroundColor: t.colors.card,
-    borderWidth: 1,
-    borderColor: t.colors.border,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 18,
-    fontFamily: t.fonts.mono,
-    color: t.colors.primary,
-  },
-  amountRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: t.colors.card,
-    borderWidth: 1,
-    borderColor: t.colors.border,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-  },
-  currencyPrefix: {
-    fontSize: 24,
-    fontFamily: t.fonts.mono,
-    color: t.colors.secondary,
-    marginRight: 8,
-  },
-  amountInput: {
-    flex: 1,
-    fontSize: 24,
-    fontFamily: t.fonts.mono,
-    color: t.colors.primary,
-    paddingVertical: 16,
-  },
-  saveButton: {
-    backgroundColor: t.colors.primary,
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    marginTop: 16,
-  },
-  saveButtonDisabled: {
-    backgroundColor: t.colors.muted,
-  },
-  saveButtonText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.background,
-  },
-  saveButtonTextDisabled: {
-    color: t.colors.background,
-  },
+  input: {},
+  amountRow: {},
+  currencyPrefix: {},
+  amountInput: {},
+  saveButton: {},
+  saveButtonDisabled: {},
+  saveButtonText: {},
+  saveButtonTextDisabled: {},
 });

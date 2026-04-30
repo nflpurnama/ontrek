@@ -4,9 +4,7 @@ import { TransactionType } from "@/src/domain/constants/transaction-type";
 import { Category } from "@/src/domain/entities/category";
 import { Vendor } from "@/src/domain/entities/vendor";
 import { formatCurrency } from "../../utility/formatter/currency";
-import { terminalTheme } from "../../theme/terminal";
-
-const t = terminalTheme;
+import { useTheme } from "../../theme/theme-provider";
 
 export type PhaseType = "type" | "amount" | "vendor" | "category" | "note";
 
@@ -21,14 +19,15 @@ export const TransactionPill = ({
   label,
   onPress,
 }: TransactionPillProps) => {
+  const { theme } = useTheme();
   return (
     <TouchableOpacity
-      style={styles.pill}
+      style={[styles.pill, { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, paddingHorizontal: 10, paddingVertical: 6, borderRadius: theme.border.radius, marginRight: 8, marginBottom: 8 }]}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Text style={styles.phase}>{phase.toUpperCase()}</Text>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.phase, { color: theme.colors.muted, fontSize: 9, fontWeight: "700", letterSpacing: 1, marginRight: 4 }]}>{phase.toUpperCase()}</Text>
+      <Text style={[styles.label, { color: theme.colors.secondary, fontSize: 13, fontWeight: "600" }]}>{label}</Text>
     </TouchableOpacity>
   );
 };
@@ -39,17 +38,18 @@ type AmountPillProps = {
 };
 
 export const AmountPill = ({ amount, onPress }: AmountPillProps) => {
+  const { theme } = useTheme();
   const isEmpty = amount === 0;
   const label = isEmpty ? "?" : formatCurrency(amount);
 
   return (
     <TouchableOpacity
-      style={styles.pill}
+      style={[styles.pill, { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, paddingHorizontal: 10, paddingVertical: 6, borderRadius: theme.border.radius, marginRight: 8, marginBottom: 8 }]}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Text style={styles.phase}>AMT</Text>
-      <Text style={[styles.label, isEmpty && styles.labelMuted]}>{label}</Text>
+      <Text style={[styles.phase, { color: theme.colors.muted, fontSize: 9, fontWeight: "700", letterSpacing: 1, marginRight: 4 }]}>AMT</Text>
+      <Text style={[styles.label, { color: theme.colors.secondary, fontSize: 13, fontWeight: "600" }, isEmpty && { color: theme.colors.muted }]}>{label}</Text>
     </TouchableOpacity>
   );
 };
@@ -63,17 +63,18 @@ export const TypePill = ({
   transactionType,
   onPress,
 }: TypePillProps) => {
+  const { theme } = useTheme();
   const isEmpty = !transactionType;
   const label = transactionType === "EXPENSE" ? "Expense" : transactionType === "INCOME" ? "Income" : "?";
 
   return (
     <TouchableOpacity
-      style={styles.pill}
+      style={[styles.pill, { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, paddingHorizontal: 10, paddingVertical: 6, borderRadius: theme.border.radius, marginRight: 8, marginBottom: 8 }]}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Text style={styles.phase}>TYPE</Text>
-      <Text style={[styles.label, isEmpty && styles.labelMuted]}>{label}</Text>
+      <Text style={[styles.phase, { color: theme.colors.muted, fontSize: 9, fontWeight: "700", letterSpacing: 1, marginRight: 4 }]}>TYPE</Text>
+      <Text style={[styles.label, { color: theme.colors.secondary, fontSize: 13, fontWeight: "600" }, isEmpty && { color: theme.colors.muted }]}>{label}</Text>
     </TouchableOpacity>
   );
 };
@@ -89,17 +90,18 @@ export const VendorPill = ({
   vendorName,
   onPress,
 }: VendorPillProps) => {
+  const { theme } = useTheme();
   const isEmpty = !vendor && !vendorName;
   const label = vendor?.name ?? vendorName;
 
   return (
     <TouchableOpacity
-      style={styles.pill}
+      style={[styles.pill, { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, paddingHorizontal: 10, paddingVertical: 6, borderRadius: theme.border.radius, marginRight: 8, marginBottom: 8 }]}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Text style={styles.phase}>VENDOR</Text>
-      <Text style={[styles.label, isEmpty && styles.labelMuted]}>{label || "—"}</Text>
+      <Text style={[styles.phase, { color: theme.colors.muted, fontSize: 9, fontWeight: "700", letterSpacing: 1, marginRight: 4 }]}>VENDOR</Text>
+      <Text style={[styles.label, { color: theme.colors.secondary, fontSize: 13, fontWeight: "600" }, isEmpty && { color: theme.colors.muted }]}>{label || "—"}</Text>
     </TouchableOpacity>
   );
 };
@@ -113,16 +115,17 @@ export const CategoryPill = ({
   category,
   onPress,
 }: CategoryPillProps) => {
+  const { theme } = useTheme();
   const isEmpty = !category;
 
   return (
     <TouchableOpacity
-      style={styles.pill}
+      style={[styles.pill, { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, paddingHorizontal: 10, paddingVertical: 6, borderRadius: theme.border.radius, marginRight: 8, marginBottom: 8 }]}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Text style={styles.phase}>CATEGORY</Text>
-      <Text style={[styles.label, isEmpty && styles.labelMuted]}>{category?.name ?? "—"}</Text>
+      <Text style={[styles.phase, { color: theme.colors.muted, fontSize: 9, fontWeight: "700", letterSpacing: 1, marginRight: 4 }]}>CATEGORY</Text>
+      <Text style={[styles.label, { color: theme.colors.secondary, fontSize: 13, fontWeight: "600" }, isEmpty && { color: theme.colors.muted }]}>{category?.name ?? "—"}</Text>
     </TouchableOpacity>
   );
 };
@@ -133,17 +136,18 @@ type NotePillProps = {
 };
 
 export const NotePill = ({ note, onPress }: NotePillProps) => {
+  const { theme } = useTheme();
   const isEmpty = !note;
   const truncated = note.length > 20 ? note.slice(0, 20) + "…" : note;
 
   return (
     <TouchableOpacity
-      style={styles.pill}
+      style={[styles.pill, { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, paddingHorizontal: 10, paddingVertical: 6, borderRadius: theme.border.radius, marginRight: 8, marginBottom: 8 }]}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Text style={styles.phase}>NOTE</Text>
-      <Text style={[styles.label, isEmpty && styles.labelMuted]}>{truncated || "—"}</Text>
+      <Text style={[styles.phase, { color: theme.colors.muted, fontSize: 9, fontWeight: "700", letterSpacing: 1, marginRight: 4 }]}>NOTE</Text>
+      <Text style={[styles.label, { color: theme.colors.secondary, fontSize: 13, fontWeight: "600" }, isEmpty && { color: theme.colors.muted }]}>{truncated || "—"}</Text>
     </TouchableOpacity>
   );
 };
@@ -154,6 +158,7 @@ type DatePillProps = {
 };
 
 export const DatePill = ({ date, onPress }: DatePillProps) => {
+  const { theme } = useTheme();
   const formatted = date.toLocaleDateString("en-GB", {
     day: "numeric",
     month: "short",
@@ -161,42 +166,22 @@ export const DatePill = ({ date, onPress }: DatePillProps) => {
 
   return (
     <TouchableOpacity
-      style={styles.pill}
+      style={[styles.pill, { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, paddingHorizontal: 10, paddingVertical: 6, borderRadius: theme.border.radius, marginRight: 8, marginBottom: 8 }]}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Text style={styles.phase}>DATE</Text>
-      <Text style={styles.label}>{formatted}</Text>
+      <Text style={[styles.phase, { color: theme.colors.muted, fontSize: 9, fontWeight: "700", letterSpacing: 1, marginRight: 4 }]}>DATE</Text>
+      <Text style={[styles.label, { color: theme.colors.secondary, fontSize: 13, fontWeight: "600" }]}>{formatted}</Text>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   pill: {
-    backgroundColor: t.colors.card,
-    borderWidth: 1,
-    borderColor: t.colors.border,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginRight: 8,
-    marginBottom: 8,
     flexDirection: "row",
     alignItems: "center",
   },
-  phase: {
-    color: t.colors.muted,
-    fontSize: 9,
-    fontWeight: "700",
-    letterSpacing: 1,
-    marginRight: 4,
-  },
-  label: {
-    color: t.colors.secondary,
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  labelMuted: {
-    color: t.colors.muted,
-  },
+  phase: {},
+  label: {},
+  labelMuted: {},
 });

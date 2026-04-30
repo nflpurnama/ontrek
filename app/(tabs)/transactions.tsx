@@ -12,11 +12,9 @@ import { Transaction } from "@/src/domain/entities/transaction";
 import { Vendor } from "@/src/domain/entities/vendor";
 import { Category } from "@/src/domain/entities/category";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
-import { terminalTheme } from "@/src/presentation/theme/terminal";
+import { useTheme } from "@/src/presentation/theme/theme-provider";
 import { formatCurrency } from "@/src/presentation/utility/formatter/currency";
 import { TopBar } from "@/src/presentation/components/top-bar";
-
-const t = terminalTheme;
 
 const formatDate = (date: Date): string => {
   return date.toLocaleDateString("en-GB", {
@@ -42,57 +40,62 @@ const TransactionCard = ({
   vendorMap: Map<string, string>;
   categoryMap: Map<string, string>;
 }) => {
+  const { theme } = useTheme();
   const router = useRouter();
 
   return (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <Text style={styles.cardTitle}>{t.ascii.tl}{date}{t.ascii.tr}</Text>
+    <View style={[styles.card, { marginBottom: theme.spacing.lg, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.border.radius }]}>
+      <View style={[styles.cardHeader, { backgroundColor: theme.colors.card, paddingHorizontal: theme.spacing.md, paddingTop: theme.spacing.sm, borderTopLeftRadius: theme.border.radius, borderTopRightRadius: theme.border.radius }]}>
+        <Text style={[styles.cardTitle, { fontFamily: theme.fonts.mono, fontSize: 12, color: theme.colors.secondary }]}>{theme.ascii?.tl ?? ""}{date}{theme.ascii?.tr ?? ""}</Text>
       </View>
-      <View style={styles.cardContent}>
+      <View style={[styles.cardContent, { backgroundColor: theme.colors.card, paddingVertical: theme.spacing.md, paddingHorizontal: theme.spacing.lg }]}>
         {transactions.map((item, index) => (
           <TouchableOpacity
             key={item.id.getValue()}
             style={[
               styles.transactionContainer,
-              index < transactions.length - 1 && styles.transactionBorder,
+              { paddingVertical: theme.spacing.sm },
+              index < transactions.length - 1 && { borderBottomWidth: 1, borderBottomColor: theme.colors.border },
             ]}
             onPress={() =>
-              router.navigate(`/transactions/${item.id.getValue()}`)
+              router.navigate(`/transactions/${item.id.getValue()}` as any)
             }
           >
             <View style={styles.transactionRow}>
               <Text
                 style={[
                   styles.amount,
-                  item.type === "EXPENSE" ? styles.expense : styles.income,
+                  { fontFamily: theme.fonts.mono, fontSize: 13, color: item.type === "EXPENSE" ? theme.colors.expense : theme.colors.income },
                 ]}
               >
                 {item.type === "EXPENSE" ? "-" : "+"}Rp {formatCurrency(item.amount)}
               </Text>
-              <Text style={styles.separator}>  </Text>
-              <Text style={styles.vendor}>
+              <Text style={[styles.separator, { fontFamily: theme.fonts.mono }]}>  </Text>
+              <Text style={[styles.vendor, { fontFamily: theme.fonts.mono, fontSize: 13, color: theme.colors.primary }]}>
                 {item.vendorId ? vendorMap.get(item.vendorId) ?? "—" : "—"}
               </Text>
-              <Text style={styles.separator}>  </Text>
-              <Text style={styles.category}>
+              <Text style={[styles.separator, { fontFamily: theme.fonts.mono }]}>  </Text>
+              <Text style={[styles.category, { fontFamily: theme.fonts.mono, fontSize: 13, color: theme.colors.accent }]}>
                 {item.categoryId ? categoryMap.get(item.categoryId) ?? "—" : "—"}
               </Text>
             </View>
             {item.description && (
-              <Text style={styles.description} numberOfLines={2}>
+              <Text style={[styles.description, { fontFamily: theme.fonts.mono, fontSize: 13, color: theme.colors.muted, flex: 1, width: "100%", marginTop: theme.spacing.xs }]} numberOfLines={2}>
                 {item.description}
               </Text>
             )}
           </TouchableOpacity>
         ))}
       </View>
-      <Text style={styles.cardFooter}>{t.ascii.bl}{t.ascii.h.repeat(20)}{t.ascii.br}</Text>
+      {theme.ascii && (
+        <Text style={[styles.cardFooter, { fontFamily: theme.fonts.mono, fontSize: 10, color: theme.colors.border, textAlign: "center" }]}>{theme.ascii.bl}{theme.ascii.h.repeat(20)}{theme.ascii.br}</Text>
+      )}
     </View>
   );
 };
 
 export default function TransactionsPage() {
+  const { theme } = useTheme();
   const { viewTransactionsUseCase, getAllCategoriesUseCase, findVendorsUseCase } = useDependencies();
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -153,20 +156,20 @@ export default function TransactionsPage() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={t.colors.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <TopBar title="ontrek" subtitle="@transactions" />
 
       {groupedTransactions.length > 0 ? (
         <ScrollView 
           style={styles.scrollView}
-          contentContainerStyle={styles.content}
+          contentContainerStyle={[styles.content, { padding: theme.spacing.lg, paddingTop: theme.spacing.md, paddingBottom: 100 }]}
         >
           {groupedTransactions.map((group) => (
             <TransactionCard
@@ -180,7 +183,7 @@ export default function TransactionsPage() {
         </ScrollView>
       ) : (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>[ no transactions ]</Text>
+          <Text style={[styles.emptyText, { fontFamily: theme.fonts.mono, fontSize: 14, color: theme.colors.muted }]}>[ no transactions ]</Text>
         </View>
       )}
     </View>
@@ -190,99 +193,39 @@ export default function TransactionsPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: t.colors.background,
   },
   scrollView: {
     flex: 1,
   },
-  content: {
-    padding: t.spacing.lg,
-    paddingTop: t.spacing.md,
-    paddingBottom: 100,
-  },
-  card: {
-    marginBottom: t.spacing.lg,
-  },
-  cardHeader: {
-    backgroundColor: t.colors.card,
-    paddingHorizontal: t.spacing.md,
-    paddingTop: t.spacing.sm,
-    borderTopLeftRadius: t.border.radius,
-    borderTopRightRadius: t.border.radius,
-  },
-  cardTitle: {
-    fontFamily: t.fonts.mono,
-    fontSize: 12,
-    color: t.colors.secondary,
-  },
-  cardContent: {
-    backgroundColor: t.colors.card,
-    paddingVertical: t.spacing.md,
-    paddingHorizontal: t.spacing.lg,
-  },
-  cardFooter: {
-    fontFamily: t.fonts.mono,
-    fontSize: 10,
-    color: t.colors.border,
-    textAlign: "center",
-  },
-  transactionContainer: {
-    paddingVertical: t.spacing.sm,
-  },
+  content: {},
+  card: {},
+  cardHeader: {},
+  cardTitle: {},
+  cardContent: {},
+  cardFooter: {},
+  transactionContainer: {},
   transactionRow: {
     flexDirection: "row",
     alignItems: "center",
-    flexWrap: "wrap" as const,
+    flexWrap: "wrap",
   },
-  transactionBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: t.colors.border,
-  },
-  amount: {
-    fontFamily: t.fonts.mono,
-    fontSize: 13,
-  },
-  expense: {
-    color: t.colors.expense,
-  },
-  income: {
-    color: t.colors.income,
-  },
-  separator: {
-    fontFamily: t.fonts.mono,
-  },
-  vendor: {
-    fontFamily: t.fonts.mono,
-    fontSize: 13,
-    color: t.colors.primary,
-  },
-  category: {
-    fontFamily: t.fonts.mono,
-    fontSize: 13,
-    color: t.colors.accent,
-  },
-  description: {
-    fontFamily: t.fonts.mono,
-    fontSize: 13,
-    color: t.colors.muted,
-    flex: 1,
-    width: "100%",
-    marginTop: t.spacing.xs,
-  },
+  transactionBorder: {},
+  amount: {},
+  expense: {},
+  income: {},
+  separator: {},
+  vendor: {},
+  category: {},
+  description: {},
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-  emptyText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.muted,
-  },
+  emptyText: {},
 });

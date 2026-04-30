@@ -10,11 +10,12 @@ import React, { useState, useCallback } from "react";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { CurrentBudgetData } from "@/src/application/use-case/budget/get-current-budget";
-import { terminalTheme } from "@/src/presentation/theme/terminal";
+import { useTheme } from "@/src/presentation/theme/theme-provider";
 import { formatCurrency } from "@/src/presentation/utility/formatter/currency";
 import { TopBar } from "@/src/presentation/components/top-bar";
 
-const t = terminalTheme;
+const BLOCK_FILL = "█";
+const BLOCK_EMPTY = "░";
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -27,26 +28,25 @@ const TerminalCard = ({
 }: {
   title: string;
   children: React.ReactNode;
-}) => (
-  <View style={styles.card}>
-    <View style={styles.cardHeader}>
-      <Text style={styles.cardTitle}>
-        {t.ascii.tl}
-        {title}
-        {t.ascii.tr}
-      </Text>
+}) => {
+  const { theme } = useTheme();
+  return (
+    <View style={[styles.card, { marginBottom: theme.spacing.lg, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.border.radius }]}>
+      <View style={[styles.cardHeader, { backgroundColor: theme.colors.card, paddingHorizontal: theme.spacing.md, paddingTop: theme.spacing.sm, borderTopLeftRadius: theme.border.radius, borderTopRightRadius: theme.border.radius }]}>
+        <Text style={[styles.cardTitle, { fontFamily: theme.fonts.mono, fontSize: 12, color: theme.colors.secondary }]}>
+          {theme.ascii?.tl ?? ""}{title}{theme.ascii?.tr ?? ""}
+        </Text>
+      </View>
+      <View style={[styles.cardContent, { backgroundColor: theme.colors.card, padding: theme.spacing.lg }]}>{children}</View>
+      {theme.ascii && (
+        <Text style={[styles.cardFooter, { fontFamily: theme.fonts.mono, fontSize: 10, color: theme.colors.border, textAlign: "center" }]}>{theme.ascii.bl}{theme.ascii.h.repeat(20)}{theme.ascii.br}</Text>
+      )}
     </View>
-    <View style={styles.cardContent}>{children}</View>
-    <Text style={styles.cardFooter}>
-      {t.ascii.bl}
-      {t.ascii.h.repeat(20)}
-      {t.ascii.br}
-    </Text>
-  </View>
-);
+  );
+};
 
 const getBlockChar = (percentage: number): string => {
-  if (percentage >= 100) return t.ascii.fill;
+  if (percentage >= 100) return BLOCK_FILL;
   if (percentage >= 87.5) return "▓";
   if (percentage >= 75) return "▒";
   if (percentage >= 62.5) return "▒";
@@ -66,24 +66,28 @@ const ProgressBar = ({
   budget: number;
   color: string;
 }) => {
+  const { theme } = useTheme();
   const percentage = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0;
   const overBudget = spent > budget;
-  const barColor = overBudget ? t.colors.expense : color;
+  const barColor = overBudget ? theme.colors.expense : color;
   const totalBlocks = 20;
   const filledBlocks = Math.round((percentage / 100) * totalBlocks);
 
-  const filled = t.ascii.fill.repeat(filledBlocks) + getBlockChar(percentage);
-  const empty = t.ascii.empty.repeat(totalBlocks - filledBlocks);
+  const fillChar = theme.ascii?.fill ?? BLOCK_FILL;
+  const emptyChar = theme.ascii?.empty ?? BLOCK_EMPTY;
+  const filled = fillChar.repeat(filledBlocks) + getBlockChar(percentage);
+  const empty = emptyChar.repeat(totalBlocks - filledBlocks);
 
   return (
-    <View style={styles.progressContainer}>
-      <Text style={[styles.progressBar, { color: barColor }]}>
+    <View style={[styles.progressContainer, { marginVertical: theme.spacing.sm }]}>
+      <Text style={[styles.progressBar, { fontFamily: theme.fonts.mono, fontSize: 14, letterSpacing: 1, color: barColor }]}>
         {filled}{empty}
       </Text>
       <Text
         style={[
           styles.progressText,
-          overBudget && { color: t.colors.expense },
+          { fontFamily: theme.fonts.mono, fontSize: 12, color: theme.colors.secondary, marginLeft: theme.spacing.sm, width: 40, textAlign: "right" },
+          overBudget && { color: theme.colors.expense },
         ]}
       >
         {percentage.toFixed(0)}%
@@ -93,6 +97,7 @@ const ProgressBar = ({
 };
 
 export default function BudgetScreen() {
+  const { theme } = useTheme();
   const {
     getCurrentBudgetUseCase,
     copyBudgetToNextMonthUseCase
@@ -132,8 +137,8 @@ export default function BudgetScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={t.colors.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -142,22 +147,22 @@ export default function BudgetScreen() {
   const monthLabel = month && year ? `${MONTH_NAMES[month - 1]} ${year}` : "";
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <TopBar title="ontrek" subtitle="@budget" />
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { padding: theme.spacing.lg, paddingBottom: 150 }]}
       >
-        <Text style={styles.monthLabel}>{monthLabel}</Text>
+        <Text style={[styles.monthLabel, { fontFamily: theme.fonts.mono, fontSize: 24, color: theme.colors.primary, textAlign: "center", marginBottom: theme.spacing.lg }]}>{monthLabel}</Text>
 
         {!hasBudget ? (
           <TerminalCard title="NO BUDGET SET">
-            <Text style={styles.emptyText}>
+            <Text style={[styles.emptyText, { fontFamily: theme.fonts.mono, fontSize: 14, color: theme.colors.muted, textAlign: "center", marginBottom: theme.spacing.lg }]}>
               Set a monthly budget to track your spending
             </Text>
-            <TouchableOpacity style={styles.setButton} onPress={handleEditBudget}>
-              <Text style={styles.setButtonText}>SET BUDGET</Text>
+            <TouchableOpacity style={[styles.setButton, { backgroundColor: theme.colors.primary, padding: theme.spacing.md, borderRadius: theme.border.radius, alignItems: "center" }]} onPress={handleEditBudget}>
+              <Text style={[styles.setButtonText, { fontFamily: theme.fonts.mono, fontSize: 14, color: theme.colors.background }]}>SET BUDGET</Text>
             </TouchableOpacity>
           </TerminalCard>
         ) : (
@@ -165,22 +170,17 @@ export default function BudgetScreen() {
             <TerminalCard title="TOTAL BUDGET">
               <View style={styles.totalRow}>
                 <View style={styles.totalItem}>
-                  <Text style={styles.totalLabel}>BUDGET</Text>
-                  <Text style={styles.totalValue}>
+                  <Text style={[styles.totalLabel, { fontFamily: theme.fonts.mono, fontSize: 10, color: theme.colors.muted, marginBottom: theme.spacing.xs }]}>BUDGET</Text>
+                  <Text style={[styles.totalValue, { fontFamily: theme.fonts.mono, fontSize: 18, color: theme.colors.primary }]}>
                     Rp {formatCurrency(budget?.totalAmount ?? 0)}
                   </Text>
                 </View>
                 <View style={styles.totalItem}>
-                  <Text style={styles.totalLabel}>SPENT</Text>
+                  <Text style={[styles.totalLabel, { fontFamily: theme.fonts.mono, fontSize: 10, color: theme.colors.muted, marginBottom: theme.spacing.xs }]}>SPENT</Text>
                   <Text
                     style={[
                       styles.totalValue,
-                      {
-                        color:
-                          (budgetData?.totalSpent ?? 0) > (budget?.totalAmount ?? 0)
-                            ? t.colors.expense
-                            : t.colors.income,
-                      },
+                      { fontFamily: theme.fonts.mono, fontSize: 18, color: (budgetData?.totalSpent ?? 0) > (budget?.totalAmount ?? 0) ? theme.colors.expense : theme.colors.income },
                     ]}
                   >
                     Rp {formatCurrency(budgetData?.totalSpent ?? 0)}
@@ -190,20 +190,14 @@ export default function BudgetScreen() {
               <ProgressBar
                 spent={budgetData?.totalSpent ?? 0}
                 budget={budget?.totalAmount ?? 0}
-                color={t.colors.primary}
+                color={theme.colors.primary}
               />
-              <View style={styles.remainingRow}>
-                <Text style={styles.remainingLabel}>REMAINING:</Text>
+              <View style={[styles.remainingRow, { marginTop: theme.spacing.sm, paddingTop: theme.spacing.sm, borderTopWidth: 1, borderTopColor: theme.colors.border }]}>
+                <Text style={[styles.remainingLabel, { fontFamily: theme.fonts.mono, fontSize: 12, color: theme.colors.secondary }]}>REMAINING:</Text>
                 <Text
                   style={[
                     styles.remainingValue,
-                    {
-                      color:
-                        (budget?.totalAmount ?? 0) - (budgetData?.totalSpent ?? 0) >=
-                        0
-                          ? t.colors.income
-                          : t.colors.expense,
-                    },
+                    { fontFamily: theme.fonts.mono, fontSize: 16, color: (budget?.totalAmount ?? 0) - (budgetData?.totalSpent ?? 0) >= 0 ? theme.colors.income : theme.colors.expense },
                   ]}
                 >
                   Rp{" "}
@@ -212,14 +206,12 @@ export default function BudgetScreen() {
                   )}
                 </Text>
               </View>
-              <View style={styles.remainingRow}>
-                <Text style={styles.remainingLabel}>DAILY ALLOWANCE:</Text>
+              <View style={[styles.remainingRow, { marginTop: theme.spacing.sm, paddingTop: theme.spacing.sm, borderTopWidth: 1, borderTopColor: theme.colors.border }]}>
+                <Text style={[styles.remainingLabel, { fontFamily: theme.fonts.mono, fontSize: 12, color: theme.colors.secondary }]}>DAILY ALLOWANCE:</Text>
                 <Text
                   style={[
                     styles.remainingValue,
-                    {
-                      color: (dailyAllowance ?? 0) >= 0 ? t.colors.accent : t.colors.expense,
-                    },
+                    { fontFamily: theme.fonts.mono, fontSize: 16, color: (dailyAllowance ?? 0) >= 0 ? theme.colors.accent : theme.colors.expense },
                   ]}
                 >
                   Rp {formatCurrency(dailyAllowance ?? 0)} / {daysRemaining ?? 0}d
@@ -230,20 +222,20 @@ export default function BudgetScreen() {
             {budgetData?.categoryAllocations &&
               budgetData.categoryAllocations.length > 0 && (
                 <TerminalCard title="CATEGORY ALLOCATIONS">
-                  {budgetData.categoryAllocations.map((cat, index) => (
-                    <View key={cat.categoryId} style={styles.categoryRow}>
-                      <View style={styles.categoryInfo}>
-                        <Text style={styles.categoryName}>{cat.categoryName}</Text>
-                        <Text style={styles.categoryBudget}>
+                  {budgetData.categoryAllocations.map((cat) => (
+                    <View key={cat.categoryId} style={[styles.categoryRow, { marginBottom: theme.spacing.md, paddingBottom: theme.spacing.md, borderBottomWidth: 1, borderBottomColor: theme.colors.border }]}>
+                      <View style={[styles.categoryInfo, { flexDirection: "row", justifyContent: "space-between", marginBottom: theme.spacing.xs }]}>
+                        <Text style={[styles.categoryName, { fontFamily: theme.fonts.mono, fontSize: 13, color: theme.colors.secondary }]}>{cat.categoryName}</Text>
+                        <Text style={[styles.categoryBudget, { fontFamily: theme.fonts.mono, fontSize: 13, color: theme.colors.primary }]}>
                           Rp {formatCurrency(cat.allocatedAmount)}
                         </Text>
                       </View>
                       <ProgressBar
                         spent={cat.spentAmount}
                         budget={cat.allocatedAmount}
-                        color={t.colors.accent}
+                        color={theme.colors.accent}
                       />
-                      <Text style={styles.categoryRemaining}>
+                      <Text style={[styles.categoryRemaining, { fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.muted, marginTop: theme.spacing.xs }]}>
                         Rp {formatCurrency(cat.remainingAmount)} left
                       </Text>
                     </View>
@@ -254,14 +246,14 @@ export default function BudgetScreen() {
             <TerminalCard title="UNALLOCATED">
               <View style={styles.unallocatedRow}>
                 <View style={styles.unallocatedItem}>
-                  <Text style={styles.unallocatedLabel}>BUDGET</Text>
-                  <Text style={styles.unallocatedValue}>
+                  <Text style={[styles.unallocatedLabel, { fontFamily: theme.fonts.mono, fontSize: 10, color: theme.colors.muted, marginBottom: theme.spacing.xs }]}>BUDGET</Text>
+                  <Text style={[styles.unallocatedValue, { fontFamily: theme.fonts.mono, fontSize: 16, color: theme.colors.secondary }]}>
                     Rp {formatCurrency(budgetData?.unallocatedBudget ?? 0)}
                   </Text>
                 </View>
                 <View style={styles.unallocatedItem}>
-                  <Text style={styles.unallocatedLabel}>SPENT</Text>
-                  <Text style={styles.unallocatedValue}>
+                  <Text style={[styles.unallocatedLabel, { fontFamily: theme.fonts.mono, fontSize: 10, color: theme.colors.muted, marginBottom: theme.spacing.xs }]}>SPENT</Text>
+                  <Text style={[styles.unallocatedValue, { fontFamily: theme.fonts.mono, fontSize: 16, color: theme.colors.secondary }]}>
                     Rp {formatCurrency(budgetData?.unallocatedSpent ?? 0)}
                   </Text>
                 </View>
@@ -269,10 +261,10 @@ export default function BudgetScreen() {
             </TerminalCard>
 
             <TouchableOpacity
-              style={styles.editButton}
+              style={[styles.editButton, { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.primary, padding: theme.spacing.md, borderRadius: theme.border.radius, alignItems: "center", marginBottom: theme.spacing.md }]}
               onPress={handleEditBudget}
             >
-              <Text style={styles.editButtonText}>EDIT BUDGET</Text>
+              <Text style={[styles.editButtonText, { fontFamily: theme.fonts.mono, fontSize: 14, color: theme.colors.primary }]}>EDIT BUDGET</Text>
             </TouchableOpacity>
           </>
         )}
@@ -284,155 +276,53 @@ export default function BudgetScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: t.colors.background,
   },
   scrollView: {
     flex: 1,
   },
-  content: {
-    padding: t.spacing.lg,
-    paddingBottom: 150,
-  },
-  monthLabel: {
-    fontFamily: t.fonts.mono,
-    fontSize: 24,
-    color: t.colors.primary,
-    textAlign: "center",
-    marginBottom: t.spacing.lg,
-  },
-  card: {
-    marginBottom: t.spacing.lg,
-  },
-  cardHeader: {
-    backgroundColor: t.colors.card,
-    paddingHorizontal: t.spacing.md,
-    paddingTop: t.spacing.sm,
-    borderTopLeftRadius: t.border.radius,
-    borderTopRightRadius: t.border.radius,
-  },
-  cardTitle: {
-    fontFamily: t.fonts.mono,
-    fontSize: 12,
-    color: t.colors.secondary,
-  },
-  cardContent: {
-    backgroundColor: t.colors.card,
-    padding: t.spacing.lg,
-  },
-  cardFooter: {
-    fontFamily: t.fonts.mono,
-    fontSize: 10,
-    color: t.colors.border,
-    textAlign: "center",
-  },
-  emptyText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.muted,
-    textAlign: "center",
-    marginBottom: t.spacing.lg,
-  },
-  setButton: {
-    backgroundColor: t.colors.primary,
-    padding: t.spacing.md,
-    borderRadius: t.border.radius,
-    alignItems: "center",
-  },
-  setButtonText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.background,
-  },
+  content: {},
+  monthLabel: {},
+  card: {},
+  cardHeader: {},
+  cardTitle: {},
+  cardContent: {},
+  cardFooter: {},
+  emptyText: {},
+  setButton: {},
+  setButtonText: {},
   totalRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: t.spacing.md,
   },
   totalItem: {
     flex: 1,
     alignItems: "center",
   },
-  totalLabel: {
-    fontFamily: t.fonts.mono,
-    fontSize: 10,
-    color: t.colors.muted,
-    marginBottom: t.spacing.xs,
-  },
-  totalValue: {
-    fontFamily: t.fonts.mono,
-    fontSize: 18,
-    color: t.colors.primary,
-  },
+  totalLabel: {},
+  totalValue: {},
   progressContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: t.spacing.sm,
   },
-  progressBar: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    letterSpacing: 1,
-  },
-  progressText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 12,
-    color: t.colors.secondary,
-    marginLeft: t.spacing.sm,
-    width: 40,
-    textAlign: "right",
-  },
+  progressBar: {},
+  progressText: {},
   remainingRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: t.spacing.sm,
-    paddingTop: t.spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: t.colors.border,
   },
-  remainingLabel: {
-    fontFamily: t.fonts.mono,
-    fontSize: 12,
-    color: t.colors.secondary,
-  },
-  remainingValue: {
-    fontFamily: t.fonts.mono,
-    fontSize: 16,
-    color: t.colors.income,
-  },
-  categoryRow: {
-    marginBottom: t.spacing.md,
-    paddingBottom: t.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: t.colors.border,
-  },
-  categoryInfo: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: t.spacing.xs,
-  },
-  categoryName: {
-    fontFamily: t.fonts.mono,
-    fontSize: 13,
-    color: t.colors.secondary,
-  },
-  categoryBudget: {
-    fontFamily: t.fonts.mono,
-    fontSize: 13,
-    color: t.colors.primary,
-  },
-  categoryRemaining: {
-    fontFamily: t.fonts.mono,
-    fontSize: 11,
-    color: t.colors.muted,
-    marginTop: t.spacing.xs,
-  },
+  remainingLabel: {},
+  remainingValue: {},
+  categoryRow: {},
+  categoryInfo: {},
+  categoryName: {},
+  categoryBudget: {},
+  categoryRemaining: {},
   unallocatedRow: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -440,246 +330,8 @@ const styles = StyleSheet.create({
   unallocatedItem: {
     alignItems: "center",
   },
-  unallocatedLabel: {
-    fontFamily: t.fonts.mono,
-    fontSize: 10,
-    color: t.colors.muted,
-    marginBottom: t.spacing.xs,
-  },
-  unallocatedValue: {
-    fontFamily: t.fonts.mono,
-    fontSize: 16,
-    color: t.colors.secondary,
-  },
-  editButton: {
-    backgroundColor: t.colors.card,
-    borderWidth: 1,
-    borderColor: t.colors.primary,
-    padding: t.spacing.md,
-    borderRadius: t.border.radius,
-    alignItems: "center",
-    marginBottom: t.spacing.md,
-  },
-  editButtonText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.primary,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: t.colors.card,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: t.spacing.xl,
-    paddingBottom: 40,
-  },
-  modalScrollView: {
-    maxHeight: 400,
-  },
-  modalTitle: {
-    fontFamily: t.fonts.mono,
-    fontSize: 18,
-    color: t.colors.primary,
-    textAlign: "center",
-    marginBottom: t.spacing.xl,
-  },
-  errorContainer: {
-    backgroundColor: t.colors.expense + "20",
-    borderWidth: 1,
-    borderColor: t.colors.expense,
-    borderRadius: t.border.radius,
-    padding: t.spacing.md,
-    marginBottom: t.spacing.lg,
-  },
-  errorText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 12,
-    color: t.colors.expense,
-  },
-  inputLabel: {
-    fontFamily: t.fonts.mono,
-    fontSize: 11,
-    color: t.colors.muted,
-    marginBottom: t.spacing.xs,
-  },
-  input: {
-    backgroundColor: t.colors.background,
-    borderWidth: 1,
-    borderColor: t.colors.border,
-    borderRadius: t.border.radius,
-    padding: t.spacing.md,
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.secondary,
-    marginBottom: t.spacing.md,
-  },
-  allocationRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: t.spacing.sm,
-  },
-  categoryInput: {
-    flex: 2,
-    marginRight: t.spacing.sm,
-    marginBottom: 0,
-    position: "relative",
-  },
-  amountInput: {
-    flex: 1,
-    marginBottom: 0,
-  },
-  removeButton: {
-    width: 32,
-    height: 32,
-    justifyContent: "center",
-    alignItems: "center",
-    marginLeft: t.spacing.sm,
-  },
-  removeButtonText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 20,
-    color: t.colors.expense,
-  },
-  addButton: {
-    padding: t.spacing.md,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: t.colors.border,
-    borderRadius: t.border.radius,
-    borderStyle: "dashed",
-    marginVertical: t.spacing.md,
-  },
-  addButtonText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 12,
-    color: t.colors.muted,
-  },
-  modalButtons: {
-    flexDirection: "row",
-    marginTop: t.spacing.lg,
-  },
-  cancelButton: {
-    flex: 1,
-    padding: t.spacing.md,
-    alignItems: "center",
-    marginRight: t.spacing.sm,
-    borderWidth: 1,
-    borderColor: t.colors.border,
-    borderRadius: t.border.radius,
-  },
-  cancelButtonText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.muted,
-  },
-  saveButton: {
-    flex: 1,
-    padding: t.spacing.md,
-    alignItems: "center",
-    backgroundColor: t.colors.primary,
-    borderRadius: t.border.radius,
-    marginLeft: t.spacing.sm,
-  },
-  saveButtonText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.background,
-  },
-  allocationContainer: {
-    marginBottom: t.spacing.sm,
-    zIndex: 1,
-  },
-  categoryText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.secondary,
-  },
-  categoryPlaceholder: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.muted,
-  },
-  categoryTextInput: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.secondary,
-    padding: 0,
-    flex: 1,
-  },
-  categorySuggestions: {
-    position: "absolute",
-    top: "100%",
-    left: 0,
-    right: 0,
-    backgroundColor: t.colors.card,
-    borderWidth: 1,
-    borderColor: t.colors.border,
-    borderRadius: t.border.radius,
-    marginTop: 4,
-    zIndex: 10,
-  },
-  categorySuggestionsAbove: {
-    backgroundColor: t.colors.card,
-    borderWidth: 1,
-    borderColor: t.colors.border,
-    borderRadius: t.border.radius,
-    marginBottom: 4,
-    zIndex: 10,
-  },
-  categorySuggestion: {
-    padding: t.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: t.colors.border,
-  },
-  categorySuggestionText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.secondary,
-  },
-  pickerOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "flex-end",
-  },
-  pickerContainer: {
-    backgroundColor: t.colors.card,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: "60%",
-  },
-  pickerHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: t.spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: t.colors.border,
-  },
-  pickerTitle: {
-    fontFamily: t.fonts.mono,
-    fontSize: 16,
-    color: t.colors.primary,
-  },
-  pickerClose: {
-    fontFamily: t.fonts.mono,
-    fontSize: 28,
-    color: t.colors.muted,
-  },
-  pickerList: {
-    paddingBottom: 40,
-  },
-  pickerOption: {
-    padding: t.spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: t.colors.border,
-  },
-  pickerOptionText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 16,
-    color: t.colors.secondary,
-  },
+  unallocatedLabel: {},
+  unallocatedValue: {},
+  editButton: {},
+  editButtonText: {},
 });

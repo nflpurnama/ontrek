@@ -28,6 +28,7 @@ If the user approves:
 npm start                    # Start Expo dev server
 npm run android              # Start with Android
 npm run ios                  # Start with iOS
+npm run web                  # Start with web
 
 # Linting
 npm run lint                 # Run ESLint (expo lint)
@@ -41,6 +42,8 @@ npm test -- --coverage     # With coverage
 # EAS Builds
 eas build --platform android --profile preview
 eas build --platform ios --profile preview
+eas build --platform android --profile production
+eas build --platform ios --profile production
 eas build:list             # List builds
 ```
 
@@ -51,16 +54,17 @@ src/
 ├── application/           # Use cases, providers, types
 │   ├── types/            # Type definitions (e.g., dashboard.ts)
 │   ├── providers/        # React context (dependency-provider.tsx)
-│   └── use-case/         # Business logic
+│   └── use-case/         # Business logic (organized by entity)
 ├── domain/               # Entities, repositories (interfaces), value objects
-│   ├── entities/         # Domain models (Transaction, Vendor, Category)
+│   ├── entities/         # Domain models (Account, Transaction, Vendor, Category, Budget, SavingsGoal)
 │   ├── repositories/     # Repository interfaces
 │   ├── constants/        # Enums (TransactionType, SpendingType)
 │   └── value-objects/   # Id, EntityMetadata
 ├── infrastructure/       # Implementations (SQLite repos, services)
-│   ├── database/        # SQLite schema, migrations
+│   ├── container/        # Dependency injection (createDependencies)
+│   ├── database/        # SQLite schema (directory), sqlite-transaction.ts
 │   ├── repository/      # Sqlite*Repository implementations
-│   └── services/        # SqliteFinancialTransactionService
+│   └── services/        # SqliteFinancialTransactionService, SqliteSavingsGoalService
 └── presentation/        # UI (screens, components, forms)
     ├── components/
     └── forms/
@@ -113,10 +117,12 @@ src/
 ## Database Conventions
 
 - Use Drizzle ORM with SQLite via `expo-sqlite`
-- Schema in `src/infrastructure/database/sqlite/schema.ts`
-- Migrations in `drizzle/migrations/`
+- Schema in `src/infrastructure/database/sqlite/schema/` (directory with separate files per entity)
+- Migrations in `drizzle/` (SQL files with auto-generated names)
+- Generate migrations: `npx drizzle-kit generate`
 - Repository pattern: interface in `domain/`, implementation in `infrastructure/`
 - `SqliteFinancialTransactionService` depends on `DatabaseTransaction` interface (not concrete class)
+- `SqliteSavingsGoalService` handles savings goal operations with transaction support
 
 ## Expo Router
 
@@ -131,13 +137,14 @@ src/
 ### Creating a New Use Case
 1. Create in `src/application/use-case/<entity>/<action>.ts`
 2. Define input/output types
-3. Inject required repositories via constructor
-4. Add to `DependencyContainer` and `Dependencies` interface
+3. Inject required repositories/services via constructor
+4. Add to `createDependencies()` in `src/infrastructure/container/dependency-container.ts`
+5. Add to `Dependencies` interface in `src/application/providers/dependency-provider.tsx`
 
 ### Creating a New Repository
 1. Define interface in `src/domain/repositories/`
 2. Implement in `src/infrastructure/repository/sqlite/`
-3. Register in `DependencyContainer`
+3. Register in `createDependencies()` function
 
 ### Adding a New Screen
 1. Create in `app/` following Expo Router conventions

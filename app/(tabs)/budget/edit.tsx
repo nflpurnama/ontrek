@@ -13,16 +13,15 @@ import React, { useState, useCallback } from "react";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { CurrentBudgetData } from "@/src/application/use-case/budget/get-current-budget";
-import { terminalTheme } from "@/src/presentation/theme/terminal";
+import { useTheme } from "@/src/presentation/theme/theme-provider";
 import { TopBar } from "@/src/presentation/components/top-bar";
 import {
   formatCurrency,
   parseCurrency,
 } from "@/src/presentation/utility/formatter/currency";
 
-const t = terminalTheme;
-
 export default function EditBudgetScreen() {
+  const { theme } = useTheme();
   const {
     getCurrentBudgetUseCase,
     setMonthlyBudgetUseCase,
@@ -37,12 +36,8 @@ export default function EditBudgetScreen() {
   const [allocations, setAllocations] = useState<
     { categoryId: string; categoryName: string; amount: number }[]
   >([]);
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>(
-    [],
-  );
-  const [selectedAllocationIndex, setSelectedAllocationIndex] = useState<
-    number | null
-  >(null);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [selectedAllocationIndex, setSelectedAllocationIndex] = useState<number | null>(null);
   const [categoryPickerVisible, setCategoryPickerVisible] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -87,11 +82,7 @@ export default function EditBudgetScreen() {
     } finally {
       setLoading(false);
     }
-  }, [
-    getCurrentBudgetUseCase,
-    copyBudgetToNextMonthUseCase,
-    getAllCategoriesUseCase,
-  ]);
+  }, [getCurrentBudgetUseCase, copyBudgetToNextMonthUseCase, getAllCategoriesUseCase]);
 
   useFocusEffect(
     useCallback(() => {
@@ -128,17 +119,10 @@ export default function EditBudgetScreen() {
   };
 
   const addAllocation = () => {
-    setAllocations([
-      ...allocations,
-      { categoryId: "", categoryName: "", amount: 0 },
-    ]);
+    setAllocations([...allocations, { categoryId: "", categoryName: "", amount: 0 }]);
   };
 
-  const updateAllocation = (
-    index: number,
-    field: "categoryId" | "categoryName" | "amount",
-    value: string | number,
-  ) => {
+  const updateAllocation = (index: number, field: "categoryId" | "categoryName" | "amount", value: string | number) => {
     const newAllocations = [...allocations];
     newAllocations[index] = { ...newAllocations[index], [field]: value };
     setAllocations(newAllocations);
@@ -166,95 +150,78 @@ export default function EditBudgetScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Loading...</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
+        <Text style={[styles.loadingText, { fontFamily: theme.fonts.mono, fontSize: 14, color: theme.colors.muted }]}>Loading...</Text>
       </View>
     );
   }
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <TopBar title="ontrek" subtitle="@edit-budget"/>
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { padding: theme.spacing.lg, paddingBottom: 100 }]}
         keyboardShouldPersistTaps="handled"
       >
         {validationError && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{validationError}</Text>
+          <View style={[styles.errorContainer, { backgroundColor: theme.colors.expense + "20", borderWidth: 1, borderColor: theme.colors.expense, borderRadius: theme.border.radius, padding: theme.spacing.md, marginBottom: theme.spacing.lg }]}>
+            <Text style={[styles.errorText, { fontFamily: theme.fonts.mono, fontSize: 12, color: theme.colors.expense }]}>{validationError}</Text>
           </View>
         )}
 
-        <Text style={styles.inputLabel}>TOTAL MONTHLY BUDGET</Text>
+        <Text style={[styles.inputLabel, { fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.muted, marginBottom: theme.spacing.xs }]}>TOTAL MONTHLY BUDGET</Text>
         <TextInput
-          style={[styles.input, { color: t.colors.secondary }]}
+          style={[styles.input, { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.border.radius, padding: theme.spacing.md, fontFamily: theme.fonts.mono, fontSize: 14, color: theme.colors.secondary, marginBottom: theme.spacing.md }]}
           value={totalBudget > 0 ? formatCurrency(totalBudget) : ""}
           onChangeText={(text) => setTotalBudget(parseCurrency(text))}
           keyboardType="numeric"
           placeholder="Enter amount"
-          placeholderTextColor={t.colors.muted}
+          placeholderTextColor={theme.colors.muted}
         />
 
-        <Text style={styles.inputLabel}>CATEGORY ALLOCATIONS</Text>
+        <Text style={[styles.inputLabel, { fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.muted, marginBottom: theme.spacing.xs }]}>CATEGORY ALLOCATIONS</Text>
         {allocations.map((allocation, index) => (
-          <View key={index} style={styles.allocationRow}>
+          <View key={index} style={[styles.allocationRow, { flexDirection: "row", alignItems: "center", marginBottom: theme.spacing.sm }]}>
             <TouchableOpacity
-              style={[styles.input, styles.categoryInput]}
+              style={[styles.input, styles.categoryInput, { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.border.radius, padding: theme.spacing.md, marginBottom: 0, flex: 2, marginRight: theme.spacing.sm, justifyContent: "center" }]}
               onPress={() => {
                 setSelectedAllocationIndex(index);
                 setCategoryPickerVisible(true);
               }}
             >
-              <Text
-                style={
-                  allocation.categoryName
-                    ? styles.categoryText
-                    : styles.categoryPlaceholder
-                }
-              >
+              <Text style={allocation.categoryName ? { fontFamily: theme.fonts.mono, fontSize: 14, color: theme.colors.secondary } : { fontFamily: theme.fonts.mono, fontSize: 14, color: theme.colors.muted }}>
                 {allocation.categoryName || "Select category"}
               </Text>
             </TouchableOpacity>
             <TextInput
-              style={[
-                styles.input,
-                styles.amountInput,
-                { color: t.colors.secondary },
-              ]}
-              value={
-                allocation.amount > 0 ? formatCurrency(allocation.amount) : ""
-              }
-              onChangeText={(text) =>
-                updateAllocation(index, "amount", parseCurrency(text))
-              }
+              style={[styles.input, styles.amountInput, { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.border.radius, padding: theme.spacing.md, fontFamily: theme.fonts.mono, fontSize: 14, color: theme.colors.secondary, marginBottom: 0, flex: 1 }]}
+              value={allocation.amount > 0 ? formatCurrency(allocation.amount) : ""}
+              onChangeText={(text) => updateAllocation(index, "amount", parseCurrency(text))}
               keyboardType="numeric"
               placeholder="Amount"
-              placeholderTextColor={t.colors.muted}
+              placeholderTextColor={theme.colors.muted}
             />
-            <TouchableOpacity
-              style={styles.removeButton}
-              onPress={() => removeAllocation(index)}
-            >
-              <Text style={styles.removeButtonText}>×</Text>
+            <TouchableOpacity style={[styles.removeButton, { width: 32, height: 32, justifyContent: "center", alignItems: "center", marginLeft: theme.spacing.sm }]} onPress={() => removeAllocation(index)}>
+              <Text style={[styles.removeButtonText, { fontFamily: theme.fonts.mono, fontSize: 20, color: theme.colors.expense }]}>×</Text>
             </TouchableOpacity>
           </View>
         ))}
 
-        <TouchableOpacity style={styles.addButton} onPress={addAllocation}>
-          <Text style={styles.addButtonText}>+ ADD CATEGORY</Text>
+        <TouchableOpacity style={[styles.addButton, { padding: theme.spacing.md, alignItems: "center", borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.border.radius, borderStyle: "dashed", marginBottom: theme.spacing.md }]} onPress={addAllocation}>
+          <Text style={[styles.addButtonText, { fontFamily: theme.fonts.mono, fontSize: 12, color: theme.colors.muted }]}>+ ADD CATEGORY</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.saveButton, !canSave && styles.saveButtonDisabled]}
+          style={[styles.saveButton, { padding: theme.spacing.lg, alignItems: "center", backgroundColor: canSave ? theme.colors.primary : theme.colors.muted, borderRadius: theme.border.radius, marginTop: theme.spacing.xl }]}
           onPress={handleSave}
           disabled={!canSave}
         >
-          <Text style={styles.saveButtonText}>
+          <Text style={[styles.saveButtonText, { fontFamily: theme.fonts.mono, fontSize: 14, color: theme.colors.background }]}>
             {saving ? "SAVING..." : "SAVE"}
           </Text>
         </TouchableOpacity>
@@ -263,7 +230,7 @@ export default function EditBudgetScreen() {
       {categoryPickerVisible && (
         <>
           <TouchableOpacity
-            style={styles.pickerOverlay}
+            style={[styles.pickerOverlay, { backgroundColor: "rgba(0,0,0,0.7)" }]}
             activeOpacity={1}
             onPress={() => {
               setCategoryPickerVisible(false);
@@ -283,31 +250,20 @@ export default function EditBudgetScreen() {
         }}
         navigationBarTranslucent
       >
-        <View style={styles.pickerContainerWrapper}>
-          <View style={styles.pickerContainer}>
-            <View style={styles.pickerHeader}>
-              <Text style={styles.pickerTitle}>SELECT CATEGORY</Text>
-              <TouchableOpacity
-                onPress={() => {
-                  setCategoryPickerVisible(false);
-                  setSelectedAllocationIndex(null);
-                }}
-              >
-                <Text style={styles.pickerClose}>×</Text>
+        <View style={[styles.pickerContainerWrapper, { flex: 1, justifyContent: "flex-end" }]}>
+          <View style={[styles.pickerContainer, { backgroundColor: theme.colors.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: "60%" }]}>
+            <View style={[styles.pickerHeader, { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: theme.spacing.lg, borderBottomWidth: 1, borderBottomColor: theme.colors.border }]}>
+              <Text style={[styles.pickerTitle, { fontFamily: theme.fonts.mono, fontSize: 16, color: theme.colors.primary }]}>SELECT CATEGORY</Text>
+              <TouchableOpacity onPress={() => { setCategoryPickerVisible(false); setSelectedAllocationIndex(null); }}>
+                <Text style={[styles.pickerClose, { fontFamily: theme.fonts.mono, fontSize: 28, color: theme.colors.muted }]}>×</Text>
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.pickerList}>
-              {[...categories]
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map((cat) => (
-                  <TouchableOpacity
-                    key={cat.id}
-                    style={styles.pickerOption}
-                    onPress={() => selectCategory(cat)}
-                  >
-                    <Text style={styles.pickerOptionText}>{cat.name}</Text>
-                  </TouchableOpacity>
-                ))}
+              {[...categories].sort((a, b) => a.name.localeCompare(b.name)).map((cat) => (
+                <TouchableOpacity key={cat.id} style={[styles.pickerOption, { padding: theme.spacing.lg, borderBottomWidth: 1, borderBottomColor: theme.colors.border }]} onPress={() => selectCategory(cat)}>
+                  <Text style={[styles.pickerOptionText, { fontFamily: theme.fonts.mono, fontSize: 16, color: theme.colors.secondary }]}>{cat.name}</Text>
+                </TouchableOpacity>
+              ))}
             </ScrollView>
           </View>
         </View>
@@ -317,167 +273,34 @@ export default function EditBudgetScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: t.colors.background,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: t.colors.background,
-  },
-  loadingText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.muted,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    padding: t.spacing.lg,
-    paddingBottom: 100,
-  },
-  errorContainer: {
-    backgroundColor: t.colors.expense + "20",
-    borderWidth: 1,
-    borderColor: t.colors.expense,
-    borderRadius: t.border.radius,
-    padding: t.spacing.md,
-    marginBottom: t.spacing.lg,
-  },
-  errorText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 12,
-    color: t.colors.expense,
-  },
-  inputLabel: {
-    fontFamily: t.fonts.mono,
-    fontSize: 11,
-    color: t.colors.muted,
-    marginBottom: t.spacing.xs,
-  },
-  input: {
-    backgroundColor: t.colors.card,
-    borderWidth: 1,
-    borderColor: t.colors.border,
-    borderRadius: t.border.radius,
-    padding: t.spacing.md,
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.secondary,
-    marginBottom: t.spacing.md,
-  },
-  allocationRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: t.spacing.sm,
-  },
-  categoryInput: {
-    flex: 2,
-    marginRight: t.spacing.sm,
-    marginBottom: 0,
-    justifyContent: "center",
-  },
-  amountInput: {
-    flex: 1,
-    marginBottom: 0,
-  },
-  removeButton: {
-    width: 32,
-    height: 32,
-    justifyContent: "center",
-    alignItems: "center",
-    marginLeft: t.spacing.sm,
-  },
-  removeButtonText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 20,
-    color: t.colors.expense,
-  },
-  addButton: {
-    padding: t.spacing.md,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: t.colors.border,
-    borderRadius: t.border.radius,
-    borderStyle: "dashed",
-  },
-  addButtonText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 12,
-    color: t.colors.muted,
-  },
-  saveButton: {
-    padding: t.spacing.lg,
-    alignItems: "center",
-    backgroundColor: t.colors.primary,
-    borderRadius: t.border.radius,
-    marginTop: t.spacing.xl,
-  },
-  saveButtonDisabled: {
-    backgroundColor: t.colors.muted,
-  },
-  saveButtonText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.background,
-  },
-  pickerOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    zIndex: 999,
-  },
-  pickerContainerWrapper: {
-    flex: 1,
-    justifyContent: "flex-end",
-  },
-  pickerContainer: {
-    backgroundColor: t.colors.card,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: "60%",
-  },
-  pickerHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: t.spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: t.colors.border,
-  },
-  pickerTitle: {
-    fontFamily: t.fonts.mono,
-    fontSize: 16,
-    color: t.colors.primary,
-  },
-  pickerClose: {
-    fontFamily: t.fonts.mono,
-    fontSize: 28,
-    color: t.colors.muted,
-  },
-  pickerList: {
-    paddingBottom: 40,
-  },
-  pickerOption: {
-    padding: t.spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: t.colors.border,
-  },
-  pickerOptionText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 16,
-    color: t.colors.secondary,
-  },
-  categoryText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.secondary,
-  },
-  categoryPlaceholder: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.muted,
-  },
+  container: { flex: 1 },
+  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  loadingText: {},
+  scrollView: { flex: 1 },
+  content: {},
+  errorContainer: {},
+  errorText: {},
+  inputLabel: {},
+  input: {},
+  allocationRow: {},
+  categoryInput: {},
+  amountInput: {},
+  removeButton: {},
+  removeButtonText: {},
+  addButton: {},
+  addButtonText: {},
+  saveButton: {},
+  saveButtonDisabled: {},
+  saveButtonText: {},
+  pickerOverlay: {},
+  pickerContainerWrapper: {},
+  pickerContainer: {},
+  pickerHeader: {},
+  pickerTitle: {},
+  pickerClose: {},
+  pickerList: {},
+  pickerOption: {},
+  pickerOptionText: {},
+  categoryText: {},
+  categoryPlaceholder: {},
 });

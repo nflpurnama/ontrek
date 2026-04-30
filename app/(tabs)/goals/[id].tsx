@@ -12,11 +12,9 @@ import {
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { SavingsGoal } from "@/src/domain/entities/savings-goal";
 import { Id } from "@/src/domain/value-objects/id";
-import { terminalTheme } from "@/src/presentation/theme/terminal";
+import { useTheme } from "@/src/presentation/theme/theme-provider";
 import { TopBar } from "@/src/presentation/components/top-bar";
 import { formatCurrencyShort } from "@/src/presentation/utility/formatter/currency";
-
-const t = terminalTheme;
 
 const formatDate = (date: Date | null): string => {
   if (!date) return "No deadline";
@@ -27,26 +25,35 @@ const formatDate = (date: Date | null): string => {
   }).toUpperCase();
 };
 
-const TerminalCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <View style={styles.card}>
-    <View style={styles.cardHeader}>
-      <Text style={styles.cardTitle}>{t.ascii.tl}{title}{t.ascii.tr}</Text>
+const TerminalCard = ({ title, children }: { title: string; children: React.ReactNode }) => {
+  const { theme } = useTheme();
+  return (
+    <View style={[styles.card, { marginBottom: theme.spacing.lg, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.border.radius }]}>
+      <View style={[styles.cardHeader, { backgroundColor: theme.colors.card, paddingHorizontal: theme.spacing.md, paddingTop: theme.spacing.sm, borderTopLeftRadius: theme.border.radius, borderTopRightRadius: theme.border.radius }]}>
+        <Text style={[styles.cardTitle, { fontFamily: theme.fonts.mono, fontSize: 12, color: theme.colors.secondary }]}>{theme.ascii?.tl ?? ""}{title}{theme.ascii?.tr ?? ""}</Text>
+      </View>
+      <View style={[styles.cardContent, { backgroundColor: theme.colors.card, padding: theme.spacing.lg }]}>
+        {children}
+      </View>
+      {theme.ascii && (
+        <Text style={[styles.cardFooter, { fontFamily: theme.fonts.mono, fontSize: 10, color: theme.colors.border, textAlign: "center" }]}>{theme.ascii.bl}{theme.ascii.h.repeat(20)}{theme.ascii.br}</Text>
+      )}
     </View>
-    <View style={styles.cardContent}>
-      {children}
-    </View>
-    <Text style={styles.cardFooter}>{t.ascii.bl}{t.ascii.h.repeat(20)}{t.ascii.br}</Text>
-  </View>
-);
+  );
+};
 
-const TerminalRow = ({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) => (
-  <View style={styles.row}>
-    <Text style={styles.label}>{label}</Text>
-    <Text style={[styles.value, valueColor ? { color: valueColor } : null]}>{value}</Text>
-  </View>
-);
+const TerminalRow = ({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) => {
+  const { theme } = useTheme();
+  return (
+    <View style={[styles.row, { paddingVertical: theme.spacing.sm }]}>
+      <Text style={[styles.label, { fontFamily: theme.fonts.mono, fontSize: 13, color: theme.colors.muted }]}>{label}</Text>
+      <Text style={[styles.value, { fontFamily: theme.fonts.mono, fontSize: 14, color: theme.colors.secondary, textAlign: "right", maxWidth: "60%" }, valueColor ? { color: valueColor } : null]}>{value}</Text>
+    </View>
+  );
+};
 
 export default function GoalDetailScreen() {
+  const { theme } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { getSavingsGoalByIdUseCase, deleteSavingsGoalUseCase } = useDependencies();
@@ -104,18 +111,18 @@ export default function GoalDetailScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={t.colors.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
 
   if (!goal) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <TopBar title="ontrek" subtitle="@goal/not-found" />
         <View style={styles.center}>
-          <Text style={styles.errorText}>[ goal not found ]</Text>
+          <Text style={[styles.errorText, { fontFamily: theme.fonts.mono, fontSize: 14, color: theme.colors.muted }]}>[ goal not found ]</Text>
         </View>
       </View>
     );
@@ -125,74 +132,74 @@ export default function GoalDetailScreen() {
   const isCompleted = goal.isCompleted;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <TopBar title="ontrek" subtitle={`@goal/${goal.name}`} />
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={[styles.content, { padding: theme.spacing.lg, paddingBottom: 100 }]}>
         <TerminalCard title="DETAILS">
           <TerminalRow
             label="NAME"
             value={goal.name}
-            valueColor={isCompleted ? t.colors.income : t.colors.primary}
+            valueColor={isCompleted ? theme.colors.income : theme.colors.primary}
           />
-          <View style={styles.divider} />
+          <View style={[styles.divider, { height: 1, backgroundColor: theme.colors.border }]} />
           <TerminalRow
             label="TARGET"
             value={`Rp ${formatCurrencyShort(goal.targetAmount)}`}
-            valueColor={t.colors.secondary}
+            valueColor={theme.colors.secondary}
           />
-          <View style={styles.divider} />
+          <View style={[styles.divider, { height: 1, backgroundColor: theme.colors.border }]} />
           <TerminalRow
             label="CURRENT"
             value={`Rp ${formatCurrencyShort(goal.currentBalance)}`}
-            valueColor={t.colors.income}
+            valueColor={theme.colors.income}
           />
-          <View style={styles.divider} />
+          <View style={[styles.divider, { height: 1, backgroundColor: theme.colors.border }]} />
           <TerminalRow
             label="PROGRESS"
             value={`${progressPercent.toFixed(0)}%`}
-            valueColor={t.colors.accent}
+            valueColor={theme.colors.accent}
           />
-          <View style={styles.divider} />
+          <View style={[styles.divider, { height: 1, backgroundColor: theme.colors.border }]} />
           <TerminalRow
             label="DEADLINE"
             value={formatDate(goal.targetDate)}
           />
         </TerminalCard>
 
-        <View style={styles.progressContainer}>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
+        <View style={[styles.progressContainer, { marginBottom: theme.spacing.lg }]}>
+          <View style={[styles.progressBar, { height: 12, backgroundColor: theme.colors.border, borderRadius: 6, overflow: "hidden" }]}>
+            <View style={[styles.progressFill, { width: `${progressPercent}%`, height: "100%", backgroundColor: theme.colors.accent, borderRadius: 6 }]} />
           </View>
         </View>
 
         {isCompleted && (
-          <View style={styles.completedBanner}>
-            <Text style={styles.completedText}>GOAL COMPLETED</Text>
+          <View style={[styles.completedBanner, { backgroundColor: theme.colors.income, padding: theme.spacing.md, borderRadius: theme.border.radius, alignItems: "center", marginBottom: theme.spacing.lg }]}>
+            <Text style={[styles.completedText, { fontFamily: theme.fonts.mono, fontSize: 14, color: theme.colors.background }]}>GOAL COMPLETED</Text>
           </View>
         )}
 
-        <View style={styles.actionRow}>
+        <View style={[styles.actionRow, { flexDirection: "row", justifyContent: "space-between", marginBottom: theme.spacing.lg }]}>
           <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => router.push(`/goals/${id}/deposit`)}
+            style={[styles.actionButton, { flex: 1, backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, padding: theme.spacing.md, borderRadius: theme.border.radius, alignItems: "center", marginHorizontal: theme.spacing.xs }]}
+            onPress={() => router.push(`/goals/${id}/deposit` as any)}
           >
-            <Text style={styles.actionButtonText}>[ deposit ]</Text>
+            <Text style={[styles.actionButtonText, { fontFamily: theme.fonts.mono, fontSize: 13, color: theme.colors.primary }]}>[ deposit ]</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => router.push(`/goals/${id}/withdraw`)}
+            style={[styles.actionButton, { flex: 1, backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, padding: theme.spacing.md, borderRadius: theme.border.radius, alignItems: "center", marginHorizontal: theme.spacing.xs }]}
+            onPress={() => router.push(`/goals/${id}/withdraw` as any)}
           >
-            <Text style={styles.actionButtonText}>[ withdraw ]</Text>
+            <Text style={[styles.actionButtonText, { fontFamily: theme.fonts.mono, fontSize: 13, color: theme.colors.primary }]}>[ withdraw ]</Text>
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity
-          style={[styles.deleteButton, deleting && styles.deleteButtonDisabled]}
+          style={[styles.deleteButton, { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.expense, padding: theme.spacing.lg, borderRadius: theme.border.radius, alignItems: "center", marginTop: theme.spacing.md }, deleting && { opacity: 0.5 }]}
           onPress={handleDelete}
           disabled={deleting}
         >
-          <Text style={styles.deleteText}>
+          <Text style={[styles.deleteText, { fontFamily: theme.fonts.mono, fontSize: 14, color: theme.colors.expense }]}>
             {deleting ? "deleting..." : "[ delete goal ]"}
           </Text>
         </TouchableOpacity>
@@ -204,139 +211,44 @@ export default function GoalDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: t.colors.background,
   },
   scrollView: {
     flex: 1,
   },
-  content: {
-    padding: t.spacing.lg,
-    paddingBottom: 100,
-  },
+  content: {},
   center: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-  errorText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.muted,
-  },
-  card: {
-    marginBottom: t.spacing.lg,
-  },
-  cardHeader: {
-    backgroundColor: t.colors.card,
-    paddingHorizontal: t.spacing.md,
-    paddingTop: t.spacing.sm,
-    borderTopLeftRadius: t.border.radius,
-    borderTopRightRadius: t.border.radius,
-  },
-  cardTitle: {
-    fontFamily: t.fonts.mono,
-    fontSize: 12,
-    color: t.colors.secondary,
-  },
-  cardContent: {
-    backgroundColor: t.colors.card,
-    padding: t.spacing.lg,
-  },
-  cardFooter: {
-    fontFamily: t.fonts.mono,
-    fontSize: 10,
-    color: t.colors.border,
-    textAlign: "center",
-  },
+  errorText: {},
+  card: {},
+  cardHeader: {},
+  cardTitle: {},
+  cardContent: {},
+  cardFooter: {},
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: t.spacing.sm,
   },
-  divider: {
-    height: 1,
-    backgroundColor: t.colors.border,
-  },
-  label: {
-    fontFamily: t.fonts.mono,
-    fontSize: 13,
-    color: t.colors.muted,
-  },
-  value: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.secondary,
-    textAlign: "right",
-    maxWidth: "60%",
-  },
-  progressContainer: {
-    marginBottom: t.spacing.lg,
-  },
-  progressBar: {
-    height: 12,
-    backgroundColor: t.colors.border,
-    borderRadius: 6,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: "100%",
-    backgroundColor: t.colors.accent,
-    borderRadius: 6,
-  },
-  completedBanner: {
-    backgroundColor: t.colors.income,
-    padding: t.spacing.md,
-    borderRadius: t.border.radius,
-    alignItems: "center",
-    marginBottom: t.spacing.lg,
-  },
-  completedText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.background,
-  },
-  actionRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: t.spacing.lg,
-  },
-  actionButton: {
-    flex: 1,
-    backgroundColor: t.colors.card,
-    borderWidth: 1,
-    borderColor: t.colors.border,
-    padding: t.spacing.md,
-    borderRadius: t.border.radius,
-    alignItems: "center",
-    marginHorizontal: t.spacing.xs,
-  },
-  actionButtonText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 13,
-    color: t.colors.primary,
-  },
-  deleteButton: {
-    backgroundColor: t.colors.card,
-    borderWidth: 1,
-    borderColor: t.colors.expense,
-    padding: t.spacing.lg,
-    borderRadius: t.border.radius,
-    alignItems: "center",
-    marginTop: t.spacing.md,
-  },
-  deleteButtonDisabled: {
-    opacity: 0.5,
-  },
-  deleteText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.expense,
-  },
+  divider: {},
+  label: {},
+  value: {},
+  progressContainer: {},
+  progressBar: {},
+  progressFill: {},
+  completedBanner: {},
+  completedText: {},
+  actionRow: {},
+  actionButton: {},
+  actionButtonText: {},
+  deleteButton: {},
+  deleteButtonDisabled: {},
+  deleteText: {},
 });

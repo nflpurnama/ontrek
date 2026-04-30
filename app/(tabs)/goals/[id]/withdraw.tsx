@@ -2,13 +2,12 @@ import { Text, View, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView,
 import React, { useState, useCallback } from "react";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
-import { terminalTheme } from "@/src/presentation/theme/terminal";
+import { useTheme } from "@/src/presentation/theme/theme-provider";
 import { TopBar } from "@/src/presentation/components/top-bar";
 import { formatCurrency, parseCurrency } from "@/src/presentation/utility/formatter/currency";
 
-const t = terminalTheme;
-
 export default function WithdrawFromGoal() {
+  const { theme } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { withdrawFromSavingsGoalUseCase } = useDependencies();
   const [amount, setAmount] = useState(0);
@@ -37,7 +36,7 @@ export default function WithdrawFromGoal() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <TopBar
@@ -50,28 +49,28 @@ export default function WithdrawFromGoal() {
         }}
       />
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>AMOUNT</Text>
+      <ScrollView style={styles.scrollView} contentContainerStyle={[styles.content, { padding: theme.spacing.lg }]}>
+        <View style={[styles.inputGroup, { marginBottom: theme.spacing.xl }]}>
+          <Text style={[styles.label, { fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.secondary, marginBottom: theme.spacing.sm }]}>AMOUNT</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.border.radius, padding: theme.spacing.lg, fontFamily: theme.fonts.mono, fontSize: 16, color: theme.colors.primary }]}
             value={amount > 0 ? formatCurrency(amount) : ""}
             onChangeText={(text) => {
               const raw = parseCurrency(text);
               setAmount(raw);
             }}
             placeholder="0"
-            placeholderTextColor={t.colors.muted}
+            placeholderTextColor={theme.colors.muted}
             keyboardType="numeric"
           />
         </View>
 
         <TouchableOpacity
-          style={[styles.actionButton, loading && styles.buttonDisabled]}
+          style={[styles.actionButton, { backgroundColor: theme.colors.income, borderRadius: theme.border.radius, padding: theme.spacing.lg, alignItems: "center", marginTop: theme.spacing.lg }, loading && { opacity: 0.5 }]}
           onPress={handleWithdraw}
           disabled={loading}
         >
-          <Text style={styles.actionButtonText}>
+          <Text style={[styles.actionButtonText, { fontFamily: theme.fonts.mono, fontSize: 14, color: theme.colors.background }]}>
             {loading ? "WITHDRAWING..." : "WITHDRAW"}
           </Text>
         </TouchableOpacity>
@@ -83,46 +82,15 @@ export default function WithdrawFromGoal() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: t.colors.background,
   },
   scrollView: {
     flex: 1,
   },
-  content: {
-    padding: t.spacing.lg,
-  },
-  inputGroup: {
-    marginBottom: t.spacing.xl,
-  },
-  label: {
-    fontFamily: t.fonts.mono,
-    fontSize: 11,
-    color: t.colors.secondary,
-    marginBottom: t.spacing.sm,
-  },
-  input: {
-    backgroundColor: t.colors.card,
-    borderWidth: 1,
-    borderColor: t.colors.border,
-    borderRadius: t.border.radius,
-    padding: t.spacing.lg,
-    fontFamily: t.fonts.mono,
-    fontSize: 16,
-    color: t.colors.primary,
-  },
-  actionButton: {
-    backgroundColor: t.colors.income,
-    borderRadius: t.border.radius,
-    padding: t.spacing.lg,
-    alignItems: "center",
-    marginTop: t.spacing.lg,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  actionButtonText: {
-    fontFamily: t.fonts.mono,
-    fontSize: 14,
-    color: t.colors.background,
-  },
+  content: {},
+  inputGroup: {},
+  label: {},
+  input: {},
+  actionButton: {},
+  buttonDisabled: {},
+  actionButtonText: {},
 });

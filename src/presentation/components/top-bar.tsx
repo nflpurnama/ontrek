@@ -1,8 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from "react-native";
-import { terminalTheme } from "../theme/terminal";
-
-const t = terminalTheme;
+import { useTheme } from "@/src/presentation/theme/theme-provider";
 
 interface TopBarProps {
   title: string;
@@ -19,11 +17,13 @@ export const TopBar: React.FC<TopBarProps> = ({
   subtitle,
   rightAction,
 }) => {
+  const { theme: t } = useTheme();
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.colors.card, borderBottomColor: t.colors.border }]}>
       <View style={styles.left}>
-        <Text style={styles.title}>{title}</Text>
-        {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+        <Text style={[styles.title, { fontFamily: t.fonts.mono, color: t.colors.secondary }]}>{title}</Text>
+        {subtitle && <Text style={[styles.subtitle, { fontFamily: t.fonts.mono, color: t.colors.muted }]}>{subtitle}</Text>}
       </View>
       <View style={styles.right}>
         {rightAction && (
@@ -35,7 +35,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             <Text
               style={[
                 styles.rightText,
-                rightAction.disabled && styles.rightTextDisabled,
+                { fontFamily: t.fonts.mono, color: rightAction.disabled ? t.colors.muted : t.colors.primary }
               ]}
             >
               {rightAction.label}
@@ -52,12 +52,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: t.spacing.lg,
+    paddingHorizontal: 16,
     paddingTop: 50,
-    paddingBottom: t.spacing.md,
-    backgroundColor: t.colors.card,
+    paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: t.colors.border,
   },
   left: {
     flex: 1,
@@ -68,24 +66,17 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   title: {
-    fontFamily: t.fonts.mono,
     fontSize: 14,
-    color: t.colors.secondary,
   },
   subtitle: {
-    fontFamily: t.fonts.mono,
     fontSize: 14,
-    color: t.colors.muted,
   },
   rightButton: {
-    paddingVertical: t.spacing.xs,
+    paddingVertical: 4,
   },
   rightText: {
-    fontFamily: t.fonts.mono,
     fontSize: 12,
-    color: t.colors.primary,
   },
   rightTextDisabled: {
-    color: t.colors.muted,
   },
 });

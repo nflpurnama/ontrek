@@ -1,18 +1,17 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { StyleSheet, Alert, View, Text, ActivityIndicator } from "react-native";
+import { StyleSheet, Alert, View, ActivityIndicator } from "react-native";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { Vendor } from "@/src/domain/entities/vendor";
 import { Category } from "@/src/domain/entities/category";
 import { TransactionForm, TransactionFormData } from "@/src/presentation/forms/transaction-form";
 import { useFocusEffect, useRouter, useLocalSearchParams } from "expo-router";
-import { terminalTheme } from "@/src/presentation/theme/terminal";
+import { useTheme } from "@/src/presentation/theme/theme-provider";
 import { Transaction } from "@/src/domain/entities/transaction";
 import { Id } from "@/src/domain/value-objects/id";
 import { TopBar } from "@/src/presentation/components/top-bar";
 
-const t = terminalTheme;
-
 export default function EditTransactionScreen() {
+  const { theme } = useTheme();
   const {
     updateTransactionUseCase,
     viewTransactionsUseCase,
@@ -127,17 +126,17 @@ export default function EditTransactionScreen() {
 
   if (loading || !initialData) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <TopBar title="ontrek" subtitle="@edit-transaction" />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={t.colors.primary} />
+        <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <TopBar title="ontrek" subtitle="@edit-transaction" />
       <TransactionForm
         key={key}
@@ -155,12 +154,10 @@ export default function EditTransactionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: t.colors.background,
   },
 });

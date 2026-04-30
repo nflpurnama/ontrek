@@ -1,20 +1,19 @@
 import { Stack } from "expo-router/stack";
 import { View } from "react-native";
-import { terminalTheme } from "@/src/presentation/theme/terminal";
-
-const t = terminalTheme;
+import { useTheme } from "@/src/presentation/theme/theme-provider";
 
 export const unstable_settings = {
   initialRouteName: 'index',
 };
 
 export default function GoalsLayout() {
+  const { theme } = useTheme();
   return (
-    <View style={{ flex: 1, backgroundColor: t.colors.background }}>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: t.colors.background },
+          contentStyle: { backgroundColor: theme.colors.background },
         }}
       />
     </View>
