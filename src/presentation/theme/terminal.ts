@@ -9,6 +9,8 @@ export const terminalTheme = {
     income: "#9ece6a",
     expense: "#f7768e",
     muted: "#565f89",
+    overlay: "rgba(0,0,0,0.5)",
+    shadow: "#000000",
   },
   fonts: {
     mono: "JetBrains Mono",

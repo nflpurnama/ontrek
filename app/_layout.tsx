@@ -19,6 +19,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useFonts } from "@expo-google-fonts/jetbrains-mono";
 
+import { ThemeProvider } from "@/src/presentation/theme/theme-provider";
+
 const db = openDatabaseSync(SQLITE_DB_NAME);
 const drizzleDb = drizzle(db, { schema });
 
@@ -76,8 +78,10 @@ export default function RootLayout() {
   }
 
   return (
-    <DependencyProvider dependencies={deps}>
-      <Slot />
-    </DependencyProvider>
+    <ThemeProvider>
+      <DependencyProvider dependencies={deps}>
+        <Slot />
+      </DependencyProvider>
+    </ThemeProvider>
   );
 }
