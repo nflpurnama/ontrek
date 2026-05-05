@@ -4,7 +4,7 @@
     "description": "Local-first budgeting and expense tracking app",
     "slug": "ontrek",
     "owner": "nfpurnama",
-    "version": "1.5.0",
+    "version": "1.5.1",
     "platforms": [
       "android"
     ],
@@ -26,7 +26,7 @@
         "monochromeImage": "./assets/images/android-icon-light.png",
         "backgroundColor": "#ffffff"
       },
-      "versionCode": 11
+      "versionCode": 12
     },
     "plugins": [
       "expo-sqlite",
