@@ -201,17 +201,61 @@ export const TransactionForm = ({
     if (!isValid) {
       return;
     }
+
+    let finalAmount = amount;
+    let finalDescription = description;
+    let finalVendorName = vendorName;
+    let finalCategory = category;
+    let finalTransactionDate = transactionDate;
+    let finalTransactionType = transactionType;
+
+    switch (phase) {
+      case "amount": {
+        const parsed = parseCurrency(inputValue);
+        if (parsed > 0) finalAmount = parsed;
+        break;
+      }
+      case "note":
+        finalDescription = inputValue.trim();
+        break;
+      case "vendor":
+        finalVendorName = inputValue.trim();
+        break;
+      case "category": {
+        const matched = categoryOptions.find(
+          (c) => c.name.toLowerCase() === inputValue.trim().toLowerCase()
+        );
+        finalCategory = matched ?? null;
+        break;
+      }
+      case "date": {
+        const match = inputValue.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (match) {
+          const [, day, month, year] = match;
+          const parsed = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
+          if (!isNaN(parsed.getTime())) finalTransactionDate = parsed;
+        }
+        break;
+      }
+      case "type": {
+        const lower = inputValue.toLowerCase();
+        if (lower === "e" || lower === "expense") finalTransactionType = "EXPENSE";
+        else if (lower === "i" || lower === "income") finalTransactionType = "INCOME";
+        break;
+      }
+    }
+
     handleSubmit({
-      amount,
-      category,
-      description,
+      amount: finalAmount,
+      category: finalCategory,
+      description: finalDescription,
       spendingType,
-      transactionType,
+      transactionType: finalTransactionType,
       vendor,
-      vendorName,
-      transactionDate,
+      vendorName: finalVendorName,
+      transactionDate: finalTransactionDate,
     });
-  }, [isValid, amount, category, description, spendingType, transactionType, vendor, vendorName, transactionDate, handleSubmit]);
+  }, [isValid, amount, category, description, spendingType, transactionType, vendor, vendorName, transactionDate, handleSubmit, phase, inputValue, categoryOptions]);
 
   const handleSubmitPhase = useCallback(() => {
     switch (phase) {
@@ -306,11 +350,11 @@ export const TransactionForm = ({
 
       case "amount":
         return (
-          <View style={[styles.amountRow, { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.border.radius, paddingHorizontal: theme.spacing.lg }]}>
-            <Text style={[styles.currencyPrefix, { fontSize: 24, fontFamily: theme.fonts.mono, color: theme.colors.secondary, marginRight: theme.spacing.sm }]}>Rp</Text>
+          <View style={[styles.amountRow, { flexDirection: "row", alignItems: "center", backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.border.radius, paddingHorizontal: theme.spacing.lg, paddingVertical: theme.spacing.sm }]}>
+            <Text style={[styles.currencyPrefix, { fontSize: 16, fontFamily: theme.fonts.mono, color: theme.colors.secondary, marginRight: theme.spacing.sm, lineHeight: 24 }]}>Rp</Text>
             <TextInput
               ref={inputRef}
-              style={[styles.amountInput, { flex: 1, fontSize: 24, fontFamily: theme.fonts.mono, color: theme.colors.primary, paddingVertical: theme.spacing.lg }]}
+              style={[styles.amountInput, { flex: 1, fontSize: 24, fontFamily: theme.fonts.mono, color: theme.colors.primary, lineHeight: 24, includeFontPadding: false }]}
               placeholder={
                 transactionType === "INCOME"
                   ? "how much did you earn?"
@@ -485,7 +529,7 @@ export const TransactionForm = ({
         </View>
 
         <TouchableOpacity
-            style={[styles.saveButton, { backgroundColor: isValid ? theme.colors.primary : theme.colors.muted, paddingVertical: theme.spacing.lg, borderRadius: theme.border.radius, alignItems: "center", marginTop: theme.spacing.md }]} 
+            style={[styles.saveButton, { backgroundColor: isValid ? theme.colors.primary : theme.colors.muted, paddingVertical: theme.spacing.lg, borderRadius: theme.border.radius, alignItems: "center", marginTop: theme.spacing.md }]}
             onPress={handleSavePress}
             disabled={!isValid}
           >
