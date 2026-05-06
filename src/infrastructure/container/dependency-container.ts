@@ -31,6 +31,17 @@ import { WithdrawFromSavingsGoalUseCase } from "@/src/application/use-case/savin
 import { DeleteSavingsGoalUseCase } from "@/src/application/use-case/savings-goal/delete-savings-goal";
 import { SqliteSavingsGoalRepository } from "../repository/sqlite/savings-goal-repository";
 import { SqliteSavingsGoalService } from "../services/sqlite/sqlite-savings-goal-service";
+import { CreateCategoryUseCase } from "@/src/application/use-case/category/create-category";
+import { UpdateCategoryUseCase } from "@/src/application/use-case/category/update-category";
+import { DeleteCategoryUseCase } from "@/src/application/use-case/category/delete-category";
+import { ExportUseCase } from "@/src/application/use-case/data/export-data";
+import { ImportUseCase } from "@/src/application/use-case/data/import-data";
+import { DataExportService } from "@/src/infrastructure/services/data-export-service";
+import { ProcessRecurringTransactionsUseCase } from "@/src/application/use-case/recurring-transaction/process-recurring-transactions";
+import { SqliteRecurringTransactionRepository } from "../repository/sqlite/recurring-transaction-repository";
+import { SqliteBudgetGoalAllocationRepository } from "../repository/sqlite/budget-goal-allocation-repository";
+import { SetBudgetGoalAllocationsUseCase } from "@/src/application/use-case/budget/set-budget-goal-allocations";
+import { GetBudgetGoalAllocationsUseCase } from "@/src/application/use-case/budget/get-budget-goal-allocations";
 
 export async function createDependencies(
   db: SQLite.SQLiteDatabase,
@@ -109,6 +120,34 @@ export async function createDependencies(
   const withdrawFromSavingsGoalUseCase = new WithdrawFromSavingsGoalUseCase(savingsGoalService);
   const deleteSavingsGoalUseCase = new DeleteSavingsGoalUseCase(savingsGoalService);
 
+  const createCategoryUseCase = new CreateCategoryUseCase(categoryRepository);
+  const updateCategoryUseCase = new UpdateCategoryUseCase(categoryRepository);
+  const deleteCategoryUseCase = new DeleteCategoryUseCase(categoryRepository);
+
+  const dataExportService = new DataExportService(
+    drizzleDb,
+    accountRepository,
+    categoryRepository,
+    vendorRepository,
+    transactionRepository,
+    budgetRepository,
+    savingsGoalRepository
+  );
+  const exportUseCase = new ExportUseCase();
+  const importUseCase = new ImportUseCase();
+
+  const recurringTransactionRepository = new SqliteRecurringTransactionRepository(drizzleDb);
+  const processRecurringTransactionsUseCase = new ProcessRecurringTransactionsUseCase(
+    recurringTransactionRepository,
+    financialTransactionService,
+    categoryRepository,
+    vendorRepository
+  );
+
+  const budgetGoalAllocationRepository = new SqliteBudgetGoalAllocationRepository(drizzleDb);
+  const setBudgetGoalAllocationsUseCase = new SetBudgetGoalAllocationsUseCase(budgetGoalAllocationRepository);
+  const getBudgetGoalAllocationsUseCase = new GetBudgetGoalAllocationsUseCase(budgetGoalAllocationRepository);
+
   return {
     ensureDefaultAccountUseCase,
     ensureDefaultCategoriesUseCase,
@@ -129,7 +168,18 @@ export async function createDependencies(
     depositToSavingsGoalUseCase,
     withdrawFromSavingsGoalUseCase,
     deleteSavingsGoalUseCase,
+    createCategoryUseCase,
+    updateCategoryUseCase,
+    deleteCategoryUseCase,
+    exportUseCase,
+    importUseCase,
+    dataExportService,
+    processRecurringTransactionsUseCase,
+    setBudgetGoalAllocationsUseCase,
+    getBudgetGoalAllocationsUseCase,
     vendorRepository,
     categoryRepository,
+    recurringTransactionRepository,
+    budgetGoalAllocationRepository,
   };
 }

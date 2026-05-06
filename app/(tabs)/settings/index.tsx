@@ -35,6 +35,18 @@ export default function SettingsScreen() {
           description="Manage your vendor list"
           onPress={() => router.push("/(tabs)/settings/vendors" as any)}
         />
+        <SettingsItem
+          icon="pricetags"
+          label="Categories"
+          description="Manage your categories"
+          onPress={() => router.push("/(tabs)/settings/categories" as any)}
+        />
+        <SettingsItem
+          icon="download"
+          label="Data"
+          description="Export or import your data"
+          onPress={() => router.push("/(tabs)/settings/data" as any)}
+        />
       </ScrollView>
     </View>
   );
