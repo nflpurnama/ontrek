@@ -21,12 +21,7 @@ import { DeleteSavingsGoalUseCase } from "../use-case/savings-goal/delete-saving
 import { CreateCategoryUseCase } from "../use-case/category/create-category";
 import { UpdateCategoryUseCase } from "../use-case/category/update-category";
 import { DeleteCategoryUseCase } from "../use-case/category/delete-category";
-import { ExportUseCase } from "../use-case/data/export-data";
-import { ImportUseCase } from "../use-case/data/import-data";
-import { DataExportService } from "@/src/infrastructure/services/data-export-service";
-import { ProcessRecurringTransactionsUseCase } from "../use-case/recurring-transaction/process-recurring-transactions";
-import { SetBudgetGoalAllocationsUseCase } from "../use-case/budget/set-budget-goal-allocations";
-import { GetBudgetGoalAllocationsUseCase } from "../use-case/budget/get-budget-goal-allocations";
+import { TransactionExportUseCase, TransactionImportUseCase } from "../use-case/data/transaction-import-export";
 import { VendorRepository } from "@/src/domain/repository/vendor-repository";
 import { CategoryRepository } from "@/src/domain/repository/category-repository";
 import { RecurringTransactionRepository } from "@/src/domain/repository/recurring-transaction-repository";
@@ -55,16 +50,10 @@ export interface Dependencies {
   createCategoryUseCase: CreateCategoryUseCase;
   updateCategoryUseCase: UpdateCategoryUseCase;
   deleteCategoryUseCase: DeleteCategoryUseCase;
-  exportUseCase: ExportUseCase;
-  importUseCase: ImportUseCase;
-  dataExportService: DataExportService;
-  processRecurringTransactionsUseCase: ProcessRecurringTransactionsUseCase;
-  setBudgetGoalAllocationsUseCase: SetBudgetGoalAllocationsUseCase;
-  getBudgetGoalAllocationsUseCase: GetBudgetGoalAllocationsUseCase;
+  transactionExportUseCase: TransactionExportUseCase;
+  transactionImportUseCase: TransactionImportUseCase;
   vendorRepository: VendorRepository;
   categoryRepository: CategoryRepository;
-  recurringTransactionRepository: RecurringTransactionRepository;
-  budgetGoalAllocationRepository: BudgetGoalAllocationRepository;
 }
 
 export const DependencyContext = React.createContext<Dependencies | null>(null);

@@ -34,14 +34,7 @@ import { SqliteSavingsGoalService } from "../services/sqlite/sqlite-savings-goal
 import { CreateCategoryUseCase } from "@/src/application/use-case/category/create-category";
 import { UpdateCategoryUseCase } from "@/src/application/use-case/category/update-category";
 import { DeleteCategoryUseCase } from "@/src/application/use-case/category/delete-category";
-import { ExportUseCase } from "@/src/application/use-case/data/export-data";
-import { ImportUseCase } from "@/src/application/use-case/data/import-data";
-import { DataExportService } from "@/src/infrastructure/services/data-export-service";
-import { ProcessRecurringTransactionsUseCase } from "@/src/application/use-case/recurring-transaction/process-recurring-transactions";
-import { SqliteRecurringTransactionRepository } from "../repository/sqlite/recurring-transaction-repository";
-import { SqliteBudgetGoalAllocationRepository } from "../repository/sqlite/budget-goal-allocation-repository";
-import { SetBudgetGoalAllocationsUseCase } from "@/src/application/use-case/budget/set-budget-goal-allocations";
-import { GetBudgetGoalAllocationsUseCase } from "@/src/application/use-case/budget/get-budget-goal-allocations";
+import { TransactionExportUseCase, TransactionImportUseCase } from "@/src/application/use-case/data/transaction-import-export";
 
 export async function createDependencies(
   db: SQLite.SQLiteDatabase,
@@ -124,29 +117,8 @@ export async function createDependencies(
   const updateCategoryUseCase = new UpdateCategoryUseCase(categoryRepository);
   const deleteCategoryUseCase = new DeleteCategoryUseCase(categoryRepository);
 
-  const dataExportService = new DataExportService(
-    drizzleDb,
-    accountRepository,
-    categoryRepository,
-    vendorRepository,
-    transactionRepository,
-    budgetRepository,
-    savingsGoalRepository
-  );
-  const exportUseCase = new ExportUseCase();
-  const importUseCase = new ImportUseCase();
-
-  const recurringTransactionRepository = new SqliteRecurringTransactionRepository(drizzleDb);
-  const processRecurringTransactionsUseCase = new ProcessRecurringTransactionsUseCase(
-    recurringTransactionRepository,
-    financialTransactionService,
-    categoryRepository,
-    vendorRepository
-  );
-
-  const budgetGoalAllocationRepository = new SqliteBudgetGoalAllocationRepository(drizzleDb);
-  const setBudgetGoalAllocationsUseCase = new SetBudgetGoalAllocationsUseCase(budgetGoalAllocationRepository);
-  const getBudgetGoalAllocationsUseCase = new GetBudgetGoalAllocationsUseCase(budgetGoalAllocationRepository);
+  const transactionExportUseCase = new TransactionExportUseCase(transactionRepository);
+  const transactionImportUseCase = new TransactionImportUseCase(transactionRepository, accountRepository);
 
   return {
     ensureDefaultAccountUseCase,
@@ -171,15 +143,9 @@ export async function createDependencies(
     createCategoryUseCase,
     updateCategoryUseCase,
     deleteCategoryUseCase,
-    exportUseCase,
-    importUseCase,
-    dataExportService,
-    processRecurringTransactionsUseCase,
-    setBudgetGoalAllocationsUseCase,
-    getBudgetGoalAllocationsUseCase,
+    transactionExportUseCase,
+    transactionImportUseCase,
     vendorRepository,
     categoryRepository,
-    recurringTransactionRepository,
-    budgetGoalAllocationRepository,
   };
 }
