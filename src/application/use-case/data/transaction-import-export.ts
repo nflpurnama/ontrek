@@ -126,7 +126,7 @@ export class TransactionImportUseCase {
         const allTransactions = await this.transactionRepo.findTransactions({});
         let balance = 0;
         for (const t of allTransactions) {
-          if (t.type === "INCOME" || t.type === "ADJ") {
+          if (t.type === "INCOME") {
             balance += t.amount;
           } else {
             balance -= t.amount;
