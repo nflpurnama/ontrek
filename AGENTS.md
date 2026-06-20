@@ -11,7 +11,7 @@ Ontrek is a React Native (Expo) financial tracking app using Clean Architecture.
 
 Before any git commit:
 1. Run `git status` to show changes
-2. Run `git diff` to show staged changes  
+2. Run `git diff` to show staged changes
 3. Run `git log` to show recent commit style
 4. Present a clear summary of what will be committed
 5. Ask for explicit approval before proceeding
@@ -20,15 +20,6 @@ If the user approves:
 - Stage relevant files
 - Create commit with message
 - Verify with `git status` after
-
-## Build & Test Commands
-
-```bash
-# Development
-npm start                    # Start Expo dev server
-npm run android              # Start with Android
-npm run ios                  # Start with iOS
-npm run web                  # Start with web
 
 # Linting
 npm run lint                 # Run ESLint (expo lint)
@@ -39,13 +30,18 @@ npm test -- src/__tests__/domain/Transaction.test.ts   # Run single test file
 npm test -- --watch        # Watch mode
 npm test -- --coverage     # With coverage
 
-# EAS Builds
-eas build --platform android --profile preview
-eas build --platform ios --profile preview
-eas build --platform android --profile production
-eas build --platform ios --profile production
-eas build:list             # List builds
-```
+## Local Build (Android AAB)
+
+**CRITICAL: NEVER run `npx expo prebuild --clean`. It wipes the Android directory including signing config.**
+
+**CRITICAL: NEVER run any `eas` commands. EAS clears the Android signing keys.**
+
+When the user says "build the app" or anything similar:
+1. Increment version in **all three** files: `app.json` (version + versionCode), `package.json` (version), `android/app/build.gradle` (versionCode + versionName)
+2. Run `./gradlew bundleRelease` from the `android/` directory
+
+Keystore: `.google-play/upload-keystore-version-3.jks` (alias: `upload`, copied to `android/app/upload-keystore.jks`)
+Output: `android/app/build/outputs/bundle/release/app-release.aab`
 
 ## Architecture
 
