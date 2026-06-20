@@ -24,8 +24,6 @@ import { DeleteCategoryUseCase } from "../use-case/category/delete-category";
 import { TransactionExportUseCase, TransactionImportUseCase } from "../use-case/data/transaction-import-export";
 import { VendorRepository } from "@/src/domain/repository/vendor-repository";
 import { CategoryRepository } from "@/src/domain/repository/category-repository";
-import { RecurringTransactionRepository } from "@/src/domain/repository/recurring-transaction-repository";
-import { BudgetGoalAllocationRepository } from "@/src/domain/repository/budget-goal-allocation-repository";
 
 export interface Dependencies {
   ensureDefaultAccountUseCase: EnsureDefaultAccountUseCase,
