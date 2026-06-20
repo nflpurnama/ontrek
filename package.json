@@ -1,7 +1,7 @@
 {
   "name": "ontrek",
   "main": "expo-router/entry",
-  "version": "1.6.0",
+  "version": "1.7.1",
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
@@ -24,6 +24,7 @@
   "dependencies": {
     "@expo-google-fonts/cascadia-mono": "^0.4.1",
     "@expo-google-fonts/jetbrains-mono": "^0.4.1",
+    "@expo/cli": "^55.0.29",
     "@expo/vector-icons": "^15.0.3",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/bottom-tabs": "^7.4.0",
