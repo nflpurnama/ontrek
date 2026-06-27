@@ -5,6 +5,7 @@ import { CreateTransactionUseCase } from "@/src/application/use-case/transaction
 import { DeleteTransactionUseCase } from "@/src/application/use-case/transaction/delete-transaction";
 import { UpdateTransactionUseCase } from "@/src/application/use-case/transaction/update-transaction";
 import { ViewTransactionsUseCase } from "@/src/application/use-case/transaction/view-transaction";
+import { GetMonthlyHeatmapUseCase } from "@/src/application/use-case/transaction/get-monthly-heatmap";
 import { CreateVendorUseCase } from "@/src/application/use-case/vendor/create-vendor";
 import { FindVendorsUseCase } from "@/src/application/use-case/vendor/find-vendors";
 import * as SQLite from "expo-sqlite";
@@ -84,6 +85,10 @@ export async function createDependencies(
     transactionRepository,
   );
 
+  const getMonthlyHeatmapUseCase = new GetMonthlyHeatmapUseCase(
+    transactionRepository,
+  );
+
   const createVendorUseCase = new CreateVendorUseCase(vendorRepository);
   const findVendorsUseCase = new FindVendorsUseCase(vendorRepository);
 
@@ -128,6 +133,7 @@ export async function createDependencies(
     updateTransactionUseCase,
     deleteTransactionUseCase,
     viewTransactionsUseCase,
+    getMonthlyHeatmapUseCase,
     createVendorUseCase,
     findVendorsUseCase,
     getAllCategoriesUseCase,

@@ -11,10 +11,15 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { Transaction } from "@/src/domain/entities/transaction";
 import { Vendor } from "@/src/domain/entities/vendor";
 import { Category } from "@/src/domain/entities/category";
+import { TransactionFilter } from "@/src/domain/repository/transaction-repository";
+import { MonthlyHeatmap } from "@/src/application/types/heatmap";
 import { useDependencies } from "@/src/application/providers/dependency-provider";
 import { useTheme } from "@/src/presentation/theme/theme-provider";
 import { formatCurrency } from "@/src/presentation/utility/formatter/currency";
 import { TopBar } from "@/src/presentation/components/top-bar";
+import { HeatmapCalendar } from "@/src/presentation/components/calendar/heatmap-calendar";
+
+type FilterMode = "day" | "month" | "all";
 
 const formatDate = (date: Date): string => {
   return date.toLocaleDateString("en-GB", {
@@ -24,18 +29,46 @@ const formatDate = (date: Date): string => {
   }).toUpperCase();
 };
 
+const isSameDay = (a: Date, b: Date): boolean =>
+  a.getFullYear() === b.getFullYear() &&
+  a.getMonth() === b.getMonth() &&
+  a.getDate() === b.getDate();
+
+const startOfMonth = (d: Date): Date => {
+  const r = new Date(d.getFullYear(), d.getMonth(), 1);
+  r.setHours(0, 0, 0, 0);
+  return r;
+};
+
+const endOfMonth = (d: Date): Date => {
+  const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  return new Date(d.getFullYear(), d.getMonth(), daysInMonth, 23, 59, 59, 999);
+};
+
+const startOfDay = (d: Date): Date => {
+  const r = new Date(d);
+  r.setHours(0, 0, 0, 0);
+  return r;
+};
+
+const endOfDay = (d: Date): Date => {
+  const r = new Date(d);
+  r.setHours(23, 59, 59, 999);
+  return r;
+};
+
 type TransactionGroup = {
   date: string;
   transactions: Transaction[];
 };
 
-const TransactionCard = ({ 
-  date, 
+const TransactionCard = ({
+  date,
   transactions,
   vendorMap,
   categoryMap,
-}: { 
-  date: string; 
+}: {
+  date: string;
   transactions: Transaction[];
   vendorMap: Map<string, string>;
   categoryMap: Map<string, string>;
@@ -96,31 +129,44 @@ const TransactionCard = ({
 
 export default function TransactionsPage() {
   const { theme } = useTheme();
-  const { viewTransactionsUseCase, getAllCategoriesUseCase, findVendorsUseCase } = useDependencies();
+  const { viewTransactionsUseCase, getMonthlyHeatmapUseCase, getAllCategoriesUseCase, findVendorsUseCase } = useDependencies();
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [heatmap, setHeatmap] = useState<MonthlyHeatmap | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const filter = {};
+  const [selectedMonth, setSelectedMonth] = useState<Date>(() => startOfMonth(new Date()));
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  const [filterMode, setFilterMode] = useState<FilterMode>("month");
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [transactionsResult, categoriesResult, vendorsResult] = await Promise.all([
+    let filter: TransactionFilter = {};
+    if (filterMode === "day" && selectedDay) {
+      filter = { startDate: startOfDay(selectedDay), endDate: endOfDay(selectedDay) };
+    } else if (filterMode === "month") {
+      filter = { startDate: startOfMonth(selectedMonth), endDate: endOfMonth(selectedMonth) };
+    }
+    const [transactionsResult, categoriesResult, vendorsResult, heatmapResult] = await Promise.all([
       viewTransactionsUseCase.execute(filter),
       getAllCategoriesUseCase.execute(),
       findVendorsUseCase.execute({}),
+      getMonthlyHeatmapUseCase.execute({ year: selectedMonth.getFullYear(), month: selectedMonth.getMonth() }),
     ]);
     setTransactions(transactionsResult);
     setCategories(categoriesResult);
     setVendors(vendorsResult);
+    setHeatmap(heatmapResult);
     setLoading(false);
-  }, [viewTransactionsUseCase, getAllCategoriesUseCase, findVendorsUseCase]);
+  }, [viewTransactionsUseCase, getMonthlyHeatmapUseCase, getAllCategoriesUseCase, findVendorsUseCase, filterMode, selectedDay, selectedMonth]);
 
-  useFocusEffect(useCallback(() => {
-    load();
-  }, [load]));
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
 
   const vendorMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -136,7 +182,7 @@ export default function TransactionsPage() {
 
   const groupedTransactions = useMemo((): TransactionGroup[] => {
     const groups: { [key: string]: Transaction[] } = {};
-    
+
     transactions.forEach((transaction) => {
       const dateKey = formatDate(transaction.transactionDate);
       if (!groups[dateKey]) {
@@ -154,6 +200,46 @@ export default function TransactionsPage() {
       });
   }, [transactions]);
 
+  const handlePrevMonth = useCallback(() => {
+    setSelectedMonth((prev) => {
+      const d = new Date(prev.getFullYear(), prev.getMonth() - 1, 1);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    });
+    setSelectedDay(null);
+    setFilterMode("month");
+  }, []);
+
+  const handleNextMonth = useCallback(() => {
+    setSelectedMonth((prev) => {
+      const d = new Date(prev.getFullYear(), prev.getMonth() + 1, 1);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    });
+    setSelectedDay(null);
+    setFilterMode("month");
+  }, []);
+
+  const handleDayPress = useCallback((date: Date) => {
+    if (selectedDay && isSameDay(selectedDay, date)) {
+      setSelectedDay(null);
+      setFilterMode("month");
+    } else {
+      setSelectedDay(date);
+      setFilterMode("day");
+    }
+  }, [selectedDay]);
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedDay(null);
+    setFilterMode("month");
+  }, []);
+
+  const handleShowAllTime = useCallback(() => {
+    setSelectedDay(null);
+    setFilterMode("all");
+  }, []);
+
   if (loading) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
@@ -166,10 +252,21 @@ export default function TransactionsPage() {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <TopBar title="ontrek" subtitle="@transactions" />
 
+      <HeatmapCalendar
+        heatmap={heatmap}
+        selectedDay={selectedDay}
+        filterMode={filterMode}
+        onDayPress={handleDayPress}
+        onPrevMonth={handlePrevMonth}
+        onNextMonth={handleNextMonth}
+        onClearSelection={handleClearSelection}
+        onShowAllTime={handleShowAllTime}
+      />
+
       {groupedTransactions.length > 0 ? (
-        <ScrollView 
+        <ScrollView
           style={styles.scrollView}
-          contentContainerStyle={[styles.content, { padding: theme.spacing.lg, paddingTop: theme.spacing.md, paddingBottom: 100 }]}
+          contentContainerStyle={[styles.content, { padding: theme.spacing.lg, paddingTop: 0, paddingBottom: 100 }]}
         >
           {groupedTransactions.map((group) => (
             <TransactionCard

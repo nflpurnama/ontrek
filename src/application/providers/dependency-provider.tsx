@@ -4,6 +4,7 @@ import { CreateTransactionUseCase } from "../use-case/transaction/create-transac
 import { DeleteTransactionUseCase } from "../use-case/transaction/delete-transaction";
 import { UpdateTransactionUseCase } from "../use-case/transaction/update-transaction";
 import { ViewTransactionsUseCase } from "../use-case/transaction/view-transaction";
+import { GetMonthlyHeatmapUseCase } from "../use-case/transaction/get-monthly-heatmap";
 import { CreateVendorUseCase } from "../use-case/vendor/create-vendor";
 import { FindVendorsUseCase } from "../use-case/vendor/find-vendors";
 import { GetAllCategoriesUseCase } from "../use-case/category/get-all-categories";
@@ -33,6 +34,7 @@ export interface Dependencies {
   updateTransactionUseCase: UpdateTransactionUseCase;
   deleteTransactionUseCase: DeleteTransactionUseCase;
   viewTransactionsUseCase: ViewTransactionsUseCase;
+  getMonthlyHeatmapUseCase: GetMonthlyHeatmapUseCase;
   createVendorUseCase: CreateVendorUseCase;
   findVendorsUseCase: FindVendorsUseCase;
   getAllCategoriesUseCase: GetAllCategoriesUseCase;
